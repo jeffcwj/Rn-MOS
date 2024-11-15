@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    android:versionCode="1"
+    android:versionName="v6.5"
+    android:installLocation="auto"
+    android:compileSdkVersion="29"
+    android:compileSdkVersionCodename="10"
+    package="com.billflx.csgo"
+    platformBuildVersionCode="29"
+    platformBuildVersionName="10">
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-feature
+        android:name="android.hardware.screen.landscape"
+        android:required="true"/>
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false"/>
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false"/>
+    <uses-feature android:glEsVersion="0x20000"/>
+    <uses-sdk
+        android:minSdkVersion="17"
+        android:targetSdkVersion="24"/>
+    <application
+        android:label="@string/srceng_app_name"
+        android:icon="@drawable/ic_launcher"
+        android:debuggable="true"
+        android:allowAudioPlaybackCapture="true"
+        android:requestLegacyExternalStorage="true">
+        <activity
+            android:label="@string/srceng_app_name"
+            android:name="me.nillerusr.LauncherActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:label="Directory"
+            android:name="me.nillerusr.DirchActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.DIRCH"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            android:label="@string/srceng_app_name"
+            android:name="org.libsdl.app.SDLActivity"
+            android:launchMode="singleTask"
+            android:screenOrientation="sensorLandscape"
+            android:configChanges="layoutDirection|smallestScreenSize|screenSize|uiMode|screenLayout|orientation|navigation|keyboardHidden|keyboard|locale">
+            <intent-filter>
+                <action android:name="org.libsdl.app.SDLACTIVITY"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <service
+            android:name="me.nillerusr.UpdateService"
+            android:stopWithTask="false"/>
+        <meta-data
+            android:name="android.max_aspect"
+            android:value="9999"/>
+        <meta-data
+            android:name="android.allow_multiple_resumed_activities"
+            android:value="true"/>
+    </application>
+</manifest>
