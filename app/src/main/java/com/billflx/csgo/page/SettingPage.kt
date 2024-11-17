@@ -3,6 +3,8 @@ package com.billflx.csgo.page
 import android.app.Activity
 import android.content.Intent
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -107,6 +109,11 @@ private fun ScrollingContent(
     modifier: Modifier = Modifier,
     viewModel: SettingViewModel = viewModel()
 ) {
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        viewModel.refreshGamePath()
+    }
     val context = LocalContext.current
     Column(
         verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.medium)
@@ -129,7 +136,10 @@ private fun ScrollingContent(
            MButton(
                text = stringResource(R.string.srceng_launcher_set_game_path),
                onClick = {
-                   viewModel.startDirchActivity()
+//                   viewModel.startDirchActivity() // 傻逼东西
+//                   StartActivity<DirchActivity>(context)
+                   val intent = Intent(context, DirchActivity::class.java)
+                   launcher.launch(intent)
                }
            )
        }
@@ -139,6 +149,7 @@ private fun ScrollingContent(
             value = viewModel.argv.value,
             onValueChange = {
                 viewModel.argv.value = it
+                viewModel.saveArgv()
             },
             label = {
                 Text(stringResource(R.string.srceng_launcher_command_args))
@@ -148,15 +159,17 @@ private fun ScrollingContent(
             horizontalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal)
         ) {
             MButton(
-                text = "设置分辨率/比例",
+                text = "分辨率1280x960 4:3",
                 onClick = {
                     viewModel.setResolution(width = 1280, height = 960)
+                    viewModel.saveArgv()
                 }
             )
             MButton(
                 text = "恢复默认",
                 onClick = {
                     viewModel.resetArgsToDefault()
+                    viewModel.saveArgv()
                 }
             )
         }

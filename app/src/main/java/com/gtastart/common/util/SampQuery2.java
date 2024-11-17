@@ -237,6 +237,7 @@ public class SampQuery2 {
             long receiveTime = System.currentTimeMillis(); // 记录接收数据包的时间
             long ping = receiveTime - sendTime; // 计算 ping 值
             infos.setPing(ping);
+            infos.setServerIP(serveraddress + ":" + serverport);
 
             buff.order(ByteOrder.LITTLE_ENDIAN);
 

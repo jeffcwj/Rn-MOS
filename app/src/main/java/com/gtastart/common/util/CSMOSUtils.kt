@@ -1,6 +1,9 @@
 package com.gtastart.common.util
 
 import android.util.Log
+import com.billflx.csgo.constant.Constants
+import com.billflx.csgo.data.ModLocalDataSource
+import java.io.File
 
 class CSMOSUtils {
 
@@ -35,8 +38,23 @@ class CSMOSUtils {
             return sb.toString()
         }
 
-        fun saveNickName() {
+        fun saveNickName(nickName: String) {
+            val configFile = File(ModLocalDataSource.getGamePath(), Constants.CONFIG_PATH)
+            val configText = configFile.readText()
+            val sb = StringBuilder()
+            configText.split("\n").forEach { line ->
+                if (line.startsWith("name ")) {
+                    sb.append("name \"").append(nickName).append("\"\n")
+                } else {
+                    sb.append(line).append("\n")
+                }
+            }
+            configFile.writeText(sb.toString())
+        }
 
+        fun saveAutoConnectInfo(serverIP: String) {
+            val configFile = File(ModLocalDataSource.getGamePath(), Constants.AUTOEXEC_CONFIG_PATH)
+            configFile.writeText("sv_pure -1\nconnect $serverIP")
         }
     }
 }

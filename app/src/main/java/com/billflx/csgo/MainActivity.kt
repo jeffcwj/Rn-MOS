@@ -24,18 +24,18 @@ import me.nillerusr.LauncherActivity
 @AndroidEntryPoint
 class MainActivity : LauncherActivity() {
 
-    private lateinit var selectPathResult: ActivityResultLauncher<Intent>
-    private val settingViewModel: SettingViewModel by viewModels()
+//    private lateinit var selectPathResult: ActivityResultLauncher<Intent>
+//    private val settingViewModel: SettingViewModel by viewModels() // 这玩意跟compose里的实例还不一样，日了狗了
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        selectPathResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        /*selectPathResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 val data = result.data
                 settingViewModel.handleActivityResult(data)
             }
-        }
+        }*/
 
         setContentView(R.layout.layout_compose)
         val composeView = findViewById<ComposeView>(R.id.composeView)
@@ -47,21 +47,20 @@ class MainActivity : LauncherActivity() {
             }
         }
 
-        settingViewModel.openDirchActivityEvent.observe(this, Observer {
+/*        settingViewModel.openDirchActivityEvent.observe(this, Observer {
             Log.d("", "onCreate: 触发！")
             startDirchActivity(this)
-        })
-        settingViewModel.startDirchActivity()
+        })*/
     }
 
-    fun startDirchActivity(context: Context) {
+/*    fun startDirchActivity(context: Context) {
         val intent = Intent(context, DirchActivity::class.java)
         selectPathResult.launch(intent)
-    }
+    }*/
 
     override fun onPause() {
         super.onPause()
-        settingViewModel.saveSettings()
+//        settingViewModel.saveSettings()
     }
 
 }

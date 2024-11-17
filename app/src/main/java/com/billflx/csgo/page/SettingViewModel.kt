@@ -36,6 +36,13 @@ class SettingViewModel @Inject constructor() : ViewModel() {
         gamePath.value = ModLocalDataSource.getGamePath()
     }
 
+    fun refreshGamePath() {
+        gamePath.value = ModLocalDataSource.getGamePath()
+    }
+    fun saveArgv() {
+         ModLocalDataSource.setArgv(argv.value)
+    }
+
     fun saveSettings() {
         ModLocalDataSource.setArgv(argv.value)
         ModLocalDataSource.setEnv(env.value)

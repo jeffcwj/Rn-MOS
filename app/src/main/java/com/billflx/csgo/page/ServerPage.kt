@@ -55,6 +55,7 @@ import com.billflx.csgo.MainActivity
 import com.billflx.csgo.bean.SampQueryInfoBean
 import com.billflx.csgo.bean.SampQueryPlayerBean
 import com.gtastart.common.theme.GtaStartTheme
+import com.gtastart.common.util.CSMOSUtils
 import com.gtastart.common.util.MToast
 import com.gtastart.common.util.compose.matchContentHeight
 import com.gtastart.common.util.compose.widget.MAlertDialog
@@ -133,6 +134,7 @@ private fun ServerList(
     val openDialog = rememberSaveable { mutableStateOf(false) }
 
     val serverDetailStr = rememberSaveable { mutableStateOf("") }
+    val currentServerIP = rememberSaveable { mutableStateOf("") }
     val context = LocalContext.current
     when {
         openDialog.value -> {
@@ -152,13 +154,14 @@ private fun ServerList(
                         val focusRequester = remember { FocusRequester() }
 
                         TextField(
+                            maxLines = 1,
                             value = viewModel.nickName.value,
                             onValueChange = {
                                 viewModel.nickName.value = it
                                 viewModel.saveNickName()
                             },
                             label = {
-                                Text("请输入昵称")
+                                Text("请输入昵称", maxLines = 1)
                             },
                             modifier = modifier
                                 .focusRequester(focusRequester)
@@ -175,6 +178,8 @@ private fun ServerList(
                         context.MToast("昵称不能为空")
                         return@MCustomAlertDialog
                     }
+                    CSMOSUtils.saveNickName(viewModel.nickName.value)
+                    CSMOSUtils.saveAutoConnectInfo(currentServerIP.value)
                     if (context is MainActivity) {
                         context.startSource()
                     }
@@ -205,6 +210,7 @@ private fun ServerList(
                 ServerListItemCard(
                     item = item,
                     onClick = {
+                        currentServerIP.value = item.serverIP.orEmpty()
                         serverDetailStr.value = """
                             ${item.serverName}
                             地图：${item.serverMap}

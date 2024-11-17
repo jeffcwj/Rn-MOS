@@ -1,6 +1,7 @@
 package com.billflx.csgo.bean
 
 data class SampQueryInfoBean(
+    var serverIP: String? = null,
     var serverName: String? = null,
     var players: Int = 0,
     var maxPlayers: Int = 0,
