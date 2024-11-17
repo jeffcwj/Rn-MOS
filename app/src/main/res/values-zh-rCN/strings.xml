@@ -30,4 +30,8 @@
     <string name="srceng_game_hl2ep1">半条命2：第一章</string>
     <string name="srceng_game_hl2ep2">半条命2：第二章</string>
     <string name="srceng_game_portal">传送门</string>
+    <string name="resource">资源</string>
+    <string name="server">服务器</string>
+    <string name="home">主页</string>
+    <string name="setting">设置</string>
 </resources>

@@ -16,7 +16,7 @@ android {
         minSdk 21
         targetSdk 24
         versionCode 1
-        versionName "v6.6"
+        versionName "v6.5"
 
         ndkVersion  "25.2.9519653"
         ndk {
@@ -63,13 +63,16 @@ android {
 }
 
 dependencies {
+    implementation fileTree(dir: "libs", include: ["*.jar"])
 
     implementation libs.androidx.core.ktx
     implementation libs.androidx.appcompat
     implementation libs.material
+    implementation "androidx.activity:activity-ktx:1.9.3"
 
     // Hilt 依赖注入
     implementation 'com.google.dagger:hilt-android:2.52'
+    implementation libs.androidx.activity
     kapt 'com.google.dagger:hilt-compiler:2.52'
 
     // google 库

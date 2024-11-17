@@ -21,14 +21,22 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.billflx.csgo.data.ModLocalDataSource;
+import com.gtastart.common.base.BaseComposeActivity;
 import com.valvesoftware.source.R;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import org.libsdl.app.SDLActivity;
 
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
 /* loaded from: classes.dex */
-public class LauncherActivity extends Activity {
+public class LauncherActivity extends AppCompatActivity {
     static EditText EnvEdit = null;
     public static String PKG_NAME = null;
     static final int REQUEST_PERMISSIONS = 42;
@@ -64,6 +72,7 @@ public class LauncherActivity extends Activity {
 
     @Override // android.app.Activity
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_PERMISSIONS && grantResults[0] == -1) {
             Toast.makeText(this, R.string.srceng_launcher_error_no_permission, Toast.LENGTH_LONG).show();
             finish();
@@ -118,12 +127,12 @@ public class LauncherActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         PKG_NAME = getApplication().getPackageName();
-        requestWindowFeature(1);
-        if (sdk >= 21) {
-            super.setTheme(android.R.style.Theme_Material);
-        } else {
-            super.setTheme(android.R.style.Theme);
-        }
+//        requestWindowFeature(1);
+//        if (sdk >= 21) {
+//            super.setTheme(android.R.style.Theme_Material);
+//        } else {
+//            super.setTheme(android.R.style.Theme);
+//        }
         this.mPref = getSharedPreferences("mod", 0);
         setContentView(R.layout.activity_launcher);
         cmdArgs = (EditText) findViewById(R.id.edit_cmdline);
@@ -199,10 +208,16 @@ public class LauncherActivity extends Activity {
         startActivity(intent);
     }
 
+    public void startSource() {
+        Intent intent = new Intent(this, (Class<?>) SDLActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+    }
+
     @Override // android.app.Activity
     public void onPause() {
         Log.v("SRCAPK", "onPause");
-        saveSettings(this.mPref.edit());
+//        saveSettings(this.mPref.edit());
         super.onPause();
     }
 }
