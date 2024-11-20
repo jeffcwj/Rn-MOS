@@ -31,7 +31,8 @@ import com.valvesoftware.source.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainPage(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onStartInstallGuide: () -> Unit
 ) {
     Scaffold(
         topBar = {

@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -115,6 +116,11 @@ private fun ScrollingContent(
         viewModel.refreshGamePath()
     }
     val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.saveSettings()
+    }
+
     Column(
         verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.medium)
     ) {
@@ -134,7 +140,7 @@ private fun ScrollingContent(
                }
            )
            MButton(
-               text = stringResource(R.string.srceng_launcher_set_game_path),
+               text = stringResource(R.string.select),
                onClick = {
 //                   viewModel.startDirchActivity() // 傻逼东西
 //                   StartActivity<DirchActivity>(context)

@@ -1,24 +1,15 @@
 package com.billflx.csgo.page
 
-import android.content.Context
-import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.billflx.csgo.bean.SampQueryInfoBean
-import com.billflx.csgo.bean.SampQueryPlayerBean
 import com.billflx.csgo.constant.Constants
 import com.billflx.csgo.data.ModLocalDataSource
 import com.gtastart.common.util.Coroutines
-import com.gtastart.common.util.MToast
-import com.gtastart.common.util.SampQuery2
+import com.gtastart.common.util.CsMosQuery
 import com.gtastart.common.util.isBlank
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Runnable
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
-import query.Query
 import javax.inject.Inject
 
 @HiltViewModel
@@ -50,13 +41,16 @@ class ServerViewModel @Inject constructor() : ViewModel() {
     }
 
     suspend fun getServerIPList(): List<String> {
-        val samp = SampQuery2(Constants.SOURCE_HOST, Constants.SOURCE_PORT)
+        val samp = CsMosQuery(
+            Constants.SOURCE_HOST,
+            Constants.SOURCE_PORT
+        )
         val ips = samp.serverIps
         return ips
     }
 
     suspend fun getServerInfos(host: String, port: Int): SampQueryInfoBean {
-        val samp = SampQuery2(host, port)
+        val samp = CsMosQuery(host, port)
         val infos = samp.infos
         return infos
     }

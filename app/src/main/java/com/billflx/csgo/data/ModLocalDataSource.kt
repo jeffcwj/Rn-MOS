@@ -2,6 +2,7 @@ package com.billflx.csgo.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import me.nillerusr.LauncherActivity
 
 object ModLocalDataSource {
 
@@ -59,12 +60,12 @@ object ModLocalDataSource {
         sp.setValue("pakversion", version)
     }
 
-    fun getArgv() = sp.getValue("argv", "")
+    fun getArgv() = sp.getValue("argv", "-console -game csmos")
     fun setArgv(value: String) {
         sp.setValue("argv", value)
     }
 
-    fun getGamePath() = sp.getValue("gamepath", "")
+    fun getGamePath() = sp.getValue("gamepath", LauncherActivity.getDefaultDir() + "/srceng")
     fun setGamePath(value: String) {
         sp.setValue("gamepath", value)
     }

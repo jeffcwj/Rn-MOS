@@ -31,4 +31,5 @@
 
     <string name="srceng_dir_choice_btn">設定當前目錄為遊戲資源路徑</string>
     <string name="setting">设置</string>
+    <string name="select">选择</string>
 </resources>

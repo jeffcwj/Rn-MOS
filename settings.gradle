@@ -16,8 +16,15 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven { url 'https://jitpack.io' }
+        maven { url 'https://repo1.maven.org/maven2/' }
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/jcenter' }
     }
 }
 
 rootProject.name = "CSMOS"
 include ':app'
+include ':common'
+project(':common').projectDir = new File(settingsDir, '../Rn_Common/common')
+

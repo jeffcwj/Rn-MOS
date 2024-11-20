@@ -26,8 +26,10 @@ class CSMOSUtils {
         }
 
         fun argsMapToString(map: LinkedHashMap<String, String>): String {
+            val fixedMap = fixArgsOrder(map)
             val sb = StringBuilder()
-            map.entries.forEach {
+            fixedMap.entries.forEach {
+                Log.d(TAG, "argsMapToString: ${it.key}, ${it.value}")
                 sb.append(it.key)
                 sb.append(" ")
                 if (!it.value.isBlank()) {
@@ -35,7 +37,22 @@ class CSMOSUtils {
                     sb.append(" ")
                 }
             }
-            return sb.toString()
+            return sb.toString().trim()
+        }
+
+        fun fixArgsOrder(map: LinkedHashMap<String, String>): LinkedHashMap<String, String> {
+            val fixedMap: LinkedHashMap<String, String> = LinkedHashMap()
+            val suffixMap: LinkedHashMap<String, String>  = LinkedHashMap()
+            map.entries.forEach {
+                if (it.key == "-game") { // -game参数 要求放在最后面
+                    Log.d(TAG, "fixArgsOrder: key: ${it.key}")
+                    suffixMap[it.key] = it.value
+                } else {
+                    fixedMap[it.key] = it.value
+                }
+            }
+            fixedMap.putAll(suffixMap)
+            return fixedMap
         }
 
         fun saveNickName(nickName: String) {

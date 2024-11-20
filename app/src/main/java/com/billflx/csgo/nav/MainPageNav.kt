@@ -20,6 +20,7 @@ import com.billflx.csgo.page.MainPage
 import com.billflx.csgo.page.ServerPage
 import com.billflx.csgo.page.SettingPage
 import com.billflx.csgo.page.SettingViewModel
+import com.gtastart.common.util.compose.navigateSingleTopTo
 import com.valvesoftware.source.R
 
 /**
@@ -58,7 +59,8 @@ enum class MainPageDestination(
 @Composable
 fun MainPageNav(
     navController: NavHostController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    rootNavController: NavHostController
 ) {
     NavHost(
         navController = navController,
@@ -66,7 +68,11 @@ fun MainPageNav(
         modifier = modifier
     ) {
         composable(route = MainPageDestination.AHome.route) {
-            MainPage()
+            MainPage(
+                onStartInstallGuide = {
+                    rootNavController.navigateSingleTopTo(RootDesc.InstallGuide.route)
+                }
+            )
         }
         composable(route = MainPageDestination.AServer.route) {
             ServerPage()

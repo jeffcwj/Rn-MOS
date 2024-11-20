@@ -40,7 +40,9 @@ class MainActivity : LauncherActivity() {
         setContentView(R.layout.layout_compose)
         val composeView = findViewById<ComposeView>(R.id.composeView)
         composeView.setContent {
-            GtaStartTheme {
+            GtaStartTheme(
+                darkTheme = true
+            ) {
                 Surface {
                     RootNav()
                 }

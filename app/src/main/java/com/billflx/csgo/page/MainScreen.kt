@@ -8,6 +8,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.billflx.csgo.nav.MainPageDestination
@@ -16,7 +18,8 @@ import com.gtastart.common.util.compose.navigateSingleTopTo
 
 @Composable
 fun MainScreen(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    rootNavController: NavHostController
 ) {
     val navController = rememberNavController()
     val currentBackStack by navController.currentBackStackEntryAsState()
@@ -43,7 +46,8 @@ fun MainScreen(
         }
     ) {
         MainPageNav(
-            navController = navController
+            navController = navController,
+            rootNavController = rootNavController
         )
     }
 }

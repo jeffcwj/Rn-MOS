@@ -65,6 +65,8 @@ android {
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
 
+    implementation project(':common') // 公共依赖库
+
     implementation libs.androidx.core.ktx
     implementation libs.androidx.appcompat
     implementation libs.material

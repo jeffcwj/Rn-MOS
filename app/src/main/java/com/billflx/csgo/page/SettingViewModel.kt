@@ -10,7 +10,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.billflx.csgo.data.ModLocalDataSource
 import com.gtastart.common.util.CSMOSUtils
-import com.gtastart.common.util.MToast
 import dagger.hilt.android.lifecycle.HiltViewModel
 import me.nillerusr.DirchActivity
 import me.nillerusr.LauncherActivity
@@ -64,17 +63,4 @@ class SettingViewModel @Inject constructor() : ViewModel() {
     fun resetArgsToDefault() {
         argv.value = "-console -game csmos"
     }
-
-    fun handleActivityResult(data: Intent?) {
-        gamePath.value = ModLocalDataSource.getGamePath()
-    }
-
-    fun toast(context: Context) {
-        context.MToast("caoniam ")
-    }
-
-    fun startDirchActivity() {
-        _openDirchActivityEvent.value = "傻逼"
-    }
-
 }

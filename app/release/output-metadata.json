@@ -12,8 +12,8 @@
       "filters": [],
       "attributes": [],
       "versionCode": 1,
-      "versionName": "1.12",
-      "outputFile": "CSMOS_1.12.apk"
+      "versionName": "v6.5",
+      "outputFile": "CSMOS_v6.5.apk"
     }
   ],
   "elementType": "File",
@@ -22,14 +22,14 @@
       "minApi": 28,
       "maxApi": 30,
       "baselineProfiles": [
-        "baselineProfiles/1/CSMOS_1.12.dm"
+        "baselineProfiles/1/CSMOS_v6.5.dm"
       ]
     },
     {
       "minApi": 31,
       "maxApi": 2147483647,
       "baselineProfiles": [
-        "baselineProfiles/0/CSMOS_1.12.dm"
+        "baselineProfiles/0/CSMOS_v6.5.dm"
       ]
     }
   ],
