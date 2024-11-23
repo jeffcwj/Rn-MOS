@@ -2,5 +2,8 @@
 <resources>
 	<color name="hl_color">#F79A10</color>
 	<color name="spin_color">#3F3F3F</color>
+
+	<color name="md_theme_dark_errorContainer">#93000A</color>
+	<color name="md_theme_dark_onErrorContainer">#FFDAD6</color>
 </resources>
 

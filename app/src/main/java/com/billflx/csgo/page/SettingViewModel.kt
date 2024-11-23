@@ -14,6 +14,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import me.nillerusr.DirchActivity
 import me.nillerusr.LauncherActivity
 import javax.inject.Inject
+import javax.inject.Singleton
 
 @HiltViewModel
 class SettingViewModel @Inject constructor() : ViewModel() {

@@ -9,8 +9,11 @@ import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -55,6 +58,9 @@ enum class MainPageDestination(
     fun getIcon(selected: Boolean) : ImageVector = if (selected) iconSelected else iconDefault
 }
 
+val LocalSettingViewModel = staticCompositionLocalOf<SettingViewModel> {
+    error("LocalSettingViewModel Not Provide")
+}
 
 @Composable
 fun MainPageNav(
@@ -62,23 +68,29 @@ fun MainPageNav(
     modifier: Modifier = Modifier,
     rootNavController: NavHostController
 ) {
-    NavHost(
-        navController = navController,
-        startDestination = MainPageDestination.AHome.route,
-        modifier = modifier
+    val settingViewModel = hiltViewModel<SettingViewModel>()
+
+    CompositionLocalProvider(
+        LocalSettingViewModel provides settingViewModel,
     ) {
-        composable(route = MainPageDestination.AHome.route) {
-            MainPage(
-                onStartInstallGuide = {
-                    rootNavController.navigateSingleTopTo(RootDesc.InstallGuide.route)
-                }
-            )
-        }
-        composable(route = MainPageDestination.AServer.route) {
-            ServerPage()
-        }
-        composable(route = MainPageDestination.ASetting.route) {
-            SettingPage(navController = navController)
+        NavHost(
+            navController = navController,
+            startDestination = MainPageDestination.AHome.route,
+            modifier = modifier
+        ) {
+            composable(route = MainPageDestination.AHome.route) {
+                MainPage(
+                    onStartInstallGuide = {
+                        rootNavController.navigateSingleTopTo(RootDesc.InstallGuide.route)
+                    }
+                )
+            }
+            composable(route = MainPageDestination.AServer.route) {
+                ServerPage()
+            }
+            composable(route = MainPageDestination.ASetting.route) {
+                SettingPage(navController = navController)
+            }
         }
     }
 }

@@ -44,6 +44,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.billflx.csgo.nav.LocalSettingViewModel
 import com.gtastart.common.theme.GtaStartTheme
 import com.gtastart.common.util.compose.widget.MAlertDialog
 import com.gtastart.common.util.compose.widget.MButton
@@ -59,7 +60,7 @@ fun SettingPage(
     navController: NavController
 ) {
     val backStackEntry = navController.currentBackStackEntryAsState().value
-    val viewModel: SettingViewModel = viewModel()
+    val viewModel: SettingViewModel = LocalSettingViewModel.current
     Scaffold(
         topBar = {
             TopAppBar(
@@ -89,7 +90,7 @@ fun SettingPage(
 @Composable
 private fun SettingContent(
     modifier: Modifier = Modifier,
-    viewModel: SettingViewModel = hiltViewModel()
+    viewModel: SettingViewModel = LocalSettingViewModel.current
 ) {
 
     Column(
@@ -108,7 +109,7 @@ private fun SettingContent(
 @Composable
 private fun ScrollingContent(
     modifier: Modifier = Modifier,
-    viewModel: SettingViewModel = viewModel()
+    viewModel: SettingViewModel = LocalSettingViewModel.current
 ) {
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
