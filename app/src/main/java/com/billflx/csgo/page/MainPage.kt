@@ -44,13 +44,16 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.billflx.csgo.bean.DownloadStatus
+import com.billflx.csgo.nav.LocalRootNav
 import com.billflx.csgo.nav.LocalSettingViewModel
+import com.billflx.csgo.nav.RootDesc
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.gtastart.common.theme.GtaStartTheme
 import com.gtastart.common.util.Coroutines
 import com.gtastart.common.util.MDownload
 import com.gtastart.common.util.MToast
 import com.gtastart.common.util.ZipUtils
+import com.gtastart.common.util.compose.navigateSingleTopTo
 import com.gtastart.common.util.compose.widget.MAlertDialog
 import com.gtastart.common.util.compose.widget.MButton
 import com.gtastart.common.util.compose.widget.MCustomAlertDialog
@@ -428,6 +431,14 @@ private fun StatusCard(
                 text = "游戏数据管理",
                 onClick = {
                     openDownloadDialog.value = true
+                }
+            )
+
+            val navController = LocalRootNav.current
+            MButton(
+                text = "下载管理",
+                onClick = {
+                    navController.navigateSingleTopTo(RootDesc.DownloadManager.route)
                 }
             )
         }
