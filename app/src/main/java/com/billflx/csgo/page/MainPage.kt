@@ -3,13 +3,19 @@ package com.billflx.csgo.page
 import android.content.DialogInterface
 import android.content.Intent
 import android.util.Log
+import android.view.LayoutInflater
+import android.view.ViewGroup
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,11 +24,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -32,18 +43,26 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.billflx.csgo.LocalMainViewModel
+import com.billflx.csgo.bean.DataType
 import com.billflx.csgo.bean.DownloadStatus
+import com.billflx.csgo.constant.Constants
+import com.billflx.csgo.nav.LocalDownloadManagerVM
 import com.billflx.csgo.nav.LocalRootNav
 import com.billflx.csgo.nav.LocalSettingViewModel
 import com.billflx.csgo.nav.RootDesc
@@ -61,7 +80,9 @@ import com.liulishuo.okdownload.DownloadTask
 import com.liulishuo.okdownload.core.cause.EndCause
 import com.liulishuo.okdownload.core.cause.ResumeFailedCause
 import com.valvesoftware.source.R
+import kotlinx.coroutines.launch
 import me.nillerusr.DirchActivity
+import me.nillerusr.LauncherActivity
 import net.lingala.zip4j.util.FileUtils
 import java.io.File
 
@@ -73,6 +94,7 @@ fun MainPage(
 ) {
     Scaffold(
         topBar = {
+            val navController = LocalRootNav.current
             TopAppBar(
                 title = {
                     Text("CS:MOS", modifier = modifier.padding(start = GtaStartTheme.spacing.small))
@@ -82,9 +104,17 @@ fun MainPage(
                         painter = painterResource(R.drawable.ic_launcher),
                         contentDescription = null,
                         modifier = modifier
+                            .padding(start = GtaStartTheme.spacing.normal)
                             .size(36.dp)
                             .clip(MaterialTheme.shapes.medium),
                     )
+                },
+                actions = {
+                    IconButton(onClick = {
+                        navController.navigateSingleTopTo(RootDesc.DownloadManager.route)
+                    }) {
+                        Icon(Icons.Default.FileDownload, contentDescription = "下载管理")
+                    }
                 }
             )
         },
@@ -115,15 +145,16 @@ private fun NoticeCard(
     modifier: Modifier = Modifier
 ) {
     var title by rememberSaveable { mutableStateOf("公告") }
-    var content by rememberSaveable { mutableStateOf("加载中...") }
+    var content = Constants.appUpdateInfo
     val openDialog = rememberSaveable { mutableStateOf(false) }
 
     when {
         openDialog.value -> {
             MAlertDialog(
                 title = title,
-                content = content,
+                content = content.value?.app?.notice?:"获取中...",
                 positiveButtonText = "确定",
+                onPositiveButtonClick = { openDialog.value = false },
                 onDismissRequest = {openDialog.value = false}
             )
         }
@@ -145,7 +176,7 @@ private fun NoticeCard(
                 style = MaterialTheme.typography.titleMedium
             )
             Text(
-                text = content,
+                text = content.value?.app?.notice?:"获取中...",
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -153,250 +184,18 @@ private fun NoticeCard(
 }
 
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun StatusCard(
     modifier: Modifier = Modifier,
-    viewModel: MainViewModel = hiltViewModel(),
+    viewModel: MainViewModel = LocalMainViewModel.current
 ) {
     val openDownloadDialog = viewModel.openDownloadDialog
     val context = LocalContext.current
 
     when {
         openDownloadDialog.value -> {
-            viewModel.loadFinishList()
-            var selectedPageIndex by remember { mutableStateOf(0) }
-            MCustomAlertDialog(
-                title = "下载资源",
-                content = {
-                    Column {
-                        Box { // Tab标签区域
-                            TabRow(
-                                selectedTabIndex = selectedPageIndex,
-                            ) {
-                                Tab(
-                                    selected = selectedPageIndex == 0,
-                                    onClick = {
-                                        selectedPageIndex = 0
-                                    }
-                                ) {
-                                    Text("游戏数据")
-                                }
-                                Tab(
-                                    selected = selectedPageIndex == 1,
-                                    onClick = {
-                                        selectedPageIndex = 1
-                                    }
-                                ) {
-                                    Text("下载列表")
-                                }
-                                Tab(
-                                    selected = selectedPageIndex == 2,
-                                    onClick = {
-                                        selectedPageIndex = 2
-                                    }
-                                ) {
-                                    Text("已下载")
-                                }
-                            }
-                        }
 
-                        if (selectedPageIndex == 0) { // 游戏数据
-                            LazyColumn {
-                                items(viewModel.gameResList) { item ->
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            modifier = Modifier.weight(1f),
-                                            text = item.title.orEmpty(),
-                                            maxLines = 1
-                                        )
-                                        MButton(
-                                            text = "下载",
-                                            onClick = {
-                                                viewModel.addToDownloadList(item)
-                                                selectedPageIndex = 1
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                        } else if (selectedPageIndex == 1) { // 下载列表
-                            LazyColumn {
-                                items(viewModel.mDownloadList) { item ->
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Column(
-                                            modifier = modifier.weight(1f),
-                                            verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.small)
-                                        ) {
-                                            Text(item.gameResData?.title.orEmpty())
-                                            if (item.downloadStatusData?.downloadStatus?.value == DownloadStatus.Started) {
-                                                Text("加载中")
-                                            } else {
-                                                Text(item.downloadStatusData?.downloadProgressStr?.value.orEmpty())
-                                            }
-                                        }
-                                        var btnEnabled = remember { mutableStateOf(true) }
-                                        if (item.downloadStatusData?.downloadStatus?.value == DownloadStatus.Finished) {
-                                            viewModel.addToDownloadFinishList(
-                                                item.mDownload?.getDownloadTask()?.filename.orEmpty(),
-                                                item.mDownload?.getDownloadTask()?.file?.length().toString(),
-                                                item.mDownload?.getDownloadTask()?.file?.absolutePath.orEmpty())
-                                            viewModel.mDownloadList.remove(item)
-                                            selectedPageIndex = 2
-                                        }
-                                        MButton(
-                                            enabled = btnEnabled.value,
-                                            text = if (item.downloadStatusData?.downloadStatus?.value == DownloadStatus.PAUSE)
-                                                        "继续"
-                                                    else if (item.downloadStatusData?.downloadStatus?.value == DownloadStatus.Finished)
-                                                        "完成"
-                                            else
-                                                "暂停",
-                                            onClick = {
-                                                if (item.downloadStatusData?.downloadStatus?.value == DownloadStatus.PAUSE) {
-                                                    item.mDownload?.start()
-                                                } else {
-                                                    item.mDownload?.stop()
-                                                }
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                        } else if (selectedPageIndex == 2) { // 已下载
-
-                            LazyColumn {
-                                items(viewModel.gameDownloadFinishList) { item ->
-                                    var buttonEnabled = remember { mutableStateOf(true) }
-                                    var btnText = remember { mutableStateOf("解压") }
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.small)
-                                    ) {
-                                        Column(
-                                            modifier = modifier.weight(1f),
-                                            verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.small)
-                                        ) {
-                                            Text(item.name.orEmpty())
-                                            Text(item.path.orEmpty(),
-                                                maxLines = 1,
-                                                style = MaterialTheme.typography.bodySmall)
-                                        }
-                                        MButton(
-                                            enabled = buttonEnabled.value,
-                                            text = btnText.value,
-                                            onClick = {
-                                                if (item.path?.endsWith(".7z") == true) {
-                                                    buttonEnabled.value = false
-                                                    Coroutines.ioThenMain(
-                                                        work = {
-                                                            ZipUtils.sevenUnZip(
-                                                                pathFrom = File(item.path.orEmpty()).absolutePath,
-                                                                pathTo = File(item.path.orEmpty()).parentFile.absolutePath,
-                                                                listener = object : ZipUtils.Companion.ProgressListener {
-                                                                    override fun onProgressUpdate(
-                                                                        percent: Int
-                                                                    ) {
-                                                                        btnText.value = "$percent%"
-                                                                    }
-
-                                                                    override fun onCompleted() {
-                                                                        btnText.value = "已完成"
-                                                                        buttonEnabled.value = false
-                                                                    }
-
-                                                                    override fun onError(error: String) {
-                                                                        btnText.value = "重试"
-                                                                        buttonEnabled.value = true
-                                                                    }
-
-                                                                }
-                                                            )
-                                                        },
-                                                        callback = {
-
-                                                        }
-                                                    )
-                                                } else if (item.path?.endsWith(".zip") == true) {
-                                                    buttonEnabled.value = false
-                                                    Coroutines.ioThenMain(
-                                                        work = {
-                                                            ZipUtils.unZip(
-                                                                pathFrom = File(item.path.orEmpty()).absolutePath,
-                                                                pathTo = File(item.path.orEmpty()).parentFile.absolutePath,
-                                                                listener = object : ZipUtils.Companion.ProgressListener {
-                                                                    override fun onProgressUpdate(
-                                                                        percent: Int
-                                                                    ) {
-                                                                        Log.d(
-                                                                            "",
-                                                                            "onProgressUpdate: $percent"
-                                                                        )
-                                                                        btnText.value = "$percent%"
-                                                                    }
-
-                                                                    override fun onCompleted() {
-                                                                        btnText.value = "已完成"
-                                                                        buttonEnabled.value = false
-                                                                    }
-
-                                                                    override fun onError(error: String) {
-                                                                        btnText.value = "重试"
-                                                                        buttonEnabled.value = true
-                                                                    }
-
-                                                                }
-                                                            )
-                                                        },
-                                                        callback = {
-
-                                                        }
-                                                    )
-                                                } else {
-                                                    context.MToast("格式不支持，暂时无法解压")
-                                                }
-                                            }
-                                        )
-
-                                        MButton(
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = colorResource(R.color.md_theme_dark_errorContainer),
-                                                contentColor = colorResource(R.color.md_theme_dark_onErrorContainer)
-                                            ),
-                                            text = "删除",
-                                            onClick = {
-                                                MaterialAlertDialogBuilder(context)
-                                                    .setTitle("提示")
-                                                    .setMessage("是否删除 ${item.name} ？")
-                                                    .setPositiveButton("取消", null)
-                                                    .setNegativeButton("删除") { _, _ ->
-                                                        val isDone = File(item.path).delete()
-                                                        if (isDone) {
-                                                            viewModel.loadFinishList()
-                                                            context.MToast("已删除")
-                                                        } else {
-                                                            context.MToast("删除失败")
-                                                        }
-                                                    }
-                                                    .show()
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                positiveButtonText = "关闭",
-                onPositiveButtonClick = { openDownloadDialog.value = false },
-                onDismissRequest = {}
-            )
         }
     }
 
@@ -420,27 +219,74 @@ private fun StatusCard(
                 style = MaterialTheme.typography.titleMedium
             )
 
-            MButton(
-                text = "选择游戏路径",
-                onClick = {
-                    val intent = Intent(context, DirchActivity::class.java)
-                    launcher.launch(intent)
-                }
-            )
-            MButton(
-                text = "游戏数据管理",
-                onClick = {
-                    openDownloadDialog.value = true
-                }
-            )
+            FlowRow {
+                /*MButton(
+                    text = "选择游戏路径",
+                    onClick = {
+                        val intent = Intent(context, DirchActivity::class.java)
+                        launcher.launch(intent)
+                    }
+                )*/
 
-            val navController = LocalRootNav.current
-            MButton(
-                text = "下载管理",
-                onClick = {
-                    navController.navigateSingleTopTo(RootDesc.DownloadManager.route)
+               val navController = LocalRootNav.current
+                /* MButton(
+                    text = "下载管理",
+                    onClick = {
+                        navController.navigateSingleTopTo(RootDesc.DownloadManager.route)
+                    }
+                )*/
+
+                val downloadManagerVM = LocalDownloadManagerVM.current
+                val coroutineScope = rememberCoroutineScope()
+
+                LaunchedEffect(context) {
+                    downloadManagerVM.startDownloadService(context) // 需要添加下载任务之前启动下载服务，否则闪退
                 }
-            )
+
+                //下载数据包按钮
+                MButton(
+                    text = viewModel.addDownloadText.value,
+                    onClick = {
+                        val linkList = Constants.appUpdateInfo.value?.link?.dataLink
+                        lateinit var builder: AlertDialog
+
+                        val inflateView = LayoutInflater.from(context).inflate(R.layout.layout_compose, null)
+                        inflateView.layoutParams = ViewGroup.LayoutParams(-1,-1)
+                        val composeView = inflateView.findViewById<ComposeView>(R.id.composeView)
+                        composeView.setContent {
+                            GtaStartTheme(darkTheme = true) {
+                                Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh) {
+                                    linkList?.forEach { item ->
+                                        val url = item.url
+                                        val title = item.title
+                                        val parentPath = LauncherActivity.getDefaultDir() + Constants.DOWNLOAD_PATH
+                                        Row(modifier = Modifier.padding(GtaStartTheme.spacing.medium), verticalAlignment = Alignment.CenterVertically) {
+                                            Text(title, modifier = Modifier.weight(1f))
+                                            MButton(text = "下载", onClick = {
+                                                coroutineScope.launch {
+                                                    val addDownload = downloadManagerVM.addDownload( // 添加下载任务
+                                                        url = url,
+                                                        parentPath = parentPath,
+                                                        dataType = DataType.GameDataPackage
+                                                    )
+                                                    builder.dismiss() // 关闭弹窗
+                                                    navController.navigateSingleTopTo(RootDesc.DownloadManager.route)
+                                                }
+                                            })
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        builder = MaterialAlertDialogBuilder(context)
+                            .setTitle("选择数据包版本")
+                            .setView(inflateView)
+                            .show()
+//                        addDownload?.let { viewModel.addDownloadText = it.downloadStatusData?.downloadProgressStr?:viewModel.addDownloadText }
+                    }
+                )
+            }
+
         }
     }
 }

@@ -10,7 +10,7 @@ import kotlinx.coroutines.internal.synchronized
 
 @Database(
     entities = [DownloadInfo::class],
-    version = 1,
+    version = 2,
     exportSchema = false // 禁用架构导出，懒得配置没啥用
 )
 abstract class DownloadInfoDatabase : RoomDatabase() {

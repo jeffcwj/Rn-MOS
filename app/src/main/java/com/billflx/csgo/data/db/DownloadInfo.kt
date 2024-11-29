@@ -24,6 +24,8 @@ data class DownloadInfo(
     val totalBytes: Long,
     @ColumnInfo(name = "is_finished")
     val isFinished: Boolean, // 用于获取下载中/已完成列表
+    @ColumnInfo(name = "data_type")
+    val dataType: String, // 文件类型，用于区分按钮的操作，比如是解压游戏数据包还是什么
 ) {
 
 }

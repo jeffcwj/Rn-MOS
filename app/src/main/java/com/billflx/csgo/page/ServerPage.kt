@@ -48,6 +48,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalTextInputService
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -63,6 +64,7 @@ import com.gtastart.common.util.compose.widget.MButton
 import com.gtastart.common.util.compose.widget.MCustomAlertDialog
 import com.gtastart.common.util.extend.StartActivity
 import com.valvesoftware.source.R
+import kotlinx.coroutines.delay
 import me.nillerusr.LauncherActivity
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -136,22 +138,16 @@ private fun ServerList(
     val serverDetailStr = rememberSaveable { mutableStateOf("") }
     val currentServerIP = rememberSaveable { mutableStateOf("") }
     val context = LocalContext.current
+
     when {
         openDialog.value -> {
             MCustomAlertDialog(
                 title = "详情",
                 content = {
-                    val focusManager = LocalFocusManager.current
-                    DisposableEffect(Unit) {
-                        // 确保输入框不会自动获得焦点
-                        focusManager.clearFocus()
-                        onDispose { }
-                    }
                     Column(
                         verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal)
                     ) {
                         Text(serverDetailStr.value)
-                        val focusRequester = remember { FocusRequester() }
 
                         TextField(
                             maxLines = 1,
@@ -163,11 +159,7 @@ private fun ServerList(
                             label = {
                                 Text("请输入昵称", maxLines = 1)
                             },
-                            modifier = modifier
-                                .focusRequester(focusRequester)
-/*                                .focusProperties {
-                                    canFocus = false
-                                }*/
+                            modifier = modifier,
                         )
                     }
 

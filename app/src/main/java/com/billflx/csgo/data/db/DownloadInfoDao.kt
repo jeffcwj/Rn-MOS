@@ -29,4 +29,7 @@ interface DownloadInfoDao {
 
     @Query("delete from downloadinfo where id = :id")
     suspend fun deleteInfoById(id: Int)
+
+    @Query("delete from downloadinfo where url = :url")
+    suspend fun deleteInfoByUrl(url: String)
 }

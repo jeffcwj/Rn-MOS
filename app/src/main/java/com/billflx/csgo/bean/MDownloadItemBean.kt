@@ -4,6 +4,6 @@ import com.gtastart.common.util.MDownload
 
 data class MDownloadItemBean (
     var mDownload: MDownload? = null,
-    var gameResData: GameResItemBean? = null,
+    var gameResData: DownloadExtraInfoBean? = null,
     var downloadStatusData: MDownloadStatusBean? = null
 )

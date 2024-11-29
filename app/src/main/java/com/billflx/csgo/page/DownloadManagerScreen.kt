@@ -3,12 +3,14 @@ package com.billflx.csgo.page
 import android.app.ActivityManager
 import android.content.Context
 import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -36,10 +39,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import com.billflx.csgo.LocalMainViewModel
 import com.billflx.csgo.bean.DownloadStatus
 import com.billflx.csgo.bean.MDownloadItemBean
 import com.billflx.csgo.nav.LocalDownloadManagerVM
 import com.gtastart.common.theme.GtaStartTheme
+import com.gtastart.common.util.MDialog
 import com.gtastart.common.util.MToast
 import com.gtastart.common.util.compose.widget.MButton
 import kotlinx.coroutines.launch
@@ -93,39 +99,6 @@ private fun DownloadManagerContent(
     }
 
     Column {
-        FlowRow {
-            var count by remember { mutableStateOf(1) }
-            MButton(
-                text = "添加测试下载任务",
-                onClick = {
-                    coroutineScope.launch {
-                        val url = "http://106.52.5.176:5244/d/GTADE2024/1.72/apk/GTA_III_1.72_Netflix%E7%BD%91%E9%A3%9E%E7%89%88(AML%2BXLog%2BMT%E6%9C%AC%E5%9C%B0%E5%AD%98%E5%82%A8).apk"
-                        val parentPath = "/sdcard/Download/CSMOSDownload"
-                        val fileName: String? = null //"test$count.zip"
-                        viewModel.addDownload(url, parentPath, fileName)
-                    }
-                    coroutineScope.launch {
-                        val url = "http://106.52.5.176:5244/d/GTADE2024/1.72/apk/GTA_III_1.72.42919648_R%E6%98%9F%E7%89%88(AML%2BXLog%2BMT%E6%9C%AC%E5%9C%B0%E5%AD%98%E5%82%A8).apk"
-                        val parentPath = "/sdcard/Download/CSMOSDownload"
-                        val fileName: String? = null //"test$count.zip"
-                        viewModel.addDownload(url, parentPath, fileName)
-                    }
-                    coroutineScope.launch {
-                        val url = "http://106.52.5.176:5244/d/GTADE2024/1.72/apk/GTA_VC_1.72_Netflix%E7%BD%91%E9%A3%9E%E7%89%88(AML%2BXLog%2BMT%E6%9C%AC%E5%9C%B0%E5%AD%98%E5%82%A8).apk"
-                        val parentPath = "/sdcard/Download/CSMOSDownload"
-                        val fileName: String? = null //"test$count.zip"
-                        viewModel.addDownload(url, parentPath, fileName)
-                    }
-                    coroutineScope.launch {
-                        val url = "http://106.52.5.176:5244/d/189/data/samp2.00_v7_data.zip"
-                        val parentPath = "/sdcard/Download/CSMOSDownload"
-                        val fileName: String? = null //"test$count.zip"
-                        viewModel.addDownload(url, parentPath, fileName)
-                    }
-
-                }
-            )
-        }
 
         var selectedPageIndex by remember { mutableStateOf(0) }
         TabRow(
@@ -188,6 +161,7 @@ private fun DownloadedItem(
     item: MDownloadItemBean
 ) {
     val context = LocalContext.current
+    val viewModel = LocalDownloadManagerVM.current
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -206,7 +180,10 @@ private fun DownloadedItem(
         MButton(
             text = "操作",
             onClick = {
-                context.MToast("操作")
+                viewModel.downloadedContentOperation(
+                    context = context,
+                    item = item)
+
             }
         )
 
@@ -221,6 +198,9 @@ private fun DownloadingItem(
     val downloadStatus = item.downloadStatusData?.downloadStatus
     val mDownload = item.mDownload
     var buttonDownloadText by rememberSaveable { mutableStateOf("暂停") }
+    val context = LocalContext.current
+    val downloadManagerVM = LocalDownloadManagerVM.current
+    val scope = rememberCoroutineScope()
 
     Row(
         modifier = modifier
@@ -287,7 +267,24 @@ private fun DownloadingItem(
 
         IconButton(
             onClick = {
-
+                MDialog.show(
+                    context = context,
+                    customView = { dialog ->
+                        val modifier = Modifier
+                        GtaStartTheme(darkTheme = true) {
+                            Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh) {
+                                Column(modifier.clickable {
+                                    scope.launch {
+                                        downloadManagerVM.removeDownloadingItem(item)
+                                    }
+                                    dialog.dismiss()
+                                }.padding(GtaStartTheme.spacing.medium)) {
+                                    Text(text = "删除")
+                                }
+                            }
+                        }
+                    }
+                )
             }
         ) {
             Icon(
