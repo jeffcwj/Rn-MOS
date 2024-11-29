@@ -173,6 +173,21 @@ private fun ScrollingContent(
                 }
             )
             MButton(
+                text = "分辨率1920x1200 16:10",
+                onClick = {
+                    viewModel.setResolution(width = 1920, height = 1200)
+                    viewModel.saveArgv()
+                }
+            )
+
+            MButton(
+                text = "分辨率2560x1600 16:10",
+                onClick = {
+                    viewModel.setResolution(width = 2560, height = 1600)
+                    viewModel.saveArgv()
+                }
+            )
+            MButton(
                 text = "恢复默认",
                 onClick = {
                     viewModel.resetArgsToDefault()

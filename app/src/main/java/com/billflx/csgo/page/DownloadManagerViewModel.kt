@@ -323,6 +323,15 @@ class DownloadManagerViewModel @Inject constructor(
         dataType: String,
         startNow: Boolean = true,
     ): MDownloadItemBean? {
+        // 修复路径问题
+        val parentFile = File(parentPath)
+        if (!parentFile.isDirectory) {
+            parentFile.delete()
+        }
+        if (!parentFile.exists()) {
+            parentFile.mkdirs()
+        }
+
         val downloadStatusData = MDownloadStatusBean()
 
         val listener = setupListener(downloadStatusData)

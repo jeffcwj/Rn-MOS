@@ -73,5 +73,10 @@ class CSMOSUtils {
             val configFile = File(ModLocalDataSource.getGamePath(), Constants.AUTOEXEC_CONFIG_PATH)
             configFile.writeText("sv_pure -1\nconnect $serverIP")
         }
+
+        fun removeAutoConnectInfo() {
+            val configFile = File(ModLocalDataSource.getGamePath(), Constants.AUTOEXEC_CONFIG_PATH)
+            configFile.writeText("")
+        }
     }
 }

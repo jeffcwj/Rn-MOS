@@ -16,11 +16,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CardElevation
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -73,6 +75,8 @@ fun ServerPage(
     modifier: Modifier = Modifier,
     viewModel: ServerViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -91,15 +95,35 @@ fun ServerPage(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    viewModel.refreshServerList()
-                },
+            Column(
+                verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal),
+                horizontalAlignment = Alignment.End
             ) {
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = null
-                )
+                /*FloatingActionButton(
+                    onClick = {
+                        viewModel.refreshServerList()
+                    },
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = null
+                    )
+                }*/
+
+                ExtendedFloatingActionButton (
+                    onClick = {
+                        CSMOSUtils.removeAutoConnectInfo()
+                        if (context is MainActivity) {
+                            context.startSource()
+                        }
+                    },
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PlayArrow,
+                        contentDescription = null
+                    )
+                    Text("启动游戏主界面")
+                }
             }
         }
     ) { innerPadding ->

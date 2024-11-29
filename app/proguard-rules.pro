@@ -19,3 +19,21 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+-dontwarn com.billflx.csgo.bean.**
+-keep class com.billflx.csgo.bean.* { *; }
+
+-dontwarn com.valvesoftware.**
+-keep class com.valvesoftware.* { *; }
+
+-dontwarn me.nillerusr.**
+-keep class me.nillerusr.* { *; }
+
+-dontwarn org.libsdl.app.**
+-keep class org.libsdl.app.* { *; }
+
+-dontwarn com.gtastart.common.base.bean.**
+-keep class com.gtastart.common.base.bean.* { *; }
+
+
+

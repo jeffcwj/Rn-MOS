@@ -55,6 +55,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -79,6 +80,7 @@ import com.gtastart.common.util.compose.widget.MCustomAlertDialog
 import com.liulishuo.okdownload.DownloadTask
 import com.liulishuo.okdownload.core.cause.EndCause
 import com.liulishuo.okdownload.core.cause.ResumeFailedCause
+import com.valvesoftware.source.BuildConfig
 import com.valvesoftware.source.R
 import kotlinx.coroutines.launch
 import me.nillerusr.DirchActivity
@@ -97,7 +99,7 @@ fun MainPage(
             val navController = LocalRootNav.current
             TopAppBar(
                 title = {
-                    Text("CS:MOS", modifier = modifier.padding(start = GtaStartTheme.spacing.small))
+                    Text("CS:MOS ${BuildConfig.VERSION_NAME}", modifier = modifier.padding(start = GtaStartTheme.spacing.small))
                 },
                 navigationIcon = {
                     Image(
