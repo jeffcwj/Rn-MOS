@@ -258,23 +258,25 @@ private fun StatusCard(
                         composeView.setContent {
                             GtaStartTheme(darkTheme = true) {
                                 Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh) {
-                                    linkList?.forEach { item ->
-                                        val url = item.url
-                                        val title = item.title
-                                        val parentPath = LauncherActivity.getDefaultDir() + Constants.DOWNLOAD_PATH
-                                        Row(modifier = Modifier.padding(GtaStartTheme.spacing.medium), verticalAlignment = Alignment.CenterVertically) {
-                                            Text(title, modifier = Modifier.weight(1f))
-                                            MButton(text = "下载", onClick = {
-                                                coroutineScope.launch {
-                                                    val addDownload = downloadManagerVM.addDownload( // 添加下载任务
-                                                        url = url,
-                                                        parentPath = parentPath,
-                                                        dataType = DataType.GameDataPackage
-                                                    )
-                                                    builder.dismiss() // 关闭弹窗
-                                                    navController.navigateSingleTopTo(RootDesc.DownloadManager.route)
-                                                }
-                                            })
+                                    Column {
+                                        linkList?.forEach { item ->
+                                            val url = item.url
+                                            val title = item.title
+                                            val parentPath = LauncherActivity.getDefaultDir() + Constants.DOWNLOAD_PATH
+                                            Row(modifier = Modifier.padding(GtaStartTheme.spacing.medium), verticalAlignment = Alignment.CenterVertically) {
+                                                Text(title, modifier = Modifier.weight(1f))
+                                                MButton(text = "下载", onClick = {
+                                                    coroutineScope.launch {
+                                                        val addDownload = downloadManagerVM.addDownload( // 添加下载任务
+                                                            url = url,
+                                                            parentPath = parentPath,
+                                                            dataType = DataType.GameDataPackage
+                                                        )
+                                                        builder.dismiss() // 关闭弹窗
+                                                        navController.navigateSingleTopTo(RootDesc.DownloadManager.route)
+                                                    }
+                                                })
+                                            }
                                         }
                                     }
                                 }

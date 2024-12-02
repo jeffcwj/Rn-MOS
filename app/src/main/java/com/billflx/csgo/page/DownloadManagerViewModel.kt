@@ -239,6 +239,7 @@ class DownloadManagerViewModel @Inject constructor(
                 currentOffset: Long,
                 totalLength: Long
             ) {
+                downloadStatusData.retryCount.value = 0 // 正常下载，重试次数清零
                 viewModelScope.launch {
                     val info = getDownloadInfoDB(task.url)
                     info.onSuccess {
@@ -273,7 +274,14 @@ class DownloadManagerViewModel @Inject constructor(
                 } else if (cause == EndCause.CANCELED) {
                     downloadStatusData.downloadStatus.value = DownloadStatus.PAUSE
                 } else {
-                    downloadStatusData.downloadStatus.value = DownloadStatus.ERROR
+                    // 重试最多三次
+                    if (downloadStatusData.retryCount.value < 3) {
+                        Log.d(TAG, "retrying: ${downloadStatusData.retryCount.value}次")
+                        task.enqueue(task.listener)
+                        downloadStatusData.retryCount.value++
+                    } else {
+                        downloadStatusData.downloadStatus.value = DownloadStatus.ERROR // 出现错误
+                    }
                 }
             }
 
@@ -410,14 +418,72 @@ class DownloadManagerViewModel @Inject constructor(
     private fun unZipResource(context: Context, item: MDownloadItemBean?) {
         val fileName = item?.mDownload?.getDownloadTask()?.file?.name
         val filePath = item?.mDownload?.getDownloadTask()?.file?.absolutePath
+        val file = item?.mDownload?.getDownloadTask()?.file
         fileName?.let {
             if (fileName.endsWith(".7z")) {
                 Log.d(TAG, "dealWithFileOperation: 文件格式.7z")
-//                context.MToast("小提示：目前不支持后台解压，切换到其他应用会导致解压中断")
+                val pathTo = ModLocalDataSource.getGamePath()
+                MDialog.show(
+                    context = context,
+                    title = "解压方式",
+                    positiveButtonText = "快速(新)",
+                    onPositiveButtonClick = { _,_ ->
+                        unZipDialog(context, item) // 解压弹窗
+                        viewModelScope.launch(Dispatchers.IO) {
+                            if (file!!.length() > 1024L * 1024L * 1024L) { // 大于1G提示大文件
+                                item.downloadStatusData?.downloadProgressStr?.value = "解压中，大文件耗时长，请耐心等待"
+                            } else {
+                                item.downloadStatusData?.downloadProgressStr?.value = "解压中，请耐心等待"
+                            }
+                            item.downloadStatusData?.downloadStatus?.value = DownloadStatus.Downloading
+                            val result = ZipUtils.nativeUnZip(
+                                pathFrom = filePath.orEmpty(),
+                                pathTo = pathTo,
+                            )
+                            if (result != 0) {
+                                item.downloadStatusData?.downloadProgressStr?.value = "出现错误"
+                                item.downloadStatusData?.downloadStatus?.value = DownloadStatus.Finished
+                            } else {
+                                item.downloadStatusData?.downloadProgressStr?.value = "安装完成"
+                                item.downloadStatusData?.downloadStatus?.value = DownloadStatus.Finished
+                            }
+                        }
+                    },
+                    negativeButtonText = "常规",
+                    onNegativeButtonClick = { _,_ ->
+                        unZipDialog(context, item) // 解压弹窗
+                        viewModelScope.launch(Dispatchers.IO) {
+                            ZipUtils.sevenUnZip(
+                                pathFrom = filePath.orEmpty(),
+                                pathTo = pathTo,
+                                object : ZipUtils.Companion.ProgressListener {
+                                    override fun onProgressUpdate(percent: Int) {
+//                                Log.d(TAG, "onProgressUpdate: $percent")
+                                        item.downloadStatusData?.downloadProgressStr?.value = "$percent %"
+                                        item.downloadStatusData?.downloadStatus?.value = DownloadStatus.Downloading
+                                    }
+
+                                    override fun onCompleted() {
+                                        item.downloadStatusData?.downloadProgressStr?.value = "安装完成"
+                                        item.downloadStatusData?.downloadStatus?.value = DownloadStatus.Finished
+                                    }
+
+                                    override fun onError(error: String) {
+                                        item.downloadStatusData?.downloadProgressStr?.value = "解压失败"
+                                        item.downloadStatusData?.downloadStatus?.value = DownloadStatus.ERROR
+                                    }
+
+                                }
+                            )
+                        }
+                    }
+                )
+            } else if (fileName.endsWith(".zip")) {
+                Log.d(TAG, "dealWithFileOperation: 文件格式.zip")
                 unZipDialog(context, item) // 解压弹窗
                 viewModelScope.launch(Dispatchers.IO) {
                     val pathTo = ModLocalDataSource.getGamePath()
-                    ZipUtils.sevenUnZip(
+                    ZipUtils.unZip(
                         pathFrom = filePath.orEmpty(),
                         pathTo = pathTo,
                         object : ZipUtils.Companion.ProgressListener {
@@ -440,8 +506,6 @@ class DownloadManagerViewModel @Inject constructor(
                         }
                     )
                 }
-            } else if (fileName.endsWith(".zip")) {
-
             } else { // 压缩包没有合适的方法解压，目前支持zip和7z
                 context.MToast("无法识别此压缩包类型，当前仅支持zip和7z")
             }
@@ -504,7 +568,12 @@ class DownloadManagerViewModel @Inject constructor(
                                             val gamePath = ModLocalDataSource.getGamePath()
                                             val file = File(gamePath)
                                             if (!file.exists()) { // 检测文件夹情况
-                                                context.MToast("选择的路径不存在")
+                                                if (file.mkdirs() && file.exists()) {
+                                                    unZipResource(context, item) // 解压文件
+                                                    dialog.dismiss()
+                                                } else {
+                                                    context.MToast("选择的路径不存在")
+                                                }
                                             } else if (!file.isDirectory) {
                                                 context.MToast("选择的路径不是文件夹")
                                             } else if (file.listFiles() != null && file.listFiles()?.size != 0) {

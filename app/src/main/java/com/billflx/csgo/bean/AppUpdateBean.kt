@@ -8,6 +8,7 @@ data class AppUpdateBean(
         val version: String,
         val versionCode: String,
         val updateMsg: String,
+        val allowVersions: String,
         val notice: String,
         val noticeVersion: Int,
         val isPopOutNotice: Int,

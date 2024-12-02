@@ -162,6 +162,7 @@ private fun DownloadedItem(
 ) {
     val context = LocalContext.current
     val viewModel = LocalDownloadManagerVM.current
+    val isExist = item.mDownload?.getDownloadTask()?.file?.exists() ?: false
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -173,7 +174,7 @@ private fun DownloadedItem(
             modifier = modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.small)
         ) {
-            Text(item.mDownload?.fileName.orEmpty())
+            Text(item.mDownload?.fileName.orEmpty() + if (isExist) "(已删除)" else "")
             Text(item.mDownload?.parentPath.orEmpty(),
                 style = MaterialTheme.typography.bodySmall)
         }
