@@ -18,22 +18,41 @@ android {
         //noinspection ExpiredTargetSdkVersion
         targetSdk 24
         versionCode 1
-        versionName "v6.5 r3"
+        versionName "r4"
 
         ndkVersion  "25.2.9519653"
         ndk {
             //noinspection ChromeOsAbiSupport
-            abiFilters 'arm64-v8a', 'armeabi-v7a'
+            abiFilters 'arm64-v8a'// , 'armeabi-v7a'
         }
 //        multiDexEnabled true
 //        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        flavorDimensions "csmos_version"
+        productFlavors {
+            create('v6-5')  {
+                dimension "csmos_version"
+
+            }
+            create('v7-5') {
+                dimension "csmos_version"
+            }
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path file("src/main/cpp/CMakeLists.txt")
+            version "3.22.1"
+        }
     }
 
     android.applicationVariants.configureEach {
         variant ->
             variant.outputs.configureEach {
+                def flavorName = variant.flavorName
                 //在这里修改生成的apk文件名
-                outputFileName = "CSMOS_${variant.versionName}.apk"
+                outputFileName = "CSMOS_${flavorName}_${variant.versionName}.apk"
             }
     }
 

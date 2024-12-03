@@ -10,6 +10,7 @@ import android.widget.RelativeLayout
 import androidx.activity.viewModels
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.lifecycleScope
@@ -100,11 +101,13 @@ class MainActivity : LauncherActivity() {
                             .setCancelable(true)
                         val versions = it.app.allowVersions.split(",")
                         if (versions.contains(Constants.appVersion)) {
-                            builder.setNegativeButton("直接进入") {dialog,_ ->
-                                val launch_screen_rootLayout = findViewById<RelativeLayout>(R.id.launch_screen_rootLayout)
-                                launch_screen_rootLayout.setVisibility(View.GONE)
-                            }
+                            val launch_screen_rootLayout = findViewById<RelativeLayout>(R.id.launch_screen_rootLayout)
+                            launch_screen_rootLayout.setVisibility(View.GONE)
+                            Log.d(TAG, "checkUpdate: hasUpdate!!!!!")
+                            Constants.appUpdateInfo.value?.app?.hasUpdate = mutableStateOf(true)
+                            builder.setNegativeButton("取消") {dialog,_ -> dialog.dismiss() }
                         } else {
+                            Log.d(TAG, "checkUpdate: 版本过老")
                             builder.setNegativeButton("取消") {dialog,_ -> dialog.dismiss() }
                         }
                         builder.show()
@@ -119,7 +122,7 @@ class MainActivity : LauncherActivity() {
                     launch_screen_refresh?.visibility = View.VISIBLE
                 }
             } catch (e: Throwable) { // 保底
-                Log.d(TAG, "checkUpdate: 检测更新失败")
+                Log.d(TAG, "checkUpdate: 检测更新失败 $e")
                 launch_screen_refresh?.visibility = View.VISIBLE
             }
         }

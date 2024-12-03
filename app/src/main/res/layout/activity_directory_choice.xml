@@ -29,6 +29,14 @@
 			android:layout_alignParentBottom="true"
 			android:background="#FF3A3A3A"
 			android:orientation="horizontal">
+
+			<Button
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:textColor="#FFFFFF"
+				android:layout_marginEnd="8dp"
+				android:id="@+id/button_create_folder"
+				android:text="@string/create_folder"/>
 			<Button
 				android:id="@+id/button_choice"
 				android:layout_width="match_parent"

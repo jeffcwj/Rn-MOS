@@ -44,5 +44,6 @@
     <string name="load_failed">加载失败</string>
     <string name="setting">设置</string>
     <string name="select">选择</string>
+    <string name="create_folder">创建文件夹</string>
 
 </resources>

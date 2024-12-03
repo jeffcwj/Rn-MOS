@@ -8,7 +8,7 @@ class Constants {
 
     companion object {
         var appUpdateInfo: MutableState<AppUpdateBean?> = mutableStateOf(null)
-        val appVersion = "v6.5_r3"
+        val appVersion = "v6.5_r4"
 
         const val SOURCE_HOST = "135.125.188.162"
         const val SOURCE_PORT = 27010

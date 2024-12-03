@@ -1,5 +1,8 @@
 package com.billflx.csgo.bean
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+
 data class AppUpdateBean(
     val app: App,
     val link: Link
@@ -16,17 +19,20 @@ data class AppUpdateBean(
         val isDirectLink: Int,
         val enableApp: Int,
         val enableLink: Int,
-        val disableReason: String
+        val disableReason: String,
+        var hasUpdate: MutableState<Boolean> = mutableStateOf(false)
     )
 
     data class Link(
-        val dataLink: List<DataLink>
+        val dataLink: List<DataLink>,
+        val serverRootLink: List<String>
     )
 
     data class DataLink(
         val title: String,
         val url: String
     )
+
 }
 
 

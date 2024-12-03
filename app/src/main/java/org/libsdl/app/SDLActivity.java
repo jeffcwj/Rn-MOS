@@ -184,6 +184,7 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
     public static native void onNativeTouch(int i, int i2, int i3, float f, float f2, float f3);
 
     static {
+        System.loadLibrary("RnMOS");
         mHasMultiWindow = Build.VERSION.SDK_INT >= 24;
         mBrokenLibraries = true;
     }

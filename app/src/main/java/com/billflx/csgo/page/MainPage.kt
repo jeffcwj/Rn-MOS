@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,6 +38,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -69,8 +71,10 @@ import com.billflx.csgo.nav.LocalSettingViewModel
 import com.billflx.csgo.nav.RootDesc
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.gtastart.common.theme.GtaStartTheme
+import com.gtastart.common.util.CSMOSUtils
 import com.gtastart.common.util.Coroutines
 import com.gtastart.common.util.MDownload
+import com.gtastart.common.util.MHelpers
 import com.gtastart.common.util.MToast
 import com.gtastart.common.util.ZipUtils
 import com.gtastart.common.util.compose.navigateSingleTopTo
@@ -80,6 +84,7 @@ import com.gtastart.common.util.compose.widget.MCustomAlertDialog
 import com.liulishuo.okdownload.DownloadTask
 import com.liulishuo.okdownload.core.cause.EndCause
 import com.liulishuo.okdownload.core.cause.ResumeFailedCause
+import com.umeng.commonsdk.statistics.common.HelperUtils
 import com.valvesoftware.source.BuildConfig
 import com.valvesoftware.source.R
 import kotlinx.coroutines.launch
@@ -137,8 +142,47 @@ private fun MainContent(
             .padding(GtaStartTheme.spacing.medium),
         verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal)
     ) {
+        HasUpdateCard()
         NoticeCard()
         StatusCard()
+    }
+}
+
+@Composable
+private fun HasUpdateCard(
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val link = Constants.appUpdateInfo.value?.app?.link
+    val version = Constants.appUpdateInfo.value?.app?.version
+    Log.d("", "HasUpdateCard: 有更新吗")
+    if (Constants.appUpdateInfo.value?.app?.hasUpdate?.value == true) {
+        Log.d("", "HasUpdateCard: 有的")
+
+        ElevatedCard(
+            modifier = modifier
+                .fillMaxWidth()
+        ) {
+            Row(
+                modifier = modifier.fillMaxWidth().padding(horizontal = GtaStartTheme.spacing.medium),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    modifier = modifier.weight(1f),
+                    text = "有新版本 $version"
+                )
+                TextButton(
+                    onClick = {
+                        MHelpers.openBrowser(context, link?:"")
+                    }
+                ) {
+                    Text("更新")
+                }
+            }
+        }
+    }
+    AnimatedVisibility (Constants.appUpdateInfo.value?.app?.hasUpdate?.value == true) {
+
     }
 }
 

@@ -1,17 +1,23 @@
 package me.nillerusr;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.gtastart.common.util.MToast;
 import com.valvesoftware.source.R;
 import java.io.File;
 import java.io.FileFilter;
@@ -28,8 +34,10 @@ public class DirchActivity extends Activity implements View.OnTouchListener {
     public static final int sdk = Integer.valueOf(Build.VERSION.SDK).intValue();
     public SharedPreferences mPref;
 
+    private static final String TAG = "DirchActivity";
+
     @Override // android.view.View.OnTouchListener
-    public boolean onTouch(View v, MotionEvent event) {
+    public boolean onTouch(View v, MotionEvent event) { // 处理列表项点击
         if (event.getAction() == 1) {
             TextView btn = (TextView) v.findViewById(R.id.dirname);
             if (cur_dir == null) {
@@ -67,11 +75,14 @@ public class DirchActivity extends Activity implements View.OnTouchListener {
             } catch (IOException e) {
             }
             body.removeAllViews();
+            // 添加回到上级的item
             View view = ltInflater.inflate(R.layout.directory, (ViewGroup) body, false);
             TextView txt = (TextView) view.findViewById(R.id.dirname);
             txt.setText("..");
             body.addView(view);
             view.setOnTouchListener(this);
+
+            // 添加子文件夹item
             for (File dir : directories) {
                 View view2 = ltInflater.inflate(R.layout.directory, (ViewGroup) body, false);
                 TextView txt2 = (TextView) view2.findViewById(R.id.dirname);
@@ -95,6 +106,7 @@ public class DirchActivity extends Activity implements View.OnTouchListener {
         return list;
     }
 
+    @SuppressLint("MissingInflatedId")
     @Override // android.app.Activity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -125,6 +137,37 @@ public class DirchActivity extends Activity implements View.OnTouchListener {
                 }
             }
         });
+
+        // 创建文件夹
+        Button buttonCreateFolder = findViewById(R.id.button_create_folder);
+        buttonCreateFolder.setOnClickListener(v -> {
+            EditText et = new EditText(this);
+            et.setLayoutParams(new ViewGroup.LayoutParams(-1, -2));
+            et.setHint("请输入文件夹名称");
+            new AlertDialog.Builder(DirchActivity.this) // 还用不了androidx的dialog，没崩住
+                    .setTitle("新建文件夹")
+                    .setView(et)
+                    .setPositiveButton("创建", (dialog, b) -> {
+                        Log.d("", "create folder: " + et.getText().toString());
+                        String folderName = et.getText().toString();
+                        if (folderName.isEmpty()) {
+                            MToast.show(this, "请不要为空");
+                            return;
+                        }
+                        File file = new File(cur_dir, folderName);
+                        if (file.exists()) {
+                            MToast.show(this, "文件夹已存在");
+                            return;
+                        }
+                        if (file.mkdir()) {
+                            ListDirectory(cur_dir + "/" + folderName); // 进入文件夹
+                        } else {
+                            MToast.show(this, "创建失败");
+                        }
+                    })
+                    .show();
+        });
+
         LauncherActivity.changeButtonsStyle((ViewGroup) getWindow().getDecorView());
         List<String> l = getExtStoragePaths();
         if (l == null || l.isEmpty()) {
