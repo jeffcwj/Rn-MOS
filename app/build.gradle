@@ -52,7 +52,7 @@ android {
             variant.outputs.configureEach {
                 def flavorName = variant.flavorName
                 //在这里修改生成的apk文件名
-                outputFileName = "CSMOS_${flavorName}_${variant.versionName}.apk"
+                outputFileName = "Rn:MOS_${flavorName.replace("-", ".")}_${variant.versionName}.apk"
             }
     }
 

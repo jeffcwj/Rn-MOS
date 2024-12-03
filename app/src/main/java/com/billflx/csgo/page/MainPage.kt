@@ -104,7 +104,7 @@ fun MainPage(
             val navController = LocalRootNav.current
             TopAppBar(
                 title = {
-                    Text("CS:MOS ${BuildConfig.VERSION_NAME}", modifier = modifier.padding(start = GtaStartTheme.spacing.small))
+                    Text("CS:MOS ${BuildConfig.FLAVOR.replace("-", ".")} ${BuildConfig.VERSION_NAME}", modifier = modifier.padding(start = GtaStartTheme.spacing.small))
                 },
                 navigationIcon = {
                     Image(
