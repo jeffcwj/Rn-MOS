@@ -3,7 +3,9 @@
 
 
 JavaVM* g_java_vm = nullptr;
+Java* g_java = nullptr;
 SymUtils* g_libEngine = new SymUtils();
+SymUtils* g_libGameUI = new SymUtils();
 
 void installHooks();
 void installPatches();
@@ -29,14 +31,29 @@ jint JNI_OnLoad(JavaVM* vm, [[maybe_unused]] void* reserved)
 
 	g_java_vm = vm;
 
-    GHandle handle = g_libEngine->Open("libengine.so");
-    LOGD("libengine handle: %p", handle);
-    LOGD("libengine addr: %p", g_libEngine->Abs(0));
-    if (!handle) {
-        spdlog::info("Cannot open libengine.so");
+    g_java = new Java(env); // 初始化java
+    if (g_java->getFlavor().empty()) {
         return env->GetVersion();
     }
 
+    GHandle engineHandle = g_libEngine->Open("libengine.so");
+    if (!engineHandle) {
+        spdlog::info("Cannot open libengine.so");
+        return env->GetVersion();
+    }
+    GHandle GameUIHandle = g_libGameUI->Open("libGameUI.so");
+    if (!GameUIHandle) {
+        spdlog::info("Cannot open libGameUI.so");
+        return env->GetVersion();
+    }
+
+    bool isOk = g_Addr.initialize(); // 初始化地址
+    if (!isOk) {
+        spdlog::error("Unsupported version detected"); // 动态库版本不支持
+        return env->GetVersion();
+    }
+
+    // 应用钩子和补丁
     installHooks();
     installPatches();
 

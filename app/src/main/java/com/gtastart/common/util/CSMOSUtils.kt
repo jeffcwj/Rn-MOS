@@ -76,7 +76,7 @@ class CSMOSUtils {
 
         fun removeAutoConnectInfo() {
             val configFile = File(ModLocalDataSource.getGamePath(), Constants.AUTOEXEC_CONFIG_PATH)
-            configFile.writeText("")
+            configFile.writeText("sv_pure -1")
         }
     }
 }

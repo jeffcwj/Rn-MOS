@@ -5,6 +5,7 @@
 #include "SymUtils.h"
 
 extern SymUtils* g_libEngine;
+extern SymUtils* g_libGameUI;
 
 #define DECL_HOOK(_ret, _name, ...) \
     _ret (*_name)(__VA_ARGS__);     \
@@ -15,6 +16,9 @@ extern SymUtils* g_libEngine;
 
 #define HOOK_ENGINE_ADDR(_addr, _name) \
     GlossHookAddr((void*)g_libEngine->Abs((uintptr_t)_addr), (void*)(_name##_hook), (void**)(&_name), false, $ARM64)
+
+#define HOOK_GAMEUI_ADDR(_addr, _name) \
+    GlossHookAddr((void*)g_libGameUI->Abs((uintptr_t)_addr), (void*)(_name##_hook), (void**)(&_name), false, $ARM64)
 
 
 namespace Memory {

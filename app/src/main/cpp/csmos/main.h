@@ -13,6 +13,8 @@
 #include <Gloss.h>
 #include <SymUtils.h>
 #include <Memory.h>
+#include "java.h"
+#include "addresses.h"
 
 class main {
 public:
@@ -22,6 +24,8 @@ private:
 };
 
 extern SymUtils* g_libEngine;
+extern SymUtils* g_libGameUI;
+extern Java* g_java;
 
 #define LOG_TAG "RnMOS"
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
