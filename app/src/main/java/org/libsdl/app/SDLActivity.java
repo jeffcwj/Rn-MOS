@@ -529,6 +529,7 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
             }
         }
         nativeQuit();
+        Process.killProcess(Process.myPid());
         super.onDestroy();
     }
 

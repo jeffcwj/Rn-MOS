@@ -20,7 +20,7 @@ std::string Java::getFlavor() {
         return "";
     }
     // 找类
-    jclass nativeUtilClass = m_Env->FindClass("com/valvesoftware/NativeUtilsOld");
+    jclass nativeUtilClass = m_Env->FindClass("com/valvesoftware/NativeUtils");
     if (nativeUtilClass == nullptr) { // 类没有找到
         return "";
     }
@@ -47,7 +47,7 @@ std::string Java::getFlavor() {
 std::vector<std::string> Java::initMasterServers() {
     std::vector<std::string> serverList;
 
-    jclass nativeUtilClass = m_Env->FindClass("com/valvesoftware/NativeUtilsOld");
+    jclass nativeUtilClass = m_Env->FindClass("com/valvesoftware/NativeUtils");
     if (nativeUtilClass == nullptr) { // 类没有找到
         return serverList;
     }
