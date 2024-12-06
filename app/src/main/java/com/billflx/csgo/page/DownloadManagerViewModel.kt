@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.billflx.csgo.bean.DataType
@@ -395,7 +396,7 @@ class DownloadManagerViewModel @Inject constructor(
         MDialog.show(
             cancelable = true,
             context = context,
-            title = "解压",
+            title = context.getString(R.string.unzip),
             customView = { dialog ->
                 val modifier: Modifier = Modifier
                 GtaStartTheme(darkTheme = true) {
@@ -404,9 +405,12 @@ class DownloadManagerViewModel @Inject constructor(
                             modifier = modifier.padding(GtaStartTheme.spacing.medium),
                             verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal)
                         ) {
-                            Text("小提示：目前不支持后台解压，切换到其他应用可能会导致解压中断",
+                            Text(
+                                stringResource(R.string.tip_not_support_background_unzip),
                                 style = MaterialTheme.typography.bodySmall)
-                            Text(item?.downloadStatusData?.downloadProgressStr?.value?:"准备解压",
+                            Text(item?.downloadStatusData?.downloadProgressStr?.value?: stringResource(
+                                R.string.ready_to_unzip
+                            ),
                                 style = MaterialTheme.typography.titleLarge)
                         }
                     }
@@ -425,15 +429,15 @@ class DownloadManagerViewModel @Inject constructor(
                 val pathTo = ModLocalDataSource.getGamePath()
                 MDialog.show(
                     context = context,
-                    title = "解压方式",
+                    title = context.getString(R.string.unzip_method),
                     positiveButtonText = "快速(新)",
                     onPositiveButtonClick = { _,_ ->
                         unZipDialog(context, item) // 解压弹窗
                         viewModelScope.launch(Dispatchers.IO) {
                             if (file!!.length() > 1024L * 1024L * 1024L) { // 大于1G提示大文件
-                                item.downloadStatusData?.downloadProgressStr?.value = "解压中，大文件耗时长，请耐心等待"
+                                item.downloadStatusData?.downloadProgressStr?.value = context.getString(R.string.tip_unziping_big_file)
                             } else {
-                                item.downloadStatusData?.downloadProgressStr?.value = "解压中，请耐心等待"
+                                item.downloadStatusData?.downloadProgressStr?.value = context.getString(R.string.tip_unzipping)
                             }
                             item.downloadStatusData?.downloadStatus?.value = DownloadStatus.Downloading
                             val result = ZipUtils.nativeUnZip(
@@ -441,15 +445,15 @@ class DownloadManagerViewModel @Inject constructor(
                                 pathTo = pathTo,
                             )
                             if (result != 0) {
-                                item.downloadStatusData?.downloadProgressStr?.value = "出现错误"
+                                item.downloadStatusData?.downloadProgressStr?.value = context.getString(R.string.error_happened)
                                 item.downloadStatusData?.downloadStatus?.value = DownloadStatus.Finished
                             } else {
-                                item.downloadStatusData?.downloadProgressStr?.value = "安装完成"
+                                item.downloadStatusData?.downloadProgressStr?.value = context.getString(R.string.finish_installing)
                                 item.downloadStatusData?.downloadStatus?.value = DownloadStatus.Finished
                             }
                         }
                     },
-                    negativeButtonText = "常规",
+                    negativeButtonText = context.getString(R.string.regular),
                     onNegativeButtonClick = { _,_ ->
                         unZipDialog(context, item) // 解压弹窗
                         viewModelScope.launch(Dispatchers.IO) {
@@ -464,12 +468,12 @@ class DownloadManagerViewModel @Inject constructor(
                                     }
 
                                     override fun onCompleted() {
-                                        item.downloadStatusData?.downloadProgressStr?.value = "安装完成"
+                                        item.downloadStatusData?.downloadProgressStr?.value = context.getString(R.string.install_finished)
                                         item.downloadStatusData?.downloadStatus?.value = DownloadStatus.Finished
                                     }
 
                                     override fun onError(error: String) {
-                                        item.downloadStatusData?.downloadProgressStr?.value = "解压失败"
+                                        item.downloadStatusData?.downloadProgressStr?.value = context.getString(R.string.unzip_failed)
                                         item.downloadStatusData?.downloadStatus?.value = DownloadStatus.ERROR
                                     }
 
@@ -494,12 +498,12 @@ class DownloadManagerViewModel @Inject constructor(
                             }
 
                             override fun onCompleted() {
-                                item.downloadStatusData?.downloadProgressStr?.value = "安装完成"
+                                item.downloadStatusData?.downloadProgressStr?.value = context.getString(R.string.install_finished)
                                 item.downloadStatusData?.downloadStatus?.value = DownloadStatus.Finished
                             }
 
                             override fun onError(error: String) {
-                                item.downloadStatusData?.downloadProgressStr?.value = "解压失败"
+                                item.downloadStatusData?.downloadProgressStr?.value = context.getString(R.string.unzip_failed)
                                 item.downloadStatusData?.downloadStatus?.value = DownloadStatus.ERROR
                             }
 
@@ -507,10 +511,10 @@ class DownloadManagerViewModel @Inject constructor(
                     )
                 }
             } else { // 压缩包没有合适的方法解压，目前支持zip和7z
-                context.MToast("无法识别此压缩包类型，当前仅支持zip和7z")
+                context.MToast(context.getString(R.string.tip_cannot_recognize_zip_type))
             }
         } ?: also {
-            context.MToast("文件格式获取失败")
+            context.MToast(context.getString(R.string.tip_file_type_get_failed))
         }
     }
 
@@ -524,7 +528,7 @@ class DownloadManagerViewModel @Inject constructor(
             if (type == DataType.GameDataPackage) { // 游戏数据包
                 MDialog.show(
                     context = context,
-                    title = "设置数据包安装路径",
+                    title = context.getString(R.string.setup_game_data_install_path),
                     customView = { dialog ->
                         val modifier = Modifier
                         GtaStartTheme(darkTheme = true) {
@@ -541,7 +545,7 @@ class DownloadManagerViewModel @Inject constructor(
                                     horizontalAlignment = Alignment.End,
                                     verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal)) {
                                     Row(modifier = modifier.fillMaxWidth()) {
-                                        Text("请选择一个空文件夹，或使用默认")
+                                        Text(stringResource(R.string.tip_please_select_an_empty_path))
                                     }
                                     Row(modifier = modifier.fillMaxWidth(),
                                         verticalAlignment = Alignment.CenterVertically,
@@ -555,7 +559,7 @@ class DownloadManagerViewModel @Inject constructor(
                                             }
                                         )
                                         MButton(
-                                            text = "选择",
+                                            text = stringResource(R.string.select),
                                             onClick = {
                                                 val intent = Intent(context, DirchActivity::class.java)
                                                 launcher.launch(intent)
@@ -563,7 +567,7 @@ class DownloadManagerViewModel @Inject constructor(
                                         )
                                     }
                                     MButton(
-                                        text = "安装",
+                                        text = stringResource(R.string.install),
                                         onClick = {
                                             val gamePath = ModLocalDataSource.getGamePath()
                                             val file = File(gamePath)
@@ -572,12 +576,12 @@ class DownloadManagerViewModel @Inject constructor(
                                                     unZipResource(context, item) // 解压文件
                                                     dialog.dismiss()
                                                 } else {
-                                                    context.MToast("选择的路径不存在")
+                                                    context.MToast(context.getString(R.string.selected_path_not_exist))
                                                 }
                                             } else if (!file.isDirectory) {
-                                                context.MToast("选择的路径不是文件夹")
+                                                context.MToast(context.getString(R.string.selected_path_not_a_folder))
                                             } else if (file.listFiles() != null && file.listFiles()?.size != 0) {
-                                                context.MToast("选择的路径非空")
+                                                context.MToast(context.getString(R.string.selected_path_not_empty))
                                             }/*else if (file.canWrite()) {
                                                 context.MToast("选择的路径没有写入权限")
                                             }*/ else {
@@ -594,7 +598,7 @@ class DownloadManagerViewModel @Inject constructor(
                 )
             }
         } ?: also {
-            context.MToast("未知文件类型")
+            context.MToast(context.getString(R.string.unknown_file_type))
         }
     }
 
@@ -620,18 +624,20 @@ class DownloadManagerViewModel @Inject constructor(
                                 item?.mDownload?.getDownloadTask()?.file?.let { file: File ->
                                     dealWithFileOperation(context, item) // 执行处理函数
                                 } ?: also {
-                                    context.MToast("文件不存在")
+                                    context.MToast(context.getString(R.string.file_not_exist))
                                 }
                                 builder.dismiss()
                             }
                             .padding(GtaStartTheme.spacing.medium)) {
-                            Text(item?.downloadStatusData?.downloadProgressStr?.value?.let { if (it.isBlank()) "安装" else it }?:"安装", modifier = modifier.fillMaxWidth())
+                            Text(
+                                text = item?.downloadStatusData?.downloadProgressStr?.value?.let { if (it.isBlank()) stringResource(R.string.install) else it }?: stringResource(R.string.install),
+                                modifier = modifier.fillMaxWidth())
                         }
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier
                             .fillMaxWidth()
                             .clickable {
                                 if (item?.downloadStatusData?.downloadStatus?.value == DownloadStatus.Downloading) {
-                                    context.MToast("正在解压，请稍后再试")
+                                    context.MToast(context.getString(R.string.tip_unzipping_plz_try_later))
                                     unZipDialog(context, item)
                                     return@clickable
                                 }
@@ -640,24 +646,24 @@ class DownloadManagerViewModel @Inject constructor(
                                     viewModelScope.launch {
                                         if (!it.exists()) {
                                             removeDownloadInfoDB(url = url)
-                                            context.MToast("文件不存在")
+                                            context.MToast(context.getString(R.string.file_not_exist))
                                             return@launch
                                         }
                                         val isOk = it.delete() // 删除
                                         if (isOk) {
                                             removeDownloadInfoDB(url = url)
-                                            context.MToast("删除成功")
+                                            context.MToast(context.getString(R.string.delete_success))
                                         } else {
-                                            context.MToast("删除失败")
+                                            context.MToast(context.getString(R.string.delete_failed))
                                         }
                                     }
                                 } ?: also {
-                                    context.MToast("删除失败")
+                                    context.MToast(context.getString(R.string.delete_failed))
                                 }
                                 builder.dismiss()
                             }
                             .padding(GtaStartTheme.spacing.medium)) {
-                            Text("删除", modifier = modifier.fillMaxWidth())
+                            Text(stringResource(R.string.delete), modifier = modifier.fillMaxWidth())
                         }
                     }
                 }
@@ -665,7 +671,7 @@ class DownloadManagerViewModel @Inject constructor(
         }
 
         builder = MaterialAlertDialogBuilder(context)
-            .setTitle("操作")
+            .setTitle(context.getString(R.string.operation))
             .setView(view)
             .show()
     }

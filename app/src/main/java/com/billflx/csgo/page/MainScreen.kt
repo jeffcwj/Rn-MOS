@@ -15,6 +15,7 @@ import androidx.navigation.compose.rememberNavController
 import com.billflx.csgo.nav.MainPageDestination
 import com.billflx.csgo.nav.MainPageNav
 import com.gtastart.common.util.compose.navigateSingleTopTo
+import com.gtastart.common.util.compose.navigateWithoutSaveTo
 
 @Composable
 fun MainScreen(
@@ -37,7 +38,14 @@ fun MainScreen(
                             contentDescription = null
                         )
                     },
-                    onClick = { navController.navigateSingleTopTo(it.route) },
+                    onClick = {
+                        navController.navigateSingleTopTo(it.route)
+                        /*if (it.route == MainPageDestination.AServer.route) {
+                            navController.navigateWithoutSaveTo(it.route)
+                        } else {
+                            navController.navigateSingleTopTo(it.route)
+                        }*/
+                    },
                     label = {
                         Text(text = stringResource(it.labelRes))
                     }

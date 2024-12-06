@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.billflx.csgo.LocalMainViewModel
 import com.billflx.csgo.bean.DownloadStatus
@@ -48,6 +49,7 @@ import com.gtastart.common.theme.GtaStartTheme
 import com.gtastart.common.util.MDialog
 import com.gtastart.common.util.MToast
 import com.gtastart.common.util.compose.widget.MButton
+import com.valvesoftware.source.R
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,7 +61,7 @@ fun DownloadManagerScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("下载管理")
+                    Text(stringResource(R.string.download_manager)) // 下载管理
                 },
 
             )
@@ -111,7 +113,7 @@ private fun DownloadManagerContent(
                     selectedPageIndex = 0
                 },
                 text = {
-                    Text("下载中")
+                    Text(stringResource(R.string.downloading))
                 }
             )
             Tab(
@@ -123,7 +125,7 @@ private fun DownloadManagerContent(
                     }
                 },
                 text = {
-                    Text("已完成")
+                    Text(stringResource(R.string.done))
                 }
             )
         }
@@ -179,7 +181,7 @@ private fun DownloadedItem(
                 style = MaterialTheme.typography.bodySmall)
         }
         MButton(
-            text = "操作",
+            text = stringResource(R.string.operation),
             onClick = {
                 viewModel.downloadedContentOperation(
                     context = context,
@@ -198,8 +200,8 @@ private fun DownloadingItem(
 ) {
     val downloadStatus = item.downloadStatusData?.downloadStatus
     val mDownload = item.mDownload
-    var buttonDownloadText by rememberSaveable { mutableStateOf("暂停") }
     val context = LocalContext.current
+    var buttonDownloadText by rememberSaveable { mutableStateOf(context.getString(R.string.pause)) }
     val downloadManagerVM = LocalDownloadManagerVM.current
     val scope = rememberCoroutineScope()
 
@@ -217,23 +219,23 @@ private fun DownloadingItem(
             Text(item.mDownload?.getDownloadTask()?.filename.orEmpty())
             Text(
                 if (downloadStatus?.value == DownloadStatus.Started) {
-                    buttonDownloadText = "暂停"
-                    "连接中"
+                    buttonDownloadText = stringResource(R.string.pause)
+                    stringResource(R.string.connecting)
                 } else if (downloadStatus?.value == DownloadStatus.Downloading) {
-                    buttonDownloadText = "暂停"
-                    item.downloadStatusData?.downloadProgressStr?.value?:"等待中"
+                    buttonDownloadText = stringResource(R.string.pause)
+                    item.downloadStatusData?.downloadProgressStr?.value?: stringResource(R.string.waiting)
                 } else if (downloadStatus?.value == DownloadStatus.IDLE) {
-                    buttonDownloadText = "继续"
-                    "等待中"
+                    buttonDownloadText = stringResource(R.string.resume)
+                    stringResource(R.string.waiting)
                 } else if (downloadStatus?.value == DownloadStatus.PAUSE) {
-                    buttonDownloadText = "继续"
-                    "暂停"
+                    buttonDownloadText = stringResource(R.string.resume)
+                    stringResource(R.string.pause)
                 } else if (downloadStatus?.value == DownloadStatus.ERROR) {
-                    buttonDownloadText = "重试"
-                    "错误"
+                    buttonDownloadText = stringResource(R.string.retry)
+                    stringResource(R.string.error)
                 } else if (downloadStatus?.value == DownloadStatus.Finished) {
-                    buttonDownloadText = "完成"
-                    "完成"
+                    buttonDownloadText = stringResource(R.string.done)
+                    stringResource(R.string.done)
                 } else {
                     "QAQ"
                 },
@@ -245,23 +247,23 @@ private fun DownloadingItem(
             onClick = {
                 if (downloadStatus?.value == DownloadStatus.Started) {
                     mDownload?.stop()
-                    buttonDownloadText = "继续"
+                    buttonDownloadText = context.getString(R.string.resume)
                 } else if (downloadStatus?.value == DownloadStatus.Downloading) {
-                    item.downloadStatusData?.downloadProgressStr?.value?:"等待中"
+                    item.downloadStatusData?.downloadProgressStr?.value?:context.getString(R.string.waiting)
                     mDownload?.stop()
-                    buttonDownloadText = "继续"
+                    buttonDownloadText = context.getString(R.string.resume)
                 } else if (downloadStatus?.value == DownloadStatus.IDLE) {
                     mDownload?.start()
-                    buttonDownloadText = "暂停"
+                    buttonDownloadText = context.getString(R.string.pause)
                 } else if (downloadStatus?.value == DownloadStatus.PAUSE) {
                     mDownload?.start()
-                    buttonDownloadText = "暂停"
+                    buttonDownloadText = context.getString(R.string.pause)
                 } else if (downloadStatus?.value == DownloadStatus.ERROR) {
                     Log.d("", "DownloadItem: 重试")
                     mDownload?.start()
-                    buttonDownloadText = "暂停"
+                    buttonDownloadText = context.getString(R.string.pause)
                 } else if (downloadStatus?.value == DownloadStatus.Finished) {
-                    buttonDownloadText = "完成"
+                    buttonDownloadText = context.getString(R.string.done)
                 }
             }
         )
@@ -274,13 +276,16 @@ private fun DownloadingItem(
                         val modifier = Modifier
                         GtaStartTheme(darkTheme = true) {
                             Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh) {
-                                Column(modifier.clickable {
-                                    scope.launch {
-                                        downloadManagerVM.removeDownloadingItem(item)
-                                    }
-                                    dialog.dismiss()
-                                }.padding(GtaStartTheme.spacing.medium)) {
-                                    Text(text = "删除")
+                                Column(
+                                    modifier
+                                        .clickable {
+                                            scope.launch {
+                                                downloadManagerVM.removeDownloadingItem(item)
+                                            }
+                                            dialog.dismiss()
+                                        }
+                                        .padding(GtaStartTheme.spacing.medium)) {
+                                    Text(text = stringResource(R.string.delete))
                                 }
                             }
                         }

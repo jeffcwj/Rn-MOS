@@ -65,13 +65,14 @@ fun SettingPage(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("设置", modifier = modifier.padding(start = GtaStartTheme.spacing.small))
+                    Text(stringResource(R.string.setting), modifier = modifier.padding(start = GtaStartTheme.spacing.small))
                 },
                 navigationIcon = {
                     Image(
                         painter = painterResource(R.drawable.ic_launcher),
                         contentDescription = null,
                         modifier = modifier
+                            .padding(start = GtaStartTheme.spacing.normal)
                             .size(36.dp)
                             .clip(MaterialTheme.shapes.medium),
                     )
@@ -166,14 +167,14 @@ private fun ScrollingContent(
             horizontalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal)
         ) {
             MButton(
-                text = "分辨率1280x960 4:3",
+                text = "${stringResource(R.string.resolution)} 1280x960 4:3",
                 onClick = {
                     viewModel.setResolution(width = 1280, height = 960)
                     viewModel.saveArgv()
                 }
             )
             MButton(
-                text = "分辨率1920x1200 16:10",
+                text = "${stringResource(R.string.resolution)} 1920x1200 16:10",
                 onClick = {
                     viewModel.setResolution(width = 1920, height = 1200)
                     viewModel.saveArgv()
@@ -181,14 +182,14 @@ private fun ScrollingContent(
             )
 
             MButton(
-                text = "分辨率2560x1600 16:10",
+                text = "${stringResource(R.string.resolution)} 2560x1600 16:10",
                 onClick = {
                     viewModel.setResolution(width = 2560, height = 1600)
                     viewModel.saveArgv()
                 }
             )
             MButton(
-                text = "恢复默认",
+                text = stringResource(R.string.restore_to_default),
                 onClick = {
                     viewModel.resetArgsToDefault()
                     viewModel.saveArgv()
@@ -206,7 +207,7 @@ private fun ScrollingContent(
             }
         )
         MButton(
-            text = "前往原始启动器",
+            text = stringResource(R.string.goto_original_launcher),
             onClick = {
                 StartActivity<LauncherActivity>(context)
             }

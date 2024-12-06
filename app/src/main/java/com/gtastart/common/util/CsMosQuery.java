@@ -27,7 +27,7 @@ import java.util.StringTokenizer;
 
 public class CsMosQuery {
 
-    private static final String TAG = "SampQuery2";
+    private static final String TAG = "CsMosQuery";
 
     private String rconPassword = "";
     private DatagramSocket socket = null;
@@ -114,42 +114,6 @@ public class CsMosQuery {
 
         return pkt;
     }
-    private DatagramPacket initPacket(String type, String command) {
-        DatagramPacket pkt;
-        try {
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append("SAMP");
-            stringBuilder.append("deepdc");
-            stringBuilder.append(type);
-
-            String pktdata = stringBuilder.toString();
-
-            pktdata += (char)(this.rconPassword.length() & 0xFF);
-            pktdata += (char)(this.rconPassword.length() >> 8 & 0xFF);
-            pktdata += this.rconPassword;
-            pktdata += (char)(command.length() & 0xFF);
-            pktdata += (char)(command.length() >> 8 & 0xFF);
-            pktdata += command;
-
-            byte[] IPS;
-            IPS = pktdata.getBytes(charset);
-
-            StringTokenizer IP = new StringTokenizer(serveraddress, ".");
-            IPS[4] = (byte)Integer.parseInt(IP.nextToken());
-            IPS[5] = (byte)Integer.parseInt(IP.nextToken());
-            IPS[6] = (byte)Integer.parseInt(IP.nextToken());
-            IPS[7] = (byte)Integer.parseInt(IP.nextToken());
-            IPS[8] = (byte)(serverport & 255);
-            IPS[9] = (byte)(serverport >> 8 & 255);
-
-            pkt = new DatagramPacket(IPS, IPS.length, serverip, serverport);
-        } catch (Exception e) {
-            pkt = null;
-            return pkt;
-        }
-
-        return pkt;
-    }
 
     private byte[] receiveData() {
         if (socket == null) {
@@ -181,30 +145,6 @@ public class CsMosQuery {
         if (socket != null) {
             socket.close();
         }
-    }
-
-    public boolean isOnline() {
-        if (isValidAddr && socket != null) {
-            byte[] var1 = f();
-            byte[] data = null;
-
-                try {
-                    StringBuilder stringBuilder = new StringBuilder();
-                    stringBuilder.append("p");
-                    String var4 = new String(var1, charset);
-                    stringBuilder.append(var4);
-                    sendPacket(initPacket(stringBuilder.toString()));
-                    data = receiveData();
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-
-            if (data[10] == 112 && data[11] == var1[0] && data[12] == var1[1] && data[13] == var1[2]) {
-                return data[14] == var1[3];
-            }
-        }
-
-        return false;
     }
 
     public static int getStringCountFromBuffer(ByteBuffer buffer){
@@ -319,129 +259,6 @@ public class CsMosQuery {
             return null;
         }
 
-    }
-
-
-    public Map<String, String> getRules() {
-        try {
-            Map<String, String> rulesMap = new LinkedHashMap<>();
-                sendPacket(initPacket("r"));
-                byte[] result = this.receiveData();
-                ByteBuffer buff = ByteBuffer.wrap(result);
-                buff.order(ByteOrder.LITTLE_ENDIAN);
-                buff.position(11);
-
-                int rulescount = buff.getShort();
-                for(int i = 0; i < rulescount; i++) {
-
-                    int rulenamelength = buff.get();
-                    String ruleName = convert(buff,rulenamelength);
-
-                    int rulevaluelength = buff.get();
-                    String ruleValue = convert(buff,rulevaluelength);
-
-                    rulesMap.put(ruleName, ruleValue);
-                }
-                return rulesMap;
-        }
-        catch(Exception e) {
-            return null;
-        }
-    }
-
-    public List<SampQueryPlayerBean> getPlayers() {
-        try {
-            List<SampQueryPlayerBean> playerList = new ArrayList<>();
-            sendPacket(initPacket("d"));
-            byte[] result = this.receiveData();
-            ByteBuffer buff = ByteBuffer.wrap(result);
-            buff.order(ByteOrder.LITTLE_ENDIAN);
-            buff.position(11);
-
-            int playercount = buff.getShort();
-
-            for(int i = 0; i < playercount; i++) {
-                SampQueryPlayerBean bean = new SampQueryPlayerBean();
-                /* ID */
-                int playerid = (int) buff.get() & 0xff;
-                bean.setId(playerid);
-
-                /* Player name */
-                int playernamelength = buff.get();
-                String playerName = convert(buff, playernamelength);
-                bean.setPlayerName(playerName);
-
-                /* Score */
-                int score = buff.getInt();
-                bean.setScore(score);
-
-                /* Ping */
-                int ping = buff.getInt();
-                bean.setPing(ping);
-
-                playerList.add(bean);
-            }
-
-            return playerList;
-        }
-        catch(Exception e) {
-            return null;
-        }
-    }
-
-    public String sendRconCommand(String command) {
-        try {
-            sendPacket(initPacket("x", command));
-//            String result = Arrays.toString(this.receiveData());
-            String result = new String(this.receiveData(), "US-ASCII");
-            return result;
-        }
-        catch(Exception e) {
-            return null;
-        }
-    }
-
-    public boolean isValidRconPassword() {
-        try {
-            sendPacket(initPacket("x", ""));
-            String result = new String(this.receiveData());
-            result = result.substring(13).trim();
-            return !result.equals("Invalid RCON password.");
-        }
-        catch(Exception e) {
-            return false;
-        }
-    }
-
-    public long e() {
-        long var4;
-        long var6;
-        try {
-            byte[] var1 = this.f();
-            StringBuilder var2 = new StringBuilder();
-            var2.append("p");
-            String var3 = new String(var1, charset);
-            var2.append(var3);
-            var4 = System.currentTimeMillis();
-            sendPacket(initPacket(var2.toString()));
-            receiveData();
-            var6 = System.currentTimeMillis();
-        } catch (UnsupportedEncodingException var8) {
-            var8.printStackTrace();
-            return -1L;
-        }
-
-        return var6 - var4;
-    }
-
-    byte[] f() {
-        byte[] var1 = new byte[4];
-        this.f.nextBytes(var1);
-        var1[0] = (byte)(var1[0] % 100 + 110 & 255);
-        var1[1] = (byte)(var1[1] % 128);
-        var1[2] = (byte)(var1[2] % 128);
-        var1[3] = (byte)(var1[3] % 50 & 255);
-        return var1;
     }
 
     private String convert(ByteBuffer buff, int length) throws UnsupportedEncodingException {

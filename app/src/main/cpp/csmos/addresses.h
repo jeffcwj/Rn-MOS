@@ -8,9 +8,10 @@
 
 extern Java* g_java;
 
-static char supportedVersions[][16] {
-    "v6.5"
-};
+/*static char supportedVersions[][16] {
+    "v6.5",
+    "v7.5",
+};*/
 
 class AddressManager {
 public:
@@ -21,6 +22,7 @@ public:
 
     bool initialize() {
         std::string flavor = g_java->getFlavor();
+        spdlog::info("CSMOS version: {}", flavor);
 
         if (flavor == "v6.5") {
             // engine
@@ -32,6 +34,17 @@ public:
             // GameUI
             FUNC_AddUrlButton = 0x48D550;
             FUNC_CBasePanel = 0x48D798;
+            return true;
+        } else if (flavor == "v7.5") {
+            // engine
+            VMT_Master = 0x971480; // ok
+            FUNC_NET_StringToAdr = 0x5B3CB0; // ok
+            FUNC_CMaster_AddServer = 0x620E90; // ok
+            FUNC_CMaster_RequestInternetServerList = 0x6212E0; // ok
+
+            // GameUI
+            FUNC_AddUrlButton = 0x48E0E8; // ok
+            FUNC_CBasePanel = 0x48E488; // ok
             return true;
         } else {
             return false;

@@ -120,7 +120,7 @@ fun MainPage(
                     IconButton(onClick = {
                         navController.navigateSingleTopTo(RootDesc.DownloadManager.route)
                     }) {
-                        Icon(Icons.Default.FileDownload, contentDescription = "下载管理")
+                        Icon(Icons.Default.FileDownload, contentDescription = stringResource(R.string.download_manager))
                     }
                 }
             )
@@ -164,19 +164,21 @@ private fun HasUpdateCard(
                 .fillMaxWidth()
         ) {
             Row(
-                modifier = modifier.fillMaxWidth().padding(horizontal = GtaStartTheme.spacing.medium),
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = GtaStartTheme.spacing.medium),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     modifier = modifier.weight(1f),
-                    text = "有新版本 $version"
+                    text = "${stringResource(R.string.has_new_version)} $version" // 有新版本
                 )
                 TextButton(
                     onClick = {
                         MHelpers.openBrowser(context, link?:"")
                     }
                 ) {
-                    Text("更新")
+                    Text(stringResource(R.string.update))
                 }
             }
         }
@@ -186,11 +188,15 @@ private fun HasUpdateCard(
     }
 }
 
+/**
+ * 公告卡片
+ */
 @Composable
 private fun NoticeCard(
     modifier: Modifier = Modifier
 ) {
-    var title by rememberSaveable { mutableStateOf("公告") }
+    val context = LocalContext.current
+    var title by rememberSaveable { mutableStateOf(context.getString(R.string.notice)) }
     var content = Constants.appUpdateInfo
     val openDialog = rememberSaveable { mutableStateOf(false) }
 
@@ -198,8 +204,8 @@ private fun NoticeCard(
         openDialog.value -> {
             MAlertDialog(
                 title = title,
-                content = content.value?.app?.notice?:"获取中...",
-                positiveButtonText = "确定",
+                content = content.value?.app?.notice?: stringResource(R.string.getting),
+                positiveButtonText = stringResource(R.string.ok),
                 onPositiveButtonClick = { openDialog.value = false },
                 onDismissRequest = {openDialog.value = false}
             )
@@ -222,7 +228,7 @@ private fun NoticeCard(
                 style = MaterialTheme.typography.titleMedium
             )
             Text(
-                text = content.value?.app?.notice?:"获取中...",
+                text = content.value?.app?.notice?: stringResource(R.string.getting),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -261,27 +267,12 @@ private fun StatusCard(
             modifier = modifier.padding(GtaStartTheme.spacing.medium)
         ) {
             Text(
-                text = "功能",
+                text = stringResource(R.string.usage), // 功能
                 style = MaterialTheme.typography.titleMedium
             )
 
             FlowRow {
-                /*MButton(
-                    text = "选择游戏路径",
-                    onClick = {
-                        val intent = Intent(context, DirchActivity::class.java)
-                        launcher.launch(intent)
-                    }
-                )*/
-
                val navController = LocalRootNav.current
-                /* MButton(
-                    text = "下载管理",
-                    onClick = {
-                        navController.navigateSingleTopTo(RootDesc.DownloadManager.route)
-                    }
-                )*/
-
                 val downloadManagerVM = LocalDownloadManagerVM.current
                 val coroutineScope = rememberCoroutineScope()
 
@@ -291,7 +282,7 @@ private fun StatusCard(
 
                 //下载数据包按钮
                 MButton(
-                    text = viewModel.addDownloadText.value,
+                    text = stringResource(viewModel.addDownloadText.value),
                     onClick = {
                         val linkList = Constants.appUpdateInfo.value?.link?.dataLink
                         lateinit var builder: AlertDialog
@@ -309,7 +300,7 @@ private fun StatusCard(
                                             val parentPath = LauncherActivity.getDefaultDir() + Constants.DOWNLOAD_PATH
                                             Row(modifier = Modifier.padding(GtaStartTheme.spacing.medium), verticalAlignment = Alignment.CenterVertically) {
                                                 Text(title, modifier = Modifier.weight(1f))
-                                                MButton(text = "下载", onClick = {
+                                                MButton(text = stringResource(R.string.download), onClick = {
                                                     coroutineScope.launch {
                                                         val addDownload = downloadManagerVM.addDownload( // 添加下载任务
                                                             url = url,
@@ -327,7 +318,7 @@ private fun StatusCard(
                             }
                         }
                         builder = MaterialAlertDialogBuilder(context)
-                            .setTitle("选择数据包版本")
+                            .setTitle(context.getString(R.string.select_game_data_version))
                             .setView(inflateView)
                             .show()
 //                        addDownload?.let { viewModel.addDownloadText = it.downloadStatusData?.downloadProgressStr?:viewModel.addDownloadText }

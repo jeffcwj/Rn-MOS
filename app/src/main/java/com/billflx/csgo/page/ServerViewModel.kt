@@ -1,5 +1,6 @@
 package com.billflx.csgo.page
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -12,6 +13,7 @@ import com.gtastart.common.util.CsMosQuery
 import com.gtastart.common.util.isBlank
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -25,7 +27,7 @@ class ServerViewModel @Inject constructor() : ViewModel() {
 
     var serverInfoList = mutableStateListOf<SampQueryInfoBean>()
     var isRefreshing = mutableStateOf(false)
-    var nickName = mutableStateOf("CSMOS New Player")
+    var nickName = mutableStateOf("RnMOS Player")
 
     init {
         refreshServerList()
@@ -44,45 +46,75 @@ class ServerViewModel @Inject constructor() : ViewModel() {
         return true
     }
 
-    suspend fun getServerIPList(rootLink: String): List<String> {
+    suspend fun getServerIPList(rootLink: String, maxRetryCount: Int = 3): List<String> {
+        var retryCount = 0
         val (host, port) = rootLink.split(":").let { it[0] to it[1].toInt() }
-        val samp = CsMosQuery(host, port)
-        val ips = samp.serverIps
-        return ips
+        while (retryCount < maxRetryCount) {
+            val samp = CsMosQuery(host, port)
+            val ips = samp.serverIps
+            if (ips.size != 0) {
+                Log.d(TAG, "主服务器${rootLink}: 的子ip ${ips}")
+                return ips
+            } else {
+                Log.d(TAG, "主服务器${rootLink} 获取游戏服务器失败")
+            }
+            delay(200)
+            retryCount++
+        }
+        return emptyList<String>()
     }
 
-    suspend fun getServerInfos(host: String, port: Int): SampQueryInfoBean {
-        val samp = CsMosQuery(host, port)
-        val infos = samp.infos
-        return infos
+    suspend fun getServerInfos(host: String, port: Int, maxRetryCount: Int = 5): SampQueryInfoBean {
+        var retryCount = 0
+        while (retryCount < maxRetryCount) {
+            val samp = CsMosQuery(host, port)
+            val infos = samp.infos
+            if (!infos.serverName.isNullOrBlank()) {
+                return infos
+            }
+            delay(200)
+            retryCount++
+        }
+        return SampQueryInfoBean()
     }
 
     fun refreshServerList() {
+        Log.d(TAG, "refreshServerList: 开始刷新")
         if (!isRefreshing.value) {
             isRefreshing.value = true
             serverInfoList.clear() // 清除列表
             viewModelScope.launch(Dispatchers.IO) {
                 Constants.appUpdateInfo.value?.link?.serverRootLink?.let { rootLinks ->
                     rootLinks.forEach { rootLink ->
-                        val ipList = getServerIPList(rootLink)
-                        ipList.forEach { ip ->
-                            launch {
-                                val (host, port) = ip.split(":").let { it[0] to it[1].toInt() }
-                                val infos = getServerInfos(host, port)
-                                withContext(Dispatchers.Main) {
-                                    if (serverInfoList.none { it.serverIP == infos.serverIP }) { // 避免重复添加
-                                        serverInfoList.add(infos)
-                                        serverInfoList.sortByDescending { it.players } // 按照玩家数量排序
+                        launch {
+                            val ipList = getServerIPList(rootLink)
+                            ipList.forEach { ip ->
+                                launch {
+                                    val (host, port) = ip.split(":").let { it[0] to it[1].toInt() }
+                                    val infos = getServerInfos(host, port)
+                                    withContext(Dispatchers.Main) {
+                                        if (serverInfoList.none { it.serverIP == infos.serverIP } && // 避免重复添加
+                                            !infos.serverName.isNullOrBlank()) { // 避免获取空包
+                                            serverInfoList.add(infos)
+                                            serverInfoList.sortByDescending { it.players } // 按照玩家数量降序排序
+                                        }
                                     }
                                 }
                             }
-                        }
-                        withContext(Dispatchers.Main) {
-                            isRefreshing.value = false
+                            withContext(Dispatchers.Main) {
+                                if (ipList.isNotEmpty()) {
+                                    isRefreshing.value = false
+                                }
+                            }
                         }
                     }
                 }
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        Log.d(TAG, "onCleared: 别说真被清理了吧")
     }
 }

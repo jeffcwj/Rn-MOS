@@ -1,5 +1,6 @@
 package com.billflx.csgo.page
 
+import android.app.Application
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -11,6 +12,8 @@ import com.billflx.csgo.bean.MDownloadItemBean
 import com.billflx.csgo.constant.Constants
 import com.billflx.csgo.data.ModLocalDataSource
 import com.billflx.csgo.data.repo.AppRepository
+import com.valvesoftware.source.R
+import dagger.hilt.android.internal.Contexts.getApplication
 import dagger.hilt.android.lifecycle.HiltViewModel
 import me.nillerusr.LauncherActivity
 import java.io.File
@@ -27,9 +30,10 @@ class MainViewModel @Inject constructor(
 
     }
 
-    var noticeContent = mutableStateOf("公告加载中...")
+    var noticeContent = mutableStateOf(R.string.notice_is_loading)
     var openInstallSelectionDialog = mutableStateOf(false)
-    var selectionDialogContent = mutableStateOf("当前目录\n${ModLocalDataSource.getGamePath()}\n为空，请选择下载游戏数据，或选择正确的游戏目录")
+
+    var selectionDialogContent = mutableStateOf(String.format("当前目录\n%s\n为空，请选择下载游戏数据，或选择正确的游戏目录", ModLocalDataSource.getGamePath()))
 
     var openDownloadDialog = mutableStateOf(false)
 
@@ -41,13 +45,12 @@ class MainViewModel @Inject constructor(
 
     var gameDownloadFinishList = mutableStateListOf<GameResLocalItemBean>()
 
-    var addDownloadText = mutableStateOf("下载数据包")
+    var addDownloadText = mutableStateOf(R.string.download_game_data)
 
     init {
         checkGameStatus()
         getGameResList()
     }
-
 
     suspend fun getNotice(): AppUpdateBean? {
         try {

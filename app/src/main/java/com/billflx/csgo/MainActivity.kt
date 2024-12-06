@@ -92,9 +92,9 @@ class MainActivity : LauncherActivity() {
                     Constants.appUpdateInfo.value = it // 存起来方便其他地方访问
                     if (it.app.version != Constants.appVersion) { // 不是最新版本
                         val builder = MaterialAlertDialogBuilder(this@MainActivity)
-                            .setTitle("有新版本 ${it.app.version}")
+                            .setTitle("${getString(R.string.has_new_version)} ${it.app.version}")
                             .setMessage(it.app.updateMsg)
-                            .setPositiveButton("更新"
+                            .setPositiveButton(getString(R.string.update)
                             ) { dialog, which ->
                                 MHelpers.openBrowser(this@MainActivity, it.app.link) // 访问浏览器更新软件
                             }
@@ -105,10 +105,10 @@ class MainActivity : LauncherActivity() {
                             launch_screen_rootLayout.setVisibility(View.GONE)
                             Log.d(TAG, "checkUpdate: hasUpdate!!!!!")
                             Constants.appUpdateInfo.value?.app?.hasUpdate = mutableStateOf(true)
-                            builder.setNegativeButton("取消") {dialog,_ -> dialog.dismiss() }
+                            builder.setNegativeButton(getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
                         } else {
                             Log.d(TAG, "checkUpdate: 版本过老")
-                            builder.setNegativeButton("取消") {dialog,_ -> dialog.dismiss() }
+                            builder.setNegativeButton(getString(R.string.cancel)) {dialog,_ -> dialog.dismiss() }
                         }
                         builder.show()
                         launch_screen_refresh?.visibility = View.VISIBLE

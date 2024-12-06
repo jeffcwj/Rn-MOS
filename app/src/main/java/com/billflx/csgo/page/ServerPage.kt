@@ -1,5 +1,8 @@
 package com.billflx.csgo.page
 
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -52,8 +55,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalTextInputService
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.billflx.csgo.MainActivity
 import com.billflx.csgo.bean.SampQueryInfoBean
 import com.billflx.csgo.bean.SampQueryPlayerBean
@@ -68,6 +75,7 @@ import com.gtastart.common.util.extend.StartActivity
 import com.valvesoftware.source.R
 import kotlinx.coroutines.delay
 import me.nillerusr.LauncherActivity
+import org.libsdl.app.SDLActivity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,13 +89,14 @@ fun ServerPage(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("服务器列表", modifier = modifier.padding(start = GtaStartTheme.spacing.small))
+                    Text(stringResource(R.string.server_list), modifier = modifier.padding(start = GtaStartTheme.spacing.small))
                 },
                 navigationIcon = {
                     Image(
                         painter = painterResource(R.drawable.ic_launcher),
                         contentDescription = null,
                         modifier = modifier
+                            .padding(start = GtaStartTheme.spacing.normal)
                             .size(36.dp)
                             .clip(MaterialTheme.shapes.medium),
                     )
@@ -122,7 +131,7 @@ fun ServerPage(
                         imageVector = Icons.Default.PlayArrow,
                         contentDescription = null
                     )
-                    Text("启动游戏主界面")
+                    Text(stringResource(R.string.launch_game_to_main_interface))
                 }
             }
         }
@@ -153,6 +162,23 @@ private fun ServerList(
     viewModel: ServerViewModel = hiltViewModel()
 ) {
 
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycle = lifecycleOwner.lifecycle
+
+    DisposableEffect(lifecycle) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                // 每次回到此界面都都刷新 会慢半拍
+//                viewModel.refreshServerList()
+            }
+        }
+        lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycle.removeObserver(observer)
+        }
+    }
+
     val serverList = viewModel.serverInfoList
     var isRefreshing by viewModel.isRefreshing
     val refreshState = rememberPullToRefreshState()
@@ -163,10 +189,17 @@ private fun ServerList(
     val currentServerIP = rememberSaveable { mutableStateOf("") }
     val context = LocalContext.current
 
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        // 游戏结束以后刷新列表数据
+        viewModel.refreshServerList()
+    }
+
     when {
         openDialog.value -> {
             MCustomAlertDialog(
-                title = "详情",
+                title = stringResource(R.string.detail),
                 content = {
                     Column(
                         verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal)
@@ -181,24 +214,26 @@ private fun ServerList(
                                 viewModel.saveNickName()
                             },
                             label = {
-                                Text("请输入昵称", maxLines = 1)
+                                Text(stringResource(R.string.please_input_nickname), maxLines = 1)
                             },
                             modifier = modifier,
                         )
                     }
 
                 },
-                positiveButtonText = "开始游戏",
+                positiveButtonText = stringResource(R.string.start_game),
                 onPositiveButtonClick = {
                     if (!viewModel.saveNickName()) {
-                        context.MToast("昵称不能为空")
+                        context.MToast(context.getString(R.string.nickname_cannot_empty))
                         return@MCustomAlertDialog
                     }
                     CSMOSUtils.saveNickName(viewModel.nickName.value)
                     CSMOSUtils.saveAutoConnectInfo(currentServerIP.value)
-                    if (context is MainActivity) {
+                    val intent = Intent(context, SDLActivity::class.java)
+                    launcher.launch(intent) // 回调要刷新列表数据
+                    /*if (context is MainActivity) {
                         context.startSource()
-                    }
+                    }*/
                     openDialog.value = false
                 },
                 onDismissRequest = {openDialog.value = false}
@@ -227,11 +262,12 @@ private fun ServerList(
                     item = item,
                     onClick = {
                         currentServerIP.value = item.serverIP.orEmpty()
+
                         serverDetailStr.value = """
                             ${item.serverName}
-                            地图：${item.serverMap}
-                            人数：${item.playerCountInfo}
-                            延迟：${item.ping} ms
+                            ${context.getString(R.string.map)}：${item.serverMap}
+                            ${context.getString(R.string.player_count)}：${item.playerCountInfo}
+                            ${context.getString(R.string.ping)}：${item.ping} ms
                         """.trimIndent()
                         openDialog.value = true
                     }
@@ -262,18 +298,19 @@ private fun ServerListItemCard(
                 modifier = modifier.weight(1f)
             ) {
                 Text(
-                    text = item.serverName?:"获取失败",
+                    text = item.serverName?: stringResource(R.string.get_failed),
                     style = MaterialTheme.typography.titleSmall,
                     maxLines = 1
                 )
                 Text(
-                    text = item.serverMap?:"获取失败",
+                    text = item.serverMap?: stringResource(R.string.get_failed),
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 1
                 )
             }
             Column(
                 verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.End,
                 modifier = modifier
                     .padding(horizontal = GtaStartTheme.spacing.normal)
                     .fillMaxHeight()
