@@ -4,5 +4,5 @@
 #include "main.h"
 
 void installPatches() {
-
+    Memory::ret(g_libServerBrowser->Abs(0x1DA6A8));
 }

@@ -6,6 +6,7 @@
 
 extern SymUtils* g_libEngine;
 extern SymUtils* g_libGameUI;
+extern SymUtils* g_libServerBrowser;
 
 #define DECL_HOOK(_ret, _name, ...) \
     _ret (*_name)(__VA_ARGS__);     \
@@ -19,6 +20,9 @@ extern SymUtils* g_libGameUI;
 
 #define HOOK_GAMEUI_ADDR(_addr, _name) \
     GlossHookAddr((void*)g_libGameUI->Abs((uintptr_t)_addr), (void*)(_name##_hook), (void**)(&_name), false, $ARM64)
+
+#define HOOK_SERVERBROWSER_ADDR(_addr, _name) \
+    GlossHookAddr((void*)g_libServerBrowser->Abs((uintptr_t)_addr), (void*)(_name##_hook), (void**)(&_name), false, $ARM64)
 
 
 namespace Memory {

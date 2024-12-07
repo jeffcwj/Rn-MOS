@@ -9,19 +9,28 @@
 class Java {
 
 public:
-    Java(JNIEnv *env);
+    Java(JavaVM *g_java_vm, JNIEnv *env);
+
     std::string getFlavor();
     std::vector<std::string> initMasterServers();
     std::vector<std::string> getMasterServers() {
         return m_masterServers;
     };
+    void setupContext(jobject thiz, JNIEnv *env);
+    jobject getContext();
+    void showPasswordDialog();
 
 private:
 
     JNIEnv *m_Env = nullptr;
     std::string m_flavor;
     std::vector<std::string> m_masterServers;
+    jobject activity;
+    JavaVM* javaVM;
 
+    jmethodID m_passwordDialog;
+
+    JNIEnv *getEnv();
 };
 
 

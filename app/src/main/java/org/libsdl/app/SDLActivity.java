@@ -46,11 +46,13 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.gtastart.common.util.MToast;
 import com.valvesoftware.ValveActivity2;
 import com.valvesoftware.source.R;
 import java.util.ArrayList;
@@ -187,6 +189,32 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
         System.loadLibrary("RnMOS");
         mHasMultiWindow = Build.VERSION.SDK_INT >= 24;
         mBrokenLibraries = true;
+    }
+
+    public native void initRnMOS();
+    public native void onPasswordCallBack(String password);
+
+    public void passwordDialog() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                EditText et = new EditText(SDLActivity.this);
+                et.setLayoutParams(new ViewGroup.LayoutParams(-1, -2));
+                et.setHint("请输入服务器密码");
+                new AlertDialog.Builder(SDLActivity.this)
+                        .setTitle("服务器密码")
+                        .setView(et)
+                        .setPositiveButton("进入", (dialog, b) -> {
+                            String pswd = et.getText().toString();
+                            if (pswd.replace(" ", "").isEmpty()) {
+                                MToast.show(SDLActivity.this, "请不要为空");
+                                return;
+                            }
+                            onPasswordCallBack(pswd); // 回调到jni
+                        })
+                        .show();
+            }
+        });
     }
 
     protected static SDLGenericMotionListener_API12 getMotionListener() {
@@ -391,6 +419,13 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
         Log.v(TAG, "Model: " + Build.MODEL);
         Log.v(TAG, "onCreate()");
         super.onCreate(savedInstanceState);
+
+        try {
+            initRnMOS(); // 初始化RnMOS
+        } catch (Throwable e) {
+            Log.e(TAG, "RnMOS init failed: " + e);
+        }
+
         mIsInitCalled = false;
         if (Build.VERSION.SDK_INT >= 23) {
             applyPermissions(new String[]{"android.permission.WRITE_EXTERNAL_STORAGE", "android.permission.RECORD_AUDIO"}, REQUEST_PERMISSIONS);

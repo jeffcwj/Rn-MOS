@@ -25,6 +25,7 @@ private:
 
 extern SymUtils* g_libEngine;
 extern SymUtils* g_libGameUI;
+extern SymUtils* g_libServerBrowser;
 extern Java* g_java;
 
 #define LOG_TAG "RnMOS"

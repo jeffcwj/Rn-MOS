@@ -6,6 +6,7 @@ JavaVM* g_java_vm = nullptr;
 Java* g_java = nullptr;
 SymUtils* g_libEngine = new SymUtils();
 SymUtils* g_libGameUI = new SymUtils();
+SymUtils* g_libServerBrowser = new SymUtils();
 
 void installHooks();
 void installPatches();
@@ -31,7 +32,7 @@ jint JNI_OnLoad(JavaVM* vm, [[maybe_unused]] void* reserved)
 
 	g_java_vm = vm;
 
-    g_java = new Java(env); // 初始化java
+    g_java = new Java(g_java_vm, env); // 初始化java
     if (g_java->getFlavor().empty()) {
         return env->GetVersion();
     }
@@ -44,6 +45,11 @@ jint JNI_OnLoad(JavaVM* vm, [[maybe_unused]] void* reserved)
     GHandle GameUIHandle = g_libGameUI->Open("libGameUI.so");
     if (!GameUIHandle) {
         spdlog::info("Cannot open libGameUI.so");
+        return env->GetVersion();
+    }
+    GHandle ServerBrowserHandle = g_libServerBrowser->Open("libServerBrowser.so");
+    if (!ServerBrowserHandle) {
+        spdlog::info("Cannot open libServerBrowser.so");
         return env->GetVersion();
     }
 
@@ -66,5 +72,10 @@ void JNI_OnUnload([[maybe_unused]] JavaVM* vm, [[maybe_unused]] void* reserved)
     spdlog::info("Rn:MOS library unloaded!");
 }
 
+
+extern "C" JNIEXPORT void JNICALL Java_org_libsdl_app_SDLActivity_initRnMOS(JNIEnv* env, jobject obj)
+{
+    g_java->setupContext(obj, env);
+}
 
 

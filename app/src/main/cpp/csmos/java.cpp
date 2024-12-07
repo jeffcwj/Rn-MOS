@@ -7,9 +7,46 @@
 
 
 
-Java::Java(JNIEnv* env) {
+Java::Java(JavaVM* g_java_vm, JNIEnv* env) {
     m_Env = env;
+    javaVM = g_java_vm;
     initMasterServers();
+}
+
+void Java::setupContext(jobject thiz, JNIEnv* env) {
+    m_Env = env;
+    activity = env->NewGlobalRef(thiz);
+    jclass sdlClass = env->GetObjectClass(activity);
+    if (!sdlClass)
+    {
+        LOGI("SDL class not found");
+        return;
+    }
+    m_passwordDialog = m_Env->GetMethodID(sdlClass, "passwordDialog", "()V");
+    m_Env->DeleteLocalRef(sdlClass);
+}
+
+JNIEnv *Java::getEnv()
+{
+    if (!javaVM) {
+        LOGI("No java vm");
+        return nullptr;
+    }
+    JNIEnv *env;
+    javaVM->GetEnv((void **)&env, JNI_VERSION_1_4);
+    return env;
+}
+
+jobject Java::getContext() {
+    return activity;
+}
+
+void Java::showPasswordDialog() {
+    JNIEnv *env = getEnv();
+    if (env == nullptr) {
+        return;
+    }
+    env->CallVoidMethod(activity, m_passwordDialog);
 }
 
 std::string Java::getFlavor() {
@@ -92,3 +129,5 @@ std::vector<std::string> Java::initMasterServers() {
 
     return serverList;
 }
+
+
