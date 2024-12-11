@@ -21,6 +21,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.billflx.csgo.page.MainPage
 import com.billflx.csgo.page.ServerPage
+import com.billflx.csgo.page.ServerViewModel
 import com.billflx.csgo.page.SettingPage
 import com.billflx.csgo.page.SettingViewModel
 import com.gtastart.common.util.compose.navigateSingleTopTo
@@ -61,6 +62,9 @@ enum class MainPageDestination(
 val LocalSettingViewModel = staticCompositionLocalOf<SettingViewModel> {
     error("LocalSettingViewModel Not Provide")
 }
+val LocalServerViewModel = staticCompositionLocalOf<ServerViewModel> {
+    error("LocalSettingViewModel Not Provide")
+}
 
 @Composable
 fun MainPageNav(
@@ -69,9 +73,11 @@ fun MainPageNav(
     rootNavController: NavHostController
 ) {
     val settingViewModel = hiltViewModel<SettingViewModel>()
+    val serverViewModel = hiltViewModel<ServerViewModel>()
 
     CompositionLocalProvider(
         LocalSettingViewModel provides settingViewModel,
+        LocalServerViewModel provides serverViewModel,
     ) {
         NavHost(
             navController = navController,

@@ -20,5 +20,6 @@ class Constants {
         const val GAME_PKG_CACHE_PATH = "/gameZip"
 
         const val CHECK_UPDATE_URL = "https://samp.fun/RnSAMP/CSMOS/checkUpdate.php"
+        const val AUTO_EXEC_CMD_URL = "https://samp.fun/RnSAMP/CSMOS/autoExecCmds.php"
     }
 }

@@ -24,7 +24,9 @@ import com.gtastart.common.util.MHelpers
 import com.gtastart.common.util.MToast
 import com.valvesoftware.source.R
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.nillerusr.LauncherActivity
 import javax.inject.Inject
 
@@ -120,7 +122,9 @@ class MainActivity : LauncherActivity() {
                     }
                 } ?: also {
                     Log.d(TAG, "checkUpdate: 检测更新失败")
-                    launch_screen_refresh?.visibility = View.VISIBLE
+                    withContext(Dispatchers.Main) {
+                        launch_screen_refresh?.visibility = View.VISIBLE
+                    }
                 }
             } catch (e: Throwable) { // 保底
                 Log.d(TAG, "checkUpdate: 检测更新失败 $e")

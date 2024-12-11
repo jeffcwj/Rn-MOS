@@ -3,11 +3,17 @@ package com.billflx.csgo.page
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.billflx.csgo.bean.AppUpdateBean
+import com.billflx.csgo.bean.AutoExecCmdBean
 import com.billflx.csgo.bean.SampQueryInfoBean
 import com.billflx.csgo.constant.Constants
 import com.billflx.csgo.data.ModLocalDataSource
+import com.billflx.csgo.data.repo.AppRepository
+import com.billflx.csgo.page.MainViewModel.Companion
 import com.gtastart.common.util.Coroutines
 import com.gtastart.common.util.CsMosQuery
 import com.gtastart.common.util.isBlank
@@ -19,7 +25,9 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class ServerViewModel @Inject constructor() : ViewModel() {
+class ServerViewModel @Inject constructor(
+    private val repository: AppRepository
+) : ViewModel() {
 
     companion object {
         private const val TAG = "ServerViewModel"
@@ -29,8 +37,11 @@ class ServerViewModel @Inject constructor() : ViewModel() {
     var isRefreshing = mutableStateOf(false)
     var nickName = mutableStateOf("RnMOS Player")
 
+    var autoExecCmdList = mutableStateListOf<AutoExecCmdBean>()
+    var isAutoExecCmdLoading = mutableStateOf(false)
+
     init {
-        refreshServerList()
+//        refreshServerList()
         val name = ModLocalDataSource.getNickName()
         if (!name.isBlank()) {
             nickName.value = name
@@ -58,10 +69,10 @@ class ServerViewModel @Inject constructor() : ViewModel() {
             } else {
                 Log.d(TAG, "主服务器${rootLink} 获取游戏服务器失败")
             }
-            delay(200)
+            delay(1000)
             retryCount++
         }
-        return emptyList<String>()
+        return emptyList()
     }
 
     suspend fun getServerInfos(host: String, port: Int, maxRetryCount: Int = 5): SampQueryInfoBean {
@@ -72,7 +83,7 @@ class ServerViewModel @Inject constructor() : ViewModel() {
             if (!infos.serverName.isNullOrBlank()) {
                 return infos
             }
-            delay(200)
+            delay(1000)
             retryCount++
         }
         return SampQueryInfoBean()
@@ -109,6 +120,22 @@ class ServerViewModel @Inject constructor() : ViewModel() {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    suspend fun getAutoExecCmds() {
+        isAutoExecCmdLoading.value = true
+        autoExecCmdList.clear()
+        viewModelScope.launch {
+            try {
+                val cmds = repository.getAutoExecCmds()
+                cmds.forEach { autoExecCmdList.add(it) }
+                Log.d(TAG, "getAutoExecCmds: $cmds")
+                isAutoExecCmdLoading.value = false
+            } catch (e: Exception) {
+                isAutoExecCmdLoading.value = false
+                Log.d(TAG, "getAutoExecCmds: $e")
             }
         }
     }

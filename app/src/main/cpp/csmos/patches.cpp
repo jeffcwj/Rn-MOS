@@ -4,5 +4,5 @@
 #include "main.h"
 
 void installPatches() {
-    Memory::ret(g_libServerBrowser->Abs(0x1DA6A8));
+    if (Addr::FUNC_CDialogGameInfo_Run) Memory::ret(g_libServerBrowser->Abs(Addr::FUNC_CDialogGameInfo_Run)); // 禁止弹出服务器详情窗口
 }

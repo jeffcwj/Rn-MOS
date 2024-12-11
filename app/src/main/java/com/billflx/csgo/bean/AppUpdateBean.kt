@@ -2,11 +2,12 @@ package com.billflx.csgo.bean
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import java.io.Serializable
 
 data class AppUpdateBean(
     val app: App,
     val link: Link
-) {
+): Serializable {
     data class App(
         val version: String,
         val versionCode: String,

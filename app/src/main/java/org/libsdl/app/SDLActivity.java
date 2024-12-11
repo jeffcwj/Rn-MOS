@@ -194,13 +194,16 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
     public native void initRnMOS();
     public native void onPasswordCallBack(String password);
 
-    public void passwordDialog() {
+    public void passwordDialog(String password) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 EditText et = new EditText(SDLActivity.this);
                 et.setLayoutParams(new ViewGroup.LayoutParams(-1, -2));
                 et.setHint("请输入服务器密码");
+                if (!password.replace(" ", "").isEmpty()) {
+                    et.setText(password); // 从内存中读取之前设置的密码
+                }
                 new AlertDialog.Builder(SDLActivity.this)
                         .setTitle("服务器密码")
                         .setView(et)

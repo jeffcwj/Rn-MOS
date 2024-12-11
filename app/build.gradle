@@ -25,7 +25,7 @@ android {
             //noinspection ChromeOsAbiSupport
             abiFilters 'arm64-v8a'// , 'armeabi-v7a'
         }
-//        multiDexEnabled true
+        multiDexEnabled true
 //        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         flavorDimensions "csmos_version"
@@ -58,13 +58,21 @@ android {
 
     buildTypes {
         release {
-            /*minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'*/
+//            shrinkResources true
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             externalNativeBuild {
                 cmake {
                     arguments "-DCMAKE_CXX_FLAGS=-fvisibility=hidden -fvisibility-inlines-hidden"
                 }
             }
+            signingConfig signingConfigs.debug
+        }
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
+            debuggable true
         }
     }
     compileOptions {
@@ -92,15 +100,11 @@ dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
 
     implementation project(':common') // 公共依赖库
+    implementation project(':GtaStart') // GtaStart 论坛
 
-    implementation libs.androidx.core.ktx
-    implementation libs.androidx.appcompat
-    implementation libs.material
-    implementation "androidx.activity:activity-ktx:1.9.3"
 
     // Hilt 依赖注入
     implementation 'com.google.dagger:hilt-android:2.52'
-    implementation libs.androidx.activity
     kapt 'com.google.dagger:hilt-compiler:2.52'
 
     // room
@@ -109,53 +113,4 @@ dependencies {
     implementation "androidx.room:room-ktx:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
 
-    // google 库
-    api 'com.google.code.gson:gson:2.11.0'
-
-    // compose 组件库
-    api platform('androidx.compose:compose-bom:2024.10.01')
-    api 'androidx.compose.material3:material3'
-    api 'androidx.compose.material:material-icons-core'
-    api 'androidx.compose.material:material-icons-extended'
-    api 'androidx.compose.ui:ui'
-    debugApi 'androidx.compose.ui:ui-tooling'
-    api 'androidx.compose.ui:ui-tooling-preview'
-    api 'androidx.compose.ui:ui-graphics'
-    debugApi 'androidx.compose.ui:ui-test-manifest'
-    api 'androidx.compose.ui:ui-test-junit4'
-    api 'androidx.activity:activity-compose:1.9.3'
-    api "androidx.navigation:navigation-compose:2.8.3" // compose路由
-    api 'androidx.compose.runtime:runtime-livedata:1.7.5' // 将viewmodel livedata转为compose state
-    api 'androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7' // compose viewModel
-    api "io.coil-kt:coil-compose:2.7.0" //  compose网络图片加载
-    api 'io.coil-kt:coil-svg:2.7.0'
-    api 'io.coil-kt:coil-gif:2.7.0'
-    api 'androidx.hilt:hilt-navigation-compose:1.2.0' // hilt和compose navigation结合
-
-    // compose adaptive
-    api "androidx.compose.material3.adaptive:adaptive:1.1.0-alpha06"
-    api 'androidx.compose.material3:material3-adaptive-navigation-suite:1.3.1'
-    api "androidx.compose.material3.adaptive:adaptive-layout:1.1.0-alpha06"
-    api "androidx.compose.material3.adaptive:adaptive-navigation:1.1.0-alpha06"
-
-    // google accompanist
-    // api 'com.google.accompanist:accompanist-swiperefresh:0.36.0' // 下拉刷新 官方已弃用
-    api 'com.google.accompanist:accompanist-webview:0.36.0' // webview 已弃用
-    api 'com.google.accompanist:accompanist-placeholder-material:0.36.0' // 占位 官方已弃用 我用
-
-
-    // 4j系列
-    api 'net.lingala.zip4j:zip4j:2.11.5' // zip加解压
-
-    // 流利说 okdownload 下载库
-    api 'com.liulishuo.okdownload:sqlite:1.0.7'
-    api 'com.liulishuo.okdownload:okdownload:1.0.7'
-    api "com.liulishuo.okdownload:okhttp:1.0.7"
-
-    api 'com.squareup.okhttp3:okhttp:4.12.0' // Okhttp
-
-
-//    testImplementation libs.junit
-//    androidTestImplementation libs.androidx.junit
-//    androidTestImplementation libs.androidx.espresso.core
 }

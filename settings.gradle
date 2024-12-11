@@ -27,4 +27,6 @@ rootProject.name = "RnMOS"
 include ':app'
 include ':common'
 project(':common').projectDir = new File(settingsDir, '../Rn_Common/common')
+include ':GtaStart'
+project(':GtaStart').projectDir = new File(settingsDir, '../Rn_SAMP_Tool/GtaStart')
 

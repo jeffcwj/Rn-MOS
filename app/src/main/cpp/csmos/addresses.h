@@ -34,6 +34,11 @@ public:
             // GameUI
             FUNC_AddUrlButton = 0x48D550;
             FUNC_CBasePanel = 0x48D798;
+
+            // ServerBrowser
+            FUNC_CDialogGameInfo_Run = 0x1DA6A8;
+            FUNC_CDialogGameInfo_ConnectToServer = 0x1DAEC0;
+            FUNC_ServerResponded = 0x1D2284;
             return true;
         } else if (flavor == "v7.5") {
             // engine
@@ -45,6 +50,8 @@ public:
             // GameUI
             FUNC_AddUrlButton = 0x48E0E8; // ok
             FUNC_CBasePanel = 0x48E488; // ok
+
+            // ServerBrowser 懒得支持v7.5了
             return true;
         } else {
             return false;
@@ -55,8 +62,13 @@ public:
     static inline uintptr_t FUNC_NET_StringToAdr = 0;
     static inline uintptr_t FUNC_CMaster_AddServer = 0;
     static inline uintptr_t FUNC_CMaster_RequestInternetServerList = 0;
+
     static inline uintptr_t FUNC_AddUrlButton = 0;
     static inline uintptr_t FUNC_CBasePanel = 0;
+
+    static inline uintptr_t FUNC_CDialogGameInfo_Run = 0;
+    static inline uintptr_t FUNC_CDialogGameInfo_ConnectToServer = 0;
+    static inline uintptr_t FUNC_ServerResponded = 0;
 
 private:
     AddressManager() = default;

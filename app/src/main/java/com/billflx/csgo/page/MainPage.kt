@@ -61,7 +61,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.billflx.csgo.LocalMainViewModel
+import com.billflx.csgo.bean.AppUpdateBean
 import com.billflx.csgo.bean.DataType
 import com.billflx.csgo.bean.DownloadStatus
 import com.billflx.csgo.constant.Constants
@@ -73,8 +75,10 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.gtastart.common.theme.GtaStartTheme
 import com.gtastart.common.util.CSMOSUtils
 import com.gtastart.common.util.Coroutines
+import com.gtastart.common.util.MDialog
 import com.gtastart.common.util.MDownload
 import com.gtastart.common.util.MHelpers
+import com.gtastart.common.util.MOSDialog
 import com.gtastart.common.util.MToast
 import com.gtastart.common.util.ZipUtils
 import com.gtastart.common.util.compose.navigateSingleTopTo
@@ -271,11 +275,12 @@ private fun StatusCard(
                 style = MaterialTheme.typography.titleMedium
             )
 
-            FlowRow {
-               val navController = LocalRootNav.current
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal),
+                verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal)
+            ) {
                 val downloadManagerVM = LocalDownloadManagerVM.current
-                val coroutineScope = rememberCoroutineScope()
-
+                val navController = LocalRootNav.current
                 LaunchedEffect(context) {
                     downloadManagerVM.startDownloadService(context) // 需要添加下载任务之前启动下载服务，否则闪退
                 }
@@ -285,43 +290,25 @@ private fun StatusCard(
                     text = stringResource(viewModel.addDownloadText.value),
                     onClick = {
                         val linkList = Constants.appUpdateInfo.value?.link?.dataLink
-                        lateinit var builder: AlertDialog
-
-                        val inflateView = LayoutInflater.from(context).inflate(R.layout.layout_compose, null)
-                        inflateView.layoutParams = ViewGroup.LayoutParams(-1,-1)
-                        val composeView = inflateView.findViewById<ComposeView>(R.id.composeView)
-                        composeView.setContent {
-                            GtaStartTheme(darkTheme = true) {
-                                Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh) {
-                                    Column {
-                                        linkList?.forEach { item ->
-                                            val url = item.url
-                                            val title = item.title
-                                            val parentPath = LauncherActivity.getDefaultDir() + Constants.DOWNLOAD_PATH
-                                            Row(modifier = Modifier.padding(GtaStartTheme.spacing.medium), verticalAlignment = Alignment.CenterVertically) {
-                                                Text(title, modifier = Modifier.weight(1f))
-                                                MButton(text = stringResource(R.string.download), onClick = {
-                                                    coroutineScope.launch {
-                                                        val addDownload = downloadManagerVM.addDownload( // 添加下载任务
-                                                            url = url,
-                                                            parentPath = parentPath,
-                                                            dataType = DataType.GameDataPackage
-                                                        )
-                                                        builder.dismiss() // 关闭弹窗
-                                                        navController.navigateSingleTopTo(RootDesc.DownloadManager.route)
-                                                    }
-                                                })
-                                            }
-                                        }
-                                    }
-                                }
+                        MOSDialog.show(
+                            context = context,
+                            title = context.getString(R.string.select_game_data_version),
+                            customView = { dialog ->
+                                GameDataListView(
+                                    linkList = linkList,
+                                    dialog = dialog,
+                                    downloadManagerVM = downloadManagerVM,
+                                    navController = navController
+                                )
                             }
-                        }
-                        builder = MaterialAlertDialogBuilder(context)
-                            .setTitle(context.getString(R.string.select_game_data_version))
-                            .setView(inflateView)
-                            .show()
-//                        addDownload?.let { viewModel.addDownloadText = it.downloadStatusData?.downloadProgressStr?:viewModel.addDownloadText }
+                        )
+                    }
+                )
+
+                MButton(
+                    text = "导入地图教程",
+                    onClick = {
+
                     }
                 )
             }
@@ -329,3 +316,39 @@ private fun StatusCard(
         }
     }
 }
+
+@Composable
+private fun GameDataListView(
+    modifier: Modifier = Modifier,
+    linkList: List<AppUpdateBean.DataLink>?,
+    dialog: AlertDialog,
+    downloadManagerVM: DownloadManagerViewModel,
+    navController: NavHostController
+) {
+    val coroutineScope = rememberCoroutineScope()
+
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.medium),
+    ) {
+        items(linkList?: emptyList()) { item ->
+            val url = item.url
+            val title = item.title
+            val parentPath = LauncherActivity.getDefaultDir() + Constants.DOWNLOAD_PATH
+            Row(modifier = modifier.padding(horizontal = GtaStartTheme.spacing.medium), verticalAlignment = Alignment.CenterVertically) {
+                Text(title, modifier = modifier.weight(1f))
+                MButton(text = stringResource(R.string.download), onClick = {
+                    coroutineScope.launch {
+                        val addDownload = downloadManagerVM.addDownload( // 添加下载任务
+                            url = url,
+                            parentPath = parentPath,
+                            dataType = DataType.GameDataPackage
+                        )
+                        dialog.dismiss() // 关闭弹窗
+                        navController.navigateSingleTopTo(RootDesc.DownloadManager.route)
+                    }
+                })
+            }
+        }
+    }
+}
+

@@ -104,5 +104,13 @@
     <string name="restore_to_default">恢复默认</string>
     <string name="goto_original_launcher">前往原始启动器</string>
     <string name="cancel">取消</string>
+    <string name="custom_autoexec_cmd">自定义启动命令</string>
+    <string name="launch_cmd">启动命令</string>
+    <string name="show_toturial">查看教程</string>
+    <string name="tip_one_line_one_cmd">一行一个命令，多个命令请换行输入\n例子</string>
+    <string name="save">保存</string>
+    <string name="save_finished">保存完成</string>
+    <string name="view_common_cmds">查看常用指令</string>
+    <string name="common_cmds">常用指令</string>
 
 </resources>

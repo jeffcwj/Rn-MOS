@@ -18,7 +18,7 @@ public:
     };
     void setupContext(jobject thiz, JNIEnv *env);
     jobject getContext();
-    void showPasswordDialog();
+    void showPasswordDialog(const char* password);
 
 private:
 

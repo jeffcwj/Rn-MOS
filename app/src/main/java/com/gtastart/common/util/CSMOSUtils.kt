@@ -3,6 +3,9 @@ package com.gtastart.common.util
 import android.util.Log
 import com.billflx.csgo.constant.Constants
 import com.billflx.csgo.data.ModLocalDataSource
+import com.gtastart.common.util.extend.safeReadLines
+import com.gtastart.common.util.extend.safeReadText
+import com.gtastart.common.util.extend.safeWriteText
 import java.io.File
 
 class CSMOSUtils {
@@ -57,7 +60,7 @@ class CSMOSUtils {
 
         fun saveNickName(nickName: String) {
             val configFile = File(ModLocalDataSource.getGamePath(), Constants.CONFIG_PATH)
-            val configText = configFile.readText()
+            val configText = configFile.safeReadText()
             val sb = StringBuilder()
             configText.split("\n").forEach { line ->
                 if (line.startsWith("name ")) {
@@ -66,17 +69,55 @@ class CSMOSUtils {
                     sb.append(line).append("\n")
                 }
             }
-            configFile.writeText(sb.toString())
+            configFile.safeWriteText(sb.toString())
+        }
+
+        fun readAutoExecText(): String {
+            val configFile = File(ModLocalDataSource.getGamePath(), Constants.AUTOEXEC_CONFIG_PATH)
+            return configFile.safeReadText()
+        }
+
+        fun writeAutoExecText(text: String) {
+            val configFile = File(ModLocalDataSource.getGamePath(), Constants.AUTOEXEC_CONFIG_PATH)
+            configFile.safeWriteText(text)
+        }
+
+        fun addCustomAutoExecCmd(cmd: String) {
+            val configFile = File(ModLocalDataSource.getGamePath(), Constants.AUTOEXEC_CONFIG_PATH)
+            val configList = configFile.safeReadLines().toMutableList()
+            configList.add(cmd)
+            configFile.safeWriteText(configList.joinToString("\n"))
+        }
+
+        fun removeCustomAutoExecCmd(cmd: String): List<String> {
+            val configFile = File(ModLocalDataSource.getGamePath(), Constants.AUTOEXEC_CONFIG_PATH)
+            val configLines = configFile.safeReadLines().toMutableList()
+            val updatedLines = configLines.filterNot { it.trimStart().startsWith(cmd) }
+            configFile.safeWriteText(updatedLines.joinToString("\n"))
+            return updatedLines
         }
 
         fun saveAutoConnectInfo(serverIP: String) {
-            val configFile = File(ModLocalDataSource.getGamePath(), Constants.AUTOEXEC_CONFIG_PATH)
-            configFile.writeText("sv_pure -1\nconnect $serverIP")
+            removeCustomAutoExecCmd("connect ")
+            addCustomAutoExecCmd("connect $serverIP")
         }
 
-        fun removeAutoConnectInfo() {
-            val configFile = File(ModLocalDataSource.getGamePath(), Constants.AUTOEXEC_CONFIG_PATH)
-            configFile.writeText("sv_pure -1")
+        fun removeAutoConnectInfo(): String {
+            val list = removeCustomAutoExecCmd("connect ")
+            return list.joinToString("\n")
+        }
+
+        fun addSvPure() {
+            removeCustomAutoExecCmd("sv_pure")
+            addCustomAutoExecCmd("sv_pure -1")
+        }
+
+        fun removeSvPure() {
+            removeCustomAutoExecCmd("sv_pure")
+        }
+
+        fun importMapMod(zipPath: String) {
+
         }
     }
 }

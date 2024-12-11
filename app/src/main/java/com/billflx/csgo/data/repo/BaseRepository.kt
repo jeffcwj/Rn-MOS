@@ -1,6 +1,7 @@
 package com.billflx.csgo.data.repo
 
 import android.util.Log
+import androidx.annotation.Keep
 import com.billflx.csgo.data.net.Resource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -9,6 +10,7 @@ import retrofit2.HttpException
 import retrofit2.Response
 import java.io.IOException
 
+@Keep
 abstract class BaseRepository {
 
     suspend fun<T: Any> apiRequest(call: suspend () -> Response<T>): T {

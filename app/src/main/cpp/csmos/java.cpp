@@ -22,7 +22,7 @@ void Java::setupContext(jobject thiz, JNIEnv* env) {
         LOGI("SDL class not found");
         return;
     }
-    m_passwordDialog = m_Env->GetMethodID(sdlClass, "passwordDialog", "()V");
+    m_passwordDialog = m_Env->GetMethodID(sdlClass, "passwordDialog", "(Ljava/lang/String;)V");
     m_Env->DeleteLocalRef(sdlClass);
 }
 
@@ -41,12 +41,14 @@ jobject Java::getContext() {
     return activity;
 }
 
-void Java::showPasswordDialog() {
+void Java::showPasswordDialog(const char* password) {
     JNIEnv *env = getEnv();
     if (env == nullptr) {
         return;
     }
-    env->CallVoidMethod(activity, m_passwordDialog);
+    jstring jPassword = env->NewStringUTF(password);
+    env->CallVoidMethod(activity, m_passwordDialog, jPassword);
+    env->DeleteLocalRef(jPassword);
 }
 
 std::string Java::getFlavor() {
