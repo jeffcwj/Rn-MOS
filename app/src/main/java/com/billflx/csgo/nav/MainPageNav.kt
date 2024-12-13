@@ -3,9 +3,11 @@ package com.billflx.csgo.nav
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Dns
+import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Dns
+import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.runtime.Composable
@@ -25,6 +27,7 @@ import com.billflx.csgo.page.ServerViewModel
 import com.billflx.csgo.page.SettingPage
 import com.billflx.csgo.page.SettingViewModel
 import com.gtastart.common.util.compose.navigateSingleTopTo
+import com.gtastart.ui.forum.csmos.CsMosResPage
 import com.valvesoftware.source.R
 
 /**
@@ -48,6 +51,12 @@ enum class MainPageDestination(
         Icons.Outlined.Dns,
         "a_server",
         R.string.server
+    ),
+    ARes(
+        Icons.Default.Forum,
+        Icons.Outlined.Forum,
+        "a_res",
+        R.string.resource
     ),
     ASetting(
         Icons.Default.Settings,
@@ -94,6 +103,14 @@ fun MainPageNav(
             composable(route = MainPageDestination.AServer.route) {
                 ServerPage()
             }
+
+            composable(route = MainPageDestination.ARes.route) {
+                val rootNav = LocalRootNav.current
+                CsMosResPage(onGotoResPostDetailClick = { id ->
+                    rootNav.navigateSingleTopTo("${RootDesc.ResPost.route}/$id")
+                })
+            }
+
             composable(route = MainPageDestination.ASetting.route) {
                 SettingPage(navController = navController)
             }

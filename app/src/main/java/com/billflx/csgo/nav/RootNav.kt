@@ -11,21 +11,25 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.billflx.csgo.page.DownloadManagerScreen
 import com.billflx.csgo.page.DownloadManagerViewModel
 import com.billflx.csgo.page.InstallGuideScreen
 import com.billflx.csgo.page.MainScreen
 import com.gtastart.common.util.compose.navigateSingleTopTo
+import com.gtastart.ui.forum.posts.ResPostScreen
 
 enum class RootDesc(
     val route: String
 ) {
     Main("main_screen"),
     InstallGuide("install_guide_screen"),
-    DownloadManager("download_manager_screen")
+    DownloadManager("download_manager_screen"),
+    ResPost("res_post")
 }
 
 val LocalRootNav = staticCompositionLocalOf<NavHostController> {
@@ -79,6 +83,18 @@ fun RootNavHost(
         }
         composable(route = RootDesc.DownloadManager.route) {
             DownloadManagerScreen() // 下载管理屏幕
+        }
+        composable(
+            route = "${RootDesc.ResPost.route}/{postId}", // 需要传入文章ID
+            arguments = listOf(navArgument("postId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val postId = backStackEntry.arguments?.getString("postId")
+            ResPostScreen( // 资源帖详情页
+                postId = postId.orEmpty(),
+                onGoToMainScreenClick = {
+                    rootNavController.popBackStack()
+                }
+            )
         }
     }
 }

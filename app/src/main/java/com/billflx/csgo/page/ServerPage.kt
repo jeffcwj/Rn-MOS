@@ -574,10 +574,6 @@ private fun ServerList(
             modifier = modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal)
         ) {
-            item {
-
-            }
-
             itemsIndexed(serverList) { index, item ->
                 ServerListItemCard(
                     item = item,
