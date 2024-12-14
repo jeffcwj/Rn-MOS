@@ -39,7 +39,7 @@ public class UpdateService extends Service {
     }
 
     private void sendNotif() {
-        Notification notif = new Notification(R.drawable.ic_launcher, "Update avalible", System.currentTimeMillis());
+        Notification notif = new Notification(R.drawable.rn_logo, "Update avalible", System.currentTimeMillis());
         notif.contentView = new RemoteViews(getPackageName(), R.layout.update_notify);
         Intent browserIntent = new Intent("android.intent.action.VIEW", Uri.parse(this.extras.get("update_url").toString()));
         PendingIntent pIntent = PendingIntent.getActivity(this, 0, browserIntent, 0);

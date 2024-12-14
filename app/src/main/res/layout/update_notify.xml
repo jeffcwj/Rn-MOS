@@ -5,7 +5,7 @@ android:layout_height="fill_parent"
 android:padding="10dp">
 <ImageView
     android:id="@+id/image"
-    android:src="@drawable/ic_launcher"
+    android:src="@mipmap/rn_logo"
     android:layout_width="wrap_content"
     android:layout_height="fill_parent"
     android:layout_alignParentLeft="true"

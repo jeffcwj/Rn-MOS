@@ -70,7 +70,8 @@ class MainActivity : LauncherActivity() {
         // 添加启动加载界面
         val launch_app_screen = LayoutInflater.from(this).inflate(R.layout.launch_app_screen, null) as RelativeLayout
         addContentView(launch_app_screen, ViewGroup.LayoutParams(-1, -1))
-
+        val launch_screen_rootLayout = findViewById<RelativeLayout>(R.id.launch_screen_rootLayout)
+        launch_screen_rootLayout.setVisibility(View.GONE) // 不强制联网运行
 
         // 检测更新刷新按钮
         launch_screen_refresh = launch_app_screen.findViewById<Button>(R.id.launch_screen_refresh)

@@ -642,11 +642,14 @@ class DownloadManagerViewModel @Inject constructor(
                                     return@clickable
                                 }
                                 val url = item?.mDownload?.url.orEmpty()
-                                item?.mDownload?.getDownloadTask()?.file?.let {
+                                Log.d(TAG, "downloadedContentOperation1: $url")
+
+                                File(item?.mDownload?.parentPath?:"", item?.mDownload?.fileName?:"").let { // 會直接把同名文件刪掉
                                     viewModelScope.launch {
+                                        Log.d(TAG, "downloadedContentOperation: $url")
                                         if (!it.exists()) {
                                             removeDownloadInfoDB(url = url)
-                                            context.MToast(context.getString(R.string.file_not_exist))
+//                                            context.MToast(context.getString(R.string.file_not_exist))
                                             return@launch
                                         }
                                         val isOk = it.delete() // 删除

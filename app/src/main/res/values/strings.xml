@@ -80,7 +80,7 @@
     <string name="tip_not_support_background_unzip">小提示：目前不支持后台解压，切换到其他应用可能会导致解压中断</string>
     <string name="ready_to_unzip">准备解压</string>
     <string name="unzip_method">解压方式</string>
-    <string name="tip_unziping_big_file">解压中，大文件耗时长，请耐心等待</string>
+    <string name="tip_unziping_big_file">解压中，大文件耗时长，请耐心等待\n离开软件可能会导致解压不全</string>
     <string name="tip_unzipping">解压中，请耐心等待</string>
     <string name="error_happened">出现错误</string>
     <string name="finish_installing">安装完成</string>

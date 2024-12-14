@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material3.ButtonDefaults
@@ -112,12 +113,12 @@ fun MainPage(
                 },
                 navigationIcon = {
                     Image(
-                        painter = painterResource(R.drawable.ic_launcher),
+                        painter = painterResource(R.drawable.rn_logo),
                         contentDescription = null,
                         modifier = modifier
                             .padding(start = GtaStartTheme.spacing.normal)
                             .size(36.dp)
-                            .clip(MaterialTheme.shapes.medium),
+                            .clip(CircleShape),
                     )
                 },
                 actions = {
@@ -305,12 +306,12 @@ private fun StatusCard(
                     }
                 )
 
-                MButton(
+/*                MButton(
                     text = "导入地图教程",
                     onClick = {
 
                     }
-                )
+                )*/
             }
 
         }

@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.BasicTextField
@@ -141,12 +142,12 @@ fun ServerPage(
                 },
                 navigationIcon = {
                     Image(
-                        painter = painterResource(R.drawable.ic_launcher),
+                        painter = painterResource(R.drawable.rn_logo),
                         contentDescription = null,
                         modifier = modifier
                             .padding(start = GtaStartTheme.spacing.normal)
                             .size(36.dp)
-                            .clip(MaterialTheme.shapes.medium),
+                            .clip(CircleShape),
                     )
                 }
             )

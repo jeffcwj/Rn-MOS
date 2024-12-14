@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -69,12 +70,12 @@ fun SettingPage(
                 },
                 navigationIcon = {
                     Image(
-                        painter = painterResource(R.drawable.ic_launcher),
+                        painter = painterResource(R.drawable.rn_logo),
                         contentDescription = null,
                         modifier = modifier
                             .padding(start = GtaStartTheme.spacing.normal)
                             .size(36.dp)
-                            .clip(MaterialTheme.shapes.medium),
+                            .clip(CircleShape),
                     )
                 }
             )

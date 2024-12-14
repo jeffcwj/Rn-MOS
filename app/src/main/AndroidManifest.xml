@@ -30,7 +30,7 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@mipmap/rn_logo"
         android:label="@string/srceng_app_name"
         android:requestLegacyExternalStorage="true"
         android:supportsRtl="true"
