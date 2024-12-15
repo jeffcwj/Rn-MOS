@@ -15,11 +15,12 @@
 		android:background="#FF3A3A3A"
 		android:layout_gravity="center">
 		<ImageView
-			android:layout_height="wrap_content"
+			android:layout_height="45dp"
 			android:layout_marginRight="5dp"
-			android:layout_width="wrap_content"
-			android:layout_gravity="left"
-			android:src="@mipmap/rn_logo"/>
+			android:layout_width="45dp"
+			android:layout_gravity="center_vertical"
+			android:layout_margin="8dp"
+			android:src="@drawable/rn_logo"/>
 		<TextView
 			android:id="@+id/header_text"
 			android:layout_width="match_parent"

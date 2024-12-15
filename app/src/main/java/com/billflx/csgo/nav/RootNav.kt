@@ -29,7 +29,7 @@ enum class RootDesc(
     Main("main_screen"),
     InstallGuide("install_guide_screen"),
     DownloadManager("download_manager_screen"),
-    ResPost("res_post")
+//    ResPost("res_post")
 }
 
 val LocalRootNav = staticCompositionLocalOf<NavHostController> {
@@ -84,7 +84,7 @@ fun RootNavHost(
         composable(route = RootDesc.DownloadManager.route) {
             DownloadManagerScreen() // 下载管理屏幕
         }
-        composable(
+        /*composable(
             route = "${RootDesc.ResPost.route}/{postId}", // 需要传入文章ID
             arguments = listOf(navArgument("postId") { type = NavType.StringType })
         ) { backStackEntry ->
@@ -95,6 +95,6 @@ fun RootNavHost(
                     rootNavController.popBackStack()
                 }
             )
-        }
+        }*/
     }
 }

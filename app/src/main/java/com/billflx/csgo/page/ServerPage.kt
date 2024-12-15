@@ -101,6 +101,7 @@ import com.billflx.csgo.bean.AutoExecCmdBean
 import com.billflx.csgo.bean.SampQueryInfoBean
 import com.billflx.csgo.bean.SampQueryPlayerBean
 import com.billflx.csgo.nav.LocalServerViewModel
+import com.billflx.csgo.nav.LocalSettingViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.gtastart.common.theme.GtaStartTheme
 import com.gtastart.common.util.CSMOSUtils
@@ -167,11 +168,12 @@ fun ServerPage(
                         contentDescription = null
                     )
                 }*/
-
+                val vm = LocalSettingViewModel.current
                 ExtendedFloatingActionButton (
                     onClick = {
                         CSMOSUtils.removeAutoConnectInfo()
                         if (context is MainActivity) {
+                            vm.saveSettings() // 修复第一次启动进单机
                             context.startSource()
                         }
                     },
@@ -510,6 +512,7 @@ private fun ServerList(
     val serverDetailStr = rememberSaveable { mutableStateOf("") }
     val currentServerIP = rememberSaveable { mutableStateOf("") }
     val context = LocalContext.current
+    val settingVM = LocalSettingViewModel.current
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -549,9 +552,11 @@ private fun ServerList(
                         context.MToast(context.getString(R.string.nickname_cannot_empty))
                         return@MCustomAlertDialog
                     }
+
                     CSMOSUtils.saveNickName(viewModel.nickName.value)
                     CSMOSUtils.saveAutoConnectInfo(currentServerIP.value)
                     val intent = Intent(context, SDLActivity::class.java)
+                    settingVM.saveSettings() // 保存设置数据
                     launcher.launch(intent) // 回调要刷新列表数据
                     /*if (context is MainActivity) {
                         context.startSource()

@@ -5,9 +5,9 @@ android:layout_height="fill_parent"
 android:padding="10dp">
 <ImageView
     android:id="@+id/image"
-    android:src="@mipmap/rn_logo"
-    android:layout_width="wrap_content"
-    android:layout_height="fill_parent"
+    android:src="@drawable/rn_logo"
+    android:layout_width="45dp"
+    android:layout_height="45dp"
     android:layout_alignParentLeft="true"
     android:layout_marginRight="10dp" />
 <TextView

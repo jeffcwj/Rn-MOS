@@ -19,6 +19,7 @@ import com.gtastart.common.util.CsMosQuery
 import com.gtastart.common.util.isBlank
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -35,10 +36,13 @@ class ServerViewModel @Inject constructor(
 
     var serverInfoList = mutableStateListOf<SampQueryInfoBean>()
     var isRefreshing = mutableStateOf(false)
+    private var refreshJob: Job? = null
+
     var nickName = mutableStateOf("RnMOS Player")
 
     var autoExecCmdList = mutableStateListOf<AutoExecCmdBean>()
     var isAutoExecCmdLoading = mutableStateOf(false)
+
 
     init {
 //        refreshServerList()
@@ -91,14 +95,24 @@ class ServerViewModel @Inject constructor(
 
     fun refreshServerList() {
         Log.d(TAG, "refreshServerList: 开始刷新")
+        refreshJob?.let {
+            if (it.isActive) {
+                it.cancel() // 取消当前正在运行的任务
+                isRefreshing.value = false // 设置刷新状态为否
+            }
+        } ?: also {
+            isRefreshing.value = false // 没在刷新
+        }
         if (!isRefreshing.value) {
             isRefreshing.value = true
             serverInfoList.clear() // 清除列表
-            viewModelScope.launch(Dispatchers.IO) {
+            refreshJob = viewModelScope.launch(Dispatchers.IO) {
                 Constants.appUpdateInfo.value?.link?.serverRootLink?.let { rootLinks ->
+                    if (rootLinks.isEmpty()) isRefreshing.value = false
                     rootLinks.forEach { rootLink ->
                         launch {
                             val ipList = getServerIPList(rootLink)
+                            if (ipList.isEmpty()) isRefreshing.value = false
                             ipList.forEach { ip ->
                                 launch {
                                     val (host, port) = ip.split(":").let { it[0] to it[1].toInt() }
@@ -119,6 +133,8 @@ class ServerViewModel @Inject constructor(
                             }
                         }
                     }
+                } ?: also {
+                    isRefreshing.value = false // 还没检测完更新
                 }
             }
         }

@@ -74,5 +74,9 @@ object ModLocalDataSource {
     fun setNickName(value: String) {
         sp.setValue("nickname", value)
     }
+    fun getAllowNativeInject() = sp.getValue("allow_native_inject", true)
+    fun setNickName(value: Boolean) {
+        sp.setValue("allow_native_inject", value)
+    }
 
 }

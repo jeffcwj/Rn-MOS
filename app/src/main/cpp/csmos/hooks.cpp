@@ -108,11 +108,18 @@ DECL_HOOK(void, AddUrlButton, void *parent, const char *imgName, const char *url
  * @param server
  * @return
  */
-static std::unordered_map<std::string, bool> hasPasswordMap;
+static std::unordered_map<std::string, bool> hasPasswordMap; // 非线程安全
+static std::mutex mapMutex;  // 添加互斥锁
 DECL_HOOK(void*, ServerResponded, void* thiz, newgameserver_t &server) {
+    std::lock_guard<std::mutex> lock(mapMutex);  // 通过 lock_guard 加锁
     spdlog::info("hooking ServerResponded...");
     char* host = (char*)server.m_NetAdr.ip;
+    if (host == nullptr || server.m_NetAdr.port == 0) {
+        return ServerResponded(thiz, server);
+    }
     unsigned short port = portToBigEndian(server.m_NetAdr.port);
+    if (port <= 0 || port > 65535)
+        return ServerResponded(thiz, server);
     bool hasPassword = server.m_bPassword;
     std::string ip = ipToString(host) + ":" + std::to_string(port);
     hasPasswordMap.insert_or_assign(ip, hasPassword);

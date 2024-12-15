@@ -174,7 +174,7 @@ public class LauncherActivity extends AppCompatActivity {
             }
         });
         getResources().getString(R.string.last_commit);
-        cmdArgs.setText(this.mPref.getString("argv", "-console"));
+        cmdArgs.setText(this.mPref.getString("argv", "-console -game csmos"));
         GamePath.setText(this.mPref.getString("gamepath", getDefaultDir() + "/srceng"));
         EnvEdit.setText(this.mPref.getString("env", "LIBGL_USEVBO=0"));
         changeButtonsStyle((ViewGroup) getWindow().getDecorView());
