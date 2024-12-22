@@ -21,6 +21,7 @@ import com.billflx.csgo.page.DownloadManagerViewModel
 import com.billflx.csgo.page.InstallGuideScreen
 import com.billflx.csgo.page.MainScreen
 import com.gtastart.common.util.compose.navigateSingleTopTo
+import com.gtastart.ui.ServerPanel.cs.CsServerPanelScreen
 import com.gtastart.ui.forum.posts.ResPostScreen
 
 enum class RootDesc(
@@ -29,6 +30,7 @@ enum class RootDesc(
     Main("main_screen"),
     InstallGuide("install_guide_screen"),
     DownloadManager("download_manager_screen"),
+    CsServerPanel("cs_server_panel_screen"),
 //    ResPost("res_post")
 }
 
@@ -83,6 +85,9 @@ fun RootNavHost(
         }
         composable(route = RootDesc.DownloadManager.route) {
             DownloadManagerScreen() // 下载管理屏幕
+        }
+        composable(route = RootDesc.CsServerPanel.route) {
+            CsServerPanelScreen() // CS服务器面板
         }
         /*composable(
             route = "${RootDesc.ResPost.route}/{postId}", // 需要传入文章ID

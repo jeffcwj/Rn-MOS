@@ -39,21 +39,6 @@ jint JNI_OnLoad(JavaVM* vm, [[maybe_unused]] void* reserved)
         return env->GetVersion();
     }
 
-    // 不好使，只能在java加载动态库
-/*    GHandle sdl2Handle = g_libSDL2->Open("libSDL2.so");
-    if (!sdl2Handle) {
-        spdlog::info("Cannot open libSDL2.so");
-        return env->GetVersion();
-    }
-    GHandle launcherHandle = g_libLauncher->Open("liblauncher.so");
-    if (!launcherHandle) {
-        spdlog::info("Cannot open liblauncher.so");
-        return env->GetVersion();
-    }
-
-    g_libSDL2->CallFunction<jint>(GlossSymbol(sdl2Handle, "JNI_OnLoad"), vm, reserved);
-    g_libLauncher->CallFunction<jint>(GlossSymbol(launcherHandle, "JNI_OnLoad"), vm, reserved);*/
-
     GHandle engineHandle = g_libEngine->Open("libengine.so");
     if (!engineHandle) {
         spdlog::info("Cannot open libengine.so");

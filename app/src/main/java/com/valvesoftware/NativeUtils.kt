@@ -8,7 +8,7 @@ class NativeUtils {
     companion object {
         @JvmStatic
         fun getFlavor(): String {
-            return BuildConfig.FLAVOR.replace("-", ".")
+            return ModLocalDataSource.getCurrentCSVersion()
         }
 
         @JvmStatic

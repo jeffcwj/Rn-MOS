@@ -180,12 +180,17 @@ void installHooks() {
     spdlog::info("Installing global hooks...");
 
     // engine
+    if (Addr::FUNC_NET_StringToAdr)
     HOOK_ENGINE_ADDR(Addr::FUNC_NET_StringToAdr, NET_StringToAdr); // ip字符串转adr对象
+    if (Addr::FUNC_CMaster_AddServer)
     HOOK_ENGINE_ADDR(Addr::FUNC_CMaster_AddServer, CMaster_AddServer); // 添加主服务器
+    if (Addr::FUNC_CMaster_RequestInternetServerList)
     HOOK_ENGINE_ADDR(Addr::FUNC_CMaster_RequestInternetServerList, CMaster_RequestInternetServerList); // 加载服务器列表
 
     // GameUI
+    if (Addr::FUNC_CBasePanel)
     HOOK_GAMEUI_ADDR(Addr::FUNC_CBasePanel, CBasePanel); // UI面板构造函数
+    if (Addr::FUNC_AddUrlButton)
     HOOK_GAMEUI_ADDR(Addr::FUNC_AddUrlButton, AddUrlButton); // 添加URL按钮
 
     // ServerBrowser

@@ -64,6 +64,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.billflx.csgo.LocalMainViewModel
+import com.billflx.csgo.MainActivity
 import com.billflx.csgo.bean.AppUpdateBean
 import com.billflx.csgo.bean.DataType
 import com.billflx.csgo.bean.DownloadStatus
@@ -109,7 +110,7 @@ fun MainPage(
             val navController = LocalRootNav.current
             TopAppBar(
                 title = {
-                    Text("CS:MOS ${BuildConfig.FLAVOR.replace("-", ".")} ${BuildConfig.VERSION_NAME}", modifier = modifier.padding(start = GtaStartTheme.spacing.small))
+                    Text("CS:MOS ${BuildConfig.VERSION_NAME}", modifier = modifier.padding(start = GtaStartTheme.spacing.small))
                 },
                 navigationIcon = {
                     Image(
@@ -158,6 +159,8 @@ private fun HasUpdateCard(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val mainViewModel = LocalMainViewModel.current
+    val scope = rememberCoroutineScope()
     val link = Constants.appUpdateInfo.value?.app?.link
     val version = Constants.appUpdateInfo.value?.app?.version
     Log.d("", "HasUpdateCard: 有更新吗")
@@ -184,6 +187,36 @@ private fun HasUpdateCard(
                     }
                 ) {
                     Text(stringResource(R.string.update))
+                }
+            }
+        }
+    }
+
+    if (Constants.isAppUpdateInfoFailed.value) {
+        // 更新获取失败的时候
+        ElevatedCard(
+            modifier = modifier
+                .fillMaxWidth()
+        ) {
+            Row(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = GtaStartTheme.spacing.medium),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    modifier = modifier.weight(1f),
+                    text = stringResource(R.string.tip_app_config_load_failed) // 检测更新失败
+                )
+                TextButton(
+                    onClick = {
+                        scope.launch {
+                            Constants.isAppUpdateInfoFailed.value = false
+                            MainActivity.checkUpdate(mainViewModel, context as MainActivity)
+                        }
+                    }
+                ) {
+                    Text(stringResource(R.string.reload))
                 }
             }
         }
@@ -300,12 +333,12 @@ private fun StatusCard(
                     }
                 )
 
-/*                MButton(
-                    text = "导入地图教程",
+                MButton(
+                    text = "自定义房间",
                     onClick = {
-
+                        navController.navigateSingleTopTo(RootDesc.CsServerPanel.route)
                     }
-                )*/
+                )
             }
 
         }

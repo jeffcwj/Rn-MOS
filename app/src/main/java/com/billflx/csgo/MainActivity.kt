@@ -1,6 +1,9 @@
 package com.billflx.csgo
 
+import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.AlertDialog
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -39,6 +42,55 @@ class MainActivity : LauncherActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
+
+        /**
+         * 检测更新
+         */
+        suspend fun checkUpdate(mainViewModel: MainViewModel, context: Activity) {
+            try {
+                val notice = mainViewModel.getNotice()
+                notice?.let {
+                    Constants.appUpdateInfo.value = it // 存起来方便其他地方访问
+                    if (it.app.version != Constants.appVersion) { // 不是最新版本
+                        val builder = MaterialAlertDialogBuilder(context)
+                            .setTitle("${context.getString(R.string.has_new_version)} ${it.app.version}")
+                            .setMessage(it.app.updateMsg)
+                            .setPositiveButton(context.getString(R.string.update)
+                            ) { dialog, which ->
+                                MHelpers.openBrowser(context, it.app.link) // 访问浏览器更新软件
+                            }
+                            .setCancelable(true)
+                        val versions = it.app.allowVersions.split(",")
+                        if (versions.contains(Constants.appVersion)) {
+                            val launch_screen_rootLayout = context.findViewById<RelativeLayout>(R.id.launch_screen_rootLayout)
+                            launch_screen_rootLayout.setVisibility(View.GONE)
+                            Log.d(TAG, "checkUpdate: hasUpdate!!!!!")
+                            Constants.appUpdateInfo.value?.app?.hasUpdate = mutableStateOf(true)
+                            builder.setNegativeButton(context.getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
+                        } else {
+                            Log.d(TAG, "checkUpdate: 版本过老")
+                            builder.setNegativeButton(context.getString(R.string.cancel)) {dialog,_ -> dialog.dismiss() }
+                        }
+                        builder.show()
+//                        launch_screen_refresh?.visibility = View.VISIBLE
+                    } else {
+                        Log.d(TAG, "checkUpdate: 已经是最新版本")
+                        val launch_screen_rootLayout = context.findViewById<RelativeLayout>(R.id.launch_screen_rootLayout)
+                        launch_screen_rootLayout.setVisibility(View.GONE)
+                    }
+                } ?: also {
+                    Log.d(TAG, "checkUpdate: 检测更新失败")
+                    withContext(Dispatchers.Main) {
+                        Constants.isAppUpdateInfoFailed.value = true
+//                        launch_screen_refresh?.visibility = View.VISIBLE
+                    }
+                }
+            } catch (e: Throwable) { // 保底
+                Log.d(TAG, "checkUpdate: 检测更新失败 $e")
+                Constants.isAppUpdateInfoFailed.value = true
+//                launch_screen_refresh?.visibility = View.VISIBLE
+            }
+        }
     }
 
 //    private val settingViewModel: SettingViewModel by viewModels() // 这玩意跟compose里的实例还不一样，日了狗了
@@ -46,6 +98,7 @@ class MainActivity : LauncherActivity() {
 
     private var launch_screen_refresh: Button? = null
 
+    @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -77,60 +130,15 @@ class MainActivity : LauncherActivity() {
         launch_screen_refresh = launch_app_screen.findViewById<Button>(R.id.launch_screen_refresh)
         launch_screen_refresh?.setOnClickListener {
             MToast("正在刷新...")
-            checkUpdate()
+            lifecycleScope.launch {
+                checkUpdate(mainViewModel, this@MainActivity)
+            }
             launch_screen_refresh?.setVisibility(View.GONE)
         }
 
         // 检测更新
-        checkUpdate()
-    }
-
-    /**
-     * 检测更新
-     */
-    fun checkUpdate() {
         lifecycleScope.launch {
-            try {
-                val notice = mainViewModel.getNotice()
-                notice?.let {
-                    Constants.appUpdateInfo.value = it // 存起来方便其他地方访问
-                    if (it.app.version != Constants.appVersion) { // 不是最新版本
-                        val builder = MaterialAlertDialogBuilder(this@MainActivity)
-                            .setTitle("${getString(R.string.has_new_version)} ${it.app.version}")
-                            .setMessage(it.app.updateMsg)
-                            .setPositiveButton(getString(R.string.update)
-                            ) { dialog, which ->
-                                MHelpers.openBrowser(this@MainActivity, it.app.link) // 访问浏览器更新软件
-                            }
-                            .setCancelable(true)
-                        val versions = it.app.allowVersions.split(",")
-                        if (versions.contains(Constants.appVersion)) {
-                            val launch_screen_rootLayout = findViewById<RelativeLayout>(R.id.launch_screen_rootLayout)
-                            launch_screen_rootLayout.setVisibility(View.GONE)
-                            Log.d(TAG, "checkUpdate: hasUpdate!!!!!")
-                            Constants.appUpdateInfo.value?.app?.hasUpdate = mutableStateOf(true)
-                            builder.setNegativeButton(getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
-                        } else {
-                            Log.d(TAG, "checkUpdate: 版本过老")
-                            builder.setNegativeButton(getString(R.string.cancel)) {dialog,_ -> dialog.dismiss() }
-                        }
-                        builder.show()
-                        launch_screen_refresh?.visibility = View.VISIBLE
-                    } else {
-                        Log.d(TAG, "checkUpdate: 已经是最新版本")
-                        val launch_screen_rootLayout = findViewById<RelativeLayout>(R.id.launch_screen_rootLayout)
-                        launch_screen_rootLayout.setVisibility(View.GONE)
-                    }
-                } ?: also {
-                    Log.d(TAG, "checkUpdate: 检测更新失败")
-                    withContext(Dispatchers.Main) {
-                        launch_screen_refresh?.visibility = View.VISIBLE
-                    }
-                }
-            } catch (e: Throwable) { // 保底
-                Log.d(TAG, "checkUpdate: 检测更新失败 $e")
-                launch_screen_refresh?.visibility = View.VISIBLE
-            }
+            checkUpdate(mainViewModel, this@MainActivity)
         }
     }
 

@@ -13,6 +13,13 @@ extern Java* g_java;
     "v7.5",
 };*/
 
+class CSVersion {
+public:
+    static inline std::string CM = "CM";
+    static inline std::string CSMOSV65 = "CSMOSV65";
+    static inline std::string CSMOSV75 = "CSMOSV75";
+};
+
 class AddressManager {
 public:
     static AddressManager& instance() {
@@ -24,7 +31,7 @@ public:
         std::string flavor = g_java->getFlavor();
         spdlog::info("CSMOS version: {}", flavor);
 
-        if (flavor == "v6.5") {
+        if (flavor == CSVersion::CSMOSV65) {
             // engine
             VMT_Master = 0x970EE0;
             FUNC_NET_StringToAdr = 0x5B3B0C;
@@ -40,7 +47,7 @@ public:
             FUNC_CDialogGameInfo_ConnectToServer = 0x1DAEC0;
             FUNC_ServerResponded = 0x1D2284;
             return true;
-        } else if (flavor == "v7.5") {
+        } else if (flavor == CSVersion::CSMOSV75) {
             // engine
             VMT_Master = 0x971480; // ok
             FUNC_NET_StringToAdr = 0x5B3CB0; // ok

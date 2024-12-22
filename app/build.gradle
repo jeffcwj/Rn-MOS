@@ -18,7 +18,7 @@ android {
         //noinspection ExpiredTargetSdkVersion
         targetSdk 24
         versionCode 1
-        versionName "r6.2"
+        versionName "r7"
 
         ndkVersion  "25.2.9519653"
         ndk {
@@ -28,7 +28,7 @@ android {
         multiDexEnabled true
 //        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        flavorDimensions "csmos_version"
+        /*flavorDimensions "csmos_version"
         productFlavors {
             create('v6-5')  {
                 dimension "csmos_version"
@@ -39,7 +39,7 @@ android {
             create('cm') {
                 dimension "csmos_version"
             }
-        }
+        }*/
     }
 
     externalNativeBuild {
