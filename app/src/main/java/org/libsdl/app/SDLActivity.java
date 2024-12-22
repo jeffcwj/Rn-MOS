@@ -9,6 +9,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -52,9 +53,14 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.billflx.csgo.bean.CSVersionInfoEnum;
+import com.billflx.csgo.data.ModLocalDataSource;
 import com.gtastart.common.util.MToast;
+import com.pika.sillyboy.util.LoadLibUtils;
 import com.valvesoftware.ValveActivity2;
 import com.valvesoftware.source.R;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -64,6 +70,7 @@ import java.util.List;
 import java.util.Locale;
 
 import me.nillerusr.DirchActivity;
+import me.nillerusr.ExtractAssets;
 
 
 /* loaded from: classes.dex */
@@ -253,9 +260,19 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
     }
 
     public void loadLibraries() {
-        for (String lib : getLibraries()) {
+        /*for (String lib : getLibraries()) {
             SDL.loadLibrary(lib);
-        }
+        }*/
+
+        // 自定义加载动态库
+        SharedPreferences mPref = getSharedPreferences("mod", Context.MODE_MULTI_PROCESS);
+        String versionName = mPref.getString("current_cs_version", CSVersionInfoEnum.Companion.getDefaultName());
+//        String versionName = ModLocalDataSource.INSTANCE.getCurrentCSVersion(); // 获取当前CS版本
+        String libRelativePath = CSVersionInfoEnum.Companion.getLibPathByName(versionName);
+        libRelativePath = libRelativePath.startsWith("/")?libRelativePath.substring(1):libRelativePath;
+
+        LoadLibUtils.fromAssets(this, libRelativePath + "/libSDL2.so", getFilesDir().getPath());
+        LoadLibUtils.fromAssets(this, libRelativePath + "/liblauncher.so", getFilesDir().getPath());
     }
 
     protected String[] getArguments() {
@@ -313,6 +330,7 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
 
     public void init() {
         String filename;
+        ExtractAssets.extractAssets(this); // TODO 在这解压试一下
         if (!mIsInitCalled) {
             mIsInitCalled = true;
             try {

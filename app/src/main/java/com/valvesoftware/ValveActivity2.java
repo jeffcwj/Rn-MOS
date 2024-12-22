@@ -6,6 +6,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.util.Log;
+
+import com.billflx.csgo.bean.CSVersionInfoEnum;
+import com.billflx.csgo.data.ModLocalDataSource;
+
 import java.io.File;
 import java.util.Locale;
 import me.nillerusr.ExtractAssets;
@@ -64,7 +68,7 @@ public class ValveActivity2 {
     }
 
     public static int preInit(Context context, Intent intent) {
-        mPref = context.getSharedPreferences("mod", 0);
+        mPref = context.getSharedPreferences("mod", Context.MODE_MULTI_PROCESS);
         String gamepath = mPref.getString("gamepath", LauncherActivity.getDefaultDir() + "/srceng");
         String gamedir = intent.getStringExtra("gamedir");
         if (gamedir == null || gamedir.isEmpty()) {
@@ -77,7 +81,7 @@ public class ValveActivity2 {
     }
 
     public static void initNatives(Context context, Intent intent) {
-        mPref = context.getSharedPreferences("mod", 0);
+        mPref = context.getSharedPreferences("mod", Context.MODE_MULTI_PROCESS);
         ApplicationInfo appinf = context.getApplicationInfo();
         String gamepath = mPref.getString("gamepath", LauncherActivity.getDefaultDir() + "/srceng");
         String argv = intent.getStringExtra("argv");
@@ -95,8 +99,11 @@ public class ValveActivity2 {
         if (gamelibdir != null && !gamelibdir.isEmpty()) {
             setenv("APP_MOD_LIB", gamelibdir, 1);
         }
-        ExtractAssets.extractAssets(context);
-        String vpks = context.getFilesDir().getPath() + "/" + ExtractAssets.VPK_NAME;
+//        ExtractAssets.extractAssets(context); // TODO 解压资源 我换个地方解压
+//        String vpks = context.getFilesDir().getPath() + "/" + ExtractAssets.VPK_NAME; // old
+//        String versionName = ModLocalDataSource.INSTANCE.getCurrentCSVersion(); // 获取当前CS版本
+        String versionName = mPref.getString("current_cs_version", CSVersionInfoEnum.Companion.getDefaultName());
+        String vpks = context.getFilesDir().getPath() + "/" + CSVersionInfoEnum.Companion.getVpkNameByName(versionName);
         if (customVPK != null && !customVPK.isEmpty()) {
             vpks = customVPK + "," + vpks;
         }
@@ -104,7 +111,9 @@ public class ValveActivity2 {
         setenv("EXTRAS_VPK_PATH", vpks, 1);
         setenv("LANG", Locale.getDefault().toString(), 1);
         setenv("APP_DATA_PATH", appinf.dataDir, 1);
-        setenv("APP_LIB_PATH", appinf.nativeLibraryDir, 1);
+//        setenv("APP_LIB_PATH", appinf.nativeLibraryDir, 1); // Old
+        String libPath = context.getFilesDir().getPath() + CSVersionInfoEnum.Companion.getLibPathByName(versionName);
+        setenv("APP_LIB_PATH", libPath, 1);
         if (mPref.getBoolean("rodir", false)) {
             setenv("VALVE_GAME_PATH", LauncherActivity.getAndroidDataDir(), 1);
         } else {

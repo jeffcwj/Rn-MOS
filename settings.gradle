@@ -26,7 +26,9 @@ dependencyResolutionManagement {
 rootProject.name = "RnMOS"
 include ':app'
 include ':common'
-project(':common').projectDir = new File("D:/AndroidStudio/project/Rn_Common/common")
+project(':common').projectDir = new File(settingsDir, "../Rn_Common/common")
 include ':GtaStart'
-project(':GtaStart').projectDir = new File("D:/AndroidStudio/project/Rn_SAMP_Tool/GtaStart")
+project(':GtaStart').projectDir = new File(settingsDir, "../Rn_SAMP_Tool/GtaStart")
+include ':dyso'
+project(':dyso').projectDir = new File(settingsDir, "../Dyso_G/dyso")
 

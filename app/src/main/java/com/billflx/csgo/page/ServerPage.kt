@@ -2,6 +2,7 @@ package com.billflx.csgo.page
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -28,10 +29,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
@@ -48,6 +51,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -59,6 +64,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -98,13 +104,16 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.androlua.LuaEditor
 import com.billflx.csgo.MainActivity
 import com.billflx.csgo.bean.AutoExecCmdBean
+import com.billflx.csgo.bean.CSVersionInfoEnum
 import com.billflx.csgo.bean.SampQueryInfoBean
 import com.billflx.csgo.bean.SampQueryPlayerBean
+import com.billflx.csgo.data.ModLocalDataSource
 import com.billflx.csgo.nav.LocalServerViewModel
 import com.billflx.csgo.nav.LocalSettingViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.gtastart.common.theme.GtaStartTheme
 import com.gtastart.common.util.CSMOSUtils
+import com.gtastart.common.util.CsPayload
 import com.gtastart.common.util.MDialog
 import com.gtastart.common.util.MOSDialog
 import com.gtastart.common.util.MToast
@@ -168,14 +177,32 @@ fun ServerPage(
                         contentDescription = null
                     )
                 }*/
+                val launcher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.StartActivityForResult()
+                ) { result ->
+                    // 游戏结束以后刷新列表数据
+                    Log.d("", "ServerPage: 游戏结束")
+                    viewModel.refreshServerList()
+                }
                 val vm = LocalSettingViewModel.current
                 ExtendedFloatingActionButton (
                     onClick = {
-                        CSMOSUtils.removeAutoConnectInfo()
-                        if (context is MainActivity) {
-                            vm.saveSettings() // 修复第一次启动进单机
-                            context.startSource()
+                        val currentCSVersion = ModLocalDataSource.getCurrentCSVersion()
+                        if (!CSMOSUtils.isCsSourceInstalled(currentCSVersion)) {
+                            MOSDialog.show(
+                                context,
+                                title = "提示",
+                                message = "请先安装游戏",
+                                positiveButtonText = "确定",
+                                onPositiveButtonClick = {d,_ -> d.dismiss()}
+                            )
+                            return@ExtendedFloatingActionButton
                         }
+
+                        vm.applySettingsToModSP(currentCSVersion) // 应用设置到Mod sp
+                        CSMOSUtils.removeAutoConnectInfo() // 在mod sp应用之后执行文件操作
+                        val intent = Intent(context, SDLActivity::class.java)
+                        launcher.launch(intent) // 启动游戏
                     },
                 ) {
                     Icon(
@@ -232,7 +259,14 @@ private fun EditAutoExecDialog(
     val showCmds = rememberSaveable { mutableStateOf(false) }
     // 存储用户输入内容
     val textState = remember { mutableStateOf(TextFieldValue("")) }
-    textState.value = TextFieldValue(CSMOSUtils.removeAutoConnectInfo())
+    val settingVM = LocalSettingViewModel.current
+
+    LaunchedEffect(Unit) {
+        val currentCSVersion = ModLocalDataSource.getCurrentCSVersion()
+        settingVM.applySettingsToModSP(currentCSVersion, true) // 临时切换路径
+        textState.value = TextFieldValue(CSMOSUtils.removeAutoConnectInfo())
+    }
+
     MCustomAlertDialog( // 设置启动命令弹窗
         title = stringResource(R.string.launch_cmd),
         content = {
@@ -314,6 +348,8 @@ private fun EditAutoExecDialog(
         positiveButtonText = stringResource(R.string.save),
         onPositiveButtonClick = {
             // 保存
+            val currentCSVersion = ModLocalDataSource.getCurrentCSVersion()
+            settingVM.applySettingsToModSP(currentCSVersion, true) // 临时切换路径
             CSMOSUtils.writeAutoExecText(textState.value.text)
             MToast.show(context, context.getString(R.string.save_finished))
             showDialog.value = false
@@ -337,7 +373,8 @@ private fun ExecCmdsItem(
             .fillMaxSize()
             .clip(RoundedCornerShape(GtaStartTheme.spacing.normal))
             .clickable {
-                textState.value = TextFieldValue("${textState.value.text.trimStart()}${if (!textState.value.text.isBlank())"\n" else ""}${item.cmd}")
+                textState.value =
+                    TextFieldValue("${textState.value.text.trimStart()}${if (!textState.value.text.isBlank()) "\n" else ""}${item.cmd}")
                 showCmds.value = false
             }
             .padding(GtaStartTheme.spacing.normal)
@@ -362,6 +399,7 @@ private fun DynamicHighlightedTextField(
     // 样式：key 普通样式，value 高亮样式
     val keyStyle = SpanStyle(color = colorResource(R.color.md_theme_tertiary), fontSize = 16.sp) // MaterialTheme.colorScheme.onPrimary 为啥走的是LightTheme
     val valueStyle = SpanStyle(color = colorResource(R.color.md_theme_primary), fontSize = 16.sp)
+    val scrollState = rememberScrollState()
 
 //    TextField()
     Box( // 弄个假的文本外边框
@@ -372,13 +410,14 @@ private fun DynamicHighlightedTextField(
                 shape = MaterialTheme.shapes.small // 圆角形状
             )
             .padding(GtaStartTheme.spacing.medium) // 内边距与边框之间的间距
+
     ) {
         BasicTextField(
             value = textState.value,
             onValueChange = { newValue ->
                 textState.value = newValue
             },
-            modifier = modifier,
+            modifier = modifier.verticalScroll(scrollState),
             cursorBrush = SolidColor(TextFieldDefaults.colors().cursorColor), // 光标颜色
             textStyle = LocalTextStyle.current.copy(fontSize = 16.sp, color = Color.Transparent),
             decorationBox = { innerTextField ->
@@ -419,49 +458,6 @@ private fun DynamicHighlightedTextField(
         )
     }
 }
-private fun CustomExecCmdEditor(
-    modifier: Modifier = Modifier,
-    context: Context,
-    density: Density
-) {
-/*    val luaEditor = LuaEditor(context)
-    Lexer.setLanguage(LanguageAutoExecCmd.getInstance())
-    luaEditor.setPanelLanguage(LanguageAutoExecCmd.getInstance())
-    val topPx = with(density) { 16.dp.toPx() }
-    luaEditor.setPadding(0, topPx.toInt(),0,0)
-    luaEditor.layoutParams = ViewGroup.LayoutParams(-1, 200)
-    MaterialAlertDialogBuilder(context)
-        .setTitle(context.getString(R.string.launch_cmd))
-        .setView(luaEditor)
-        .show()
-    */
-
-    // 唐完了 activity ComposeView 里某Compose onClick调用AlertDialog setView
-    // 套 ComposeView 套 AndroidView factory 里创建 EditText 会无法正确获取焦点，输入法无法弹出
-    // 实测，dialog这个ComposeView以后，focus就不正常了，又不想老实用Compose的dialog 真tm难用
-    /*MOSDialog.show(
-        context = context,
-        title = "启动命令",
-        customView = { dialog ->
-            TextField(
-                value = "测试",
-                onValueChange = {}
-            )
-            *//*AndroidView(
-                modifier = modifier.heightIn(max = 300.dp),
-                factory = { context ->
-                    val luaEditor = LuaEditor(context)
-                    luaEditor.layoutParams = ViewGroup.LayoutParams(-1, -2)
-                    val et = EditText(context)
-                    et.layoutParams = ViewGroup.LayoutParams(-1, -2)
-                    et
-                }) { view ->
-                    val autoExecText = CSMOSUtils.readAutoExecText()
-                    view.setText(autoExecText)
-                }*//*
-        }
-    )*/
-}
 
 @Composable
 private fun ServerContent(
@@ -472,8 +468,49 @@ private fun ServerContent(
             .fillMaxSize()
             .padding(GtaStartTheme.spacing.normal)
     ) {
+        ServerTabs()
         ServerList()
     }
+}
+
+@Composable
+private fun ServerTabs(
+    modifier: Modifier = Modifier,
+    viewModel: ServerViewModel = LocalServerViewModel.current,
+    settingViewModel: SettingViewModel = LocalSettingViewModel.current
+) {
+    var index by rememberSaveable { mutableIntStateOf(0) }
+    LaunchedEffect(index) {
+        Log.d("", "ServerTabs: index: $index")
+        if (index == 0) { // 暂时同步mod sp
+            settingViewModel.applySettingsToModSP(CSVersionInfoEnum.CSMOSV65.name, true)
+        } else {
+            settingViewModel.applySettingsToModSP(CSVersionInfoEnum.CM.name, true)
+        }
+    }
+    TabRow(
+        selectedTabIndex = index,
+        tabs = {
+            Tab(
+                text = { Text("CSMOS") },
+                selected = index == 0,
+                onClick = {
+                    index = 0
+                    viewModel.serverPayload.value = CsPayload.CSMOS.payload
+                    viewModel.refreshServerList()
+                }
+            )
+            Tab(
+                text = { Text("CM") },
+                selected = index == 1,
+                onClick = {
+                    index = 1
+                    viewModel.serverPayload.value = CsPayload.CM.payload
+                    viewModel.refreshServerList()
+                }
+            )
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -530,13 +567,15 @@ private fun ServerList(
                         verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal)
                     ) {
                         Text(serverDetailStr.value)
-
+                        LaunchedEffect(Unit) {
+                            viewModel.loadNickName() // 加载昵称
+                        }
                         TextField(
                             maxLines = 1,
                             value = viewModel.nickName.value,
                             onValueChange = {
                                 viewModel.nickName.value = it
-                                viewModel.saveNickName()
+//                                viewModel.saveNickName() // 不做保存
                             },
                             label = {
                                 Text(stringResource(R.string.please_input_nickname), maxLines = 1)
@@ -548,6 +587,33 @@ private fun ServerList(
                 },
                 positiveButtonText = stringResource(R.string.start_game),
                 onPositiveButtonClick = {
+                    val intent = Intent(context, SDLActivity::class.java)
+                    if (viewModel.serverPayload.value == CsPayload.CM.payload) {
+                        settingVM.applySettingsToModSP(CSVersionInfoEnum.CM.name)
+                        if (!CSMOSUtils.isCsSourceInstalled(CSVersionInfoEnum.CM.name)) {
+                            MOSDialog.show(
+                                context,
+                                title = "提示",
+                                message = "请先安装游戏",
+                                positiveButtonText = "确定",
+                                onPositiveButtonClick = {d,_ -> d.dismiss()}
+                            )
+                            return@MCustomAlertDialog
+                        }
+                    } else if (viewModel.serverPayload.value == CsPayload.CSMOS.payload) {
+                        settingVM.applySettingsToModSP(CSVersionInfoEnum.CSMOSV65.name)
+                        if (!CSMOSUtils.isCsSourceInstalled(CSVersionInfoEnum.CSMOSV65.name)) {
+                            MOSDialog.show(
+                                context,
+                                title = "提示",
+                                message = "请先安装游戏",
+                                positiveButtonText = "确定",
+                                onPositiveButtonClick = {d,_ -> d.dismiss()}
+                            )
+                            return@MCustomAlertDialog
+                        }
+                    }
+
                     if (!viewModel.saveNickName()) {
                         context.MToast(context.getString(R.string.nickname_cannot_empty))
                         return@MCustomAlertDialog
@@ -555,12 +621,7 @@ private fun ServerList(
 
                     CSMOSUtils.saveNickName(viewModel.nickName.value)
                     CSMOSUtils.saveAutoConnectInfo(currentServerIP.value)
-                    val intent = Intent(context, SDLActivity::class.java)
-                    settingVM.saveSettings() // 保存设置数据
                     launcher.launch(intent) // 回调要刷新列表数据
-                    /*if (context is MainActivity) {
-                        context.startSource()
-                    }*/
                     openDialog.value = false
                 },
                 onDismissRequest = {openDialog.value = false}

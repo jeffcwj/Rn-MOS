@@ -13,13 +13,14 @@ class Constants {
         const val SOURCE_HOST = "135.125.188.162"
         const val SOURCE_PORT = 27010
 
-        const val CONFIG_PATH = "/csmos/cfg/config.cfg"
-        const val AUTOEXEC_CONFIG_PATH = "/csmos/cfg/autoexec.cfg"
+        const val CONFIG_PATH = "/%s/cfg/config.cfg"
+        const val AUTOEXEC_CONFIG_PATH = "/%s/cfg/autoexec.cfg"
         const val DOWNLOAD_PATH = "/Download/CSMOSDownload"
 
         const val GAME_PKG_CACHE_PATH = "/gameZip"
 
         const val CHECK_UPDATE_URL = "https://samp.fun/RnSAMP/CSMOS/checkUpdate.php"
         const val AUTO_EXEC_CMD_URL = "https://samp.fun/RnSAMP/CSMOS/autoExecCmds.php"
+
     }
 }

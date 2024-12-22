@@ -9,13 +9,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.billflx.csgo.bean.AppUpdateBean
 import com.billflx.csgo.bean.AutoExecCmdBean
+import com.billflx.csgo.bean.CSVersionInfoEnum
 import com.billflx.csgo.bean.SampQueryInfoBean
 import com.billflx.csgo.constant.Constants
 import com.billflx.csgo.data.ModLocalDataSource
 import com.billflx.csgo.data.repo.AppRepository
+import com.billflx.csgo.data.repo.CSVersionInfoRepository
 import com.billflx.csgo.page.MainViewModel.Companion
 import com.gtastart.common.util.Coroutines
 import com.gtastart.common.util.CsMosQuery
+import com.gtastart.common.util.CsPayload
 import com.gtastart.common.util.isBlank
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -27,7 +30,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ServerViewModel @Inject constructor(
-    private val repository: AppRepository
+    private val repository: AppRepository,
+    private val versionRepository: CSVersionInfoRepository
 ) : ViewModel() {
 
     companion object {
@@ -43,18 +47,32 @@ class ServerViewModel @Inject constructor(
     var autoExecCmdList = mutableStateListOf<AutoExecCmdBean>()
     var isAutoExecCmdLoading = mutableStateOf(false)
 
+    var serverPayload = mutableStateOf(CsPayload.CSMOS.payload)
 
     init {
-//        refreshServerList()
-        val name = ModLocalDataSource.getNickName()
-        if (!name.isBlank()) {
-            nickName.value = name
+
+    }
+
+    fun loadNickName() {
+        var version = CSVersionInfoEnum.CSMOSV65.name
+        if (serverPayload.value == CsPayload.CSMOS.payload) {
+            version = CSVersionInfoEnum.CSMOSV65.name
+        } else {
+            version = CSVersionInfoEnum.CM.name
+        }
+        viewModelScope.launch {
+            nickName.value = versionRepository.getNickName(version)
         }
     }
 
     fun saveNickName(): Boolean {
         if (!nickName.value.isBlank()) {
-            ModLocalDataSource.setNickName(nickName.value)
+            viewModelScope.launch {
+                versionRepository.setNickName(ModLocalDataSource.getCurrentCSVersion(), nickName.value)
+                withContext(Dispatchers.Main) {
+                    ModLocalDataSource.setNickName(nickName.value)
+                }
+            }
         } else {
             return false
         }
@@ -66,6 +84,7 @@ class ServerViewModel @Inject constructor(
         val (host, port) = rootLink.split(":").let { it[0] to it[1].toInt() }
         while (retryCount < maxRetryCount) {
             val samp = CsMosQuery(host, port)
+            samp.setPayload(serverPayload.value)
             val ips = samp.serverIps
             if (ips.size != 0) {
                 Log.d(TAG, "主服务器${rootLink}: 的子ip ${ips}")
@@ -83,6 +102,7 @@ class ServerViewModel @Inject constructor(
         var retryCount = 0
         while (retryCount < maxRetryCount) {
             val samp = CsMosQuery(host, port)
+            samp.setPayload(serverPayload.value)
             val infos = samp.infos
             if (!infos.serverName.isNullOrBlank()) {
                 return infos

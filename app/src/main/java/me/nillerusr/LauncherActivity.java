@@ -2,6 +2,7 @@ package me.nillerusr;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -133,7 +134,7 @@ public class LauncherActivity extends AppCompatActivity {
 //        } else {
 //            super.setTheme(android.R.style.Theme);
 //        }
-        this.mPref = getSharedPreferences("mod", 0);
+        this.mPref = getSharedPreferences("mod", Context.MODE_MULTI_PROCESS);
         setContentView(R.layout.activity_launcher);
         cmdArgs = (EditText) findViewById(R.id.edit_cmdline);
         EnvEdit = (EditText) findViewById(R.id.edit_env);

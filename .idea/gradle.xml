@@ -10,6 +10,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/../Dyso_G/dyso" />
             <option value="$PROJECT_DIR$/../Rn_Common/common" />
             <option value="$PROJECT_DIR$/../Rn_SAMP_Tool/GtaStart" />
           </set>

@@ -260,12 +260,6 @@ private fun StatusCard(
         modifier = modifier.fillMaxWidth()
     ) {
         val settingViewModel = LocalSettingViewModel.current
-        val launcher = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            settingViewModel.refreshGamePath()
-            viewModel.checkGameStatus()
-        }
 
         Column(
             verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal),

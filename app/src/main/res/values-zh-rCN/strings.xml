@@ -102,4 +102,6 @@
     <string name="save_finished">保存完成</string>
     <string name="view_common_cmds">查看常用指令</string>
     <string name="common_cmds">常用指令</string>
+    <string name="select_version">选择版本</string>
+    <string name="select_game_version">选择游戏版本</string>
 </resources>

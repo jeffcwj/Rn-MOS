@@ -38,6 +38,11 @@ public class CsMosQuery {
     private Random f = new Random();
     private boolean isValidAddr = true;
     private String charset = "UTF-8";
+    private String payload = CsPayload.CSMOS.getPayload();
+
+    public void setPayload(String payload) {
+        this.payload = payload;
+    }
 
     public CsMosQuery(String srvip, int srvport) {
         try {
@@ -82,7 +87,7 @@ public class CsMosQuery {
         DatagramPacket pkt;
         try {
 //            String payload = "Source Engine Query\0";
-            String payload = "1csmos";
+            String payload = this.payload;
 //            String payload = "3163736d6f73";
 
             int bufferLength = payload.getBytes(StandardCharsets.UTF_8).length;

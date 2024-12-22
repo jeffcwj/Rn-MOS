@@ -32,9 +32,11 @@ android {
         productFlavors {
             create('v6-5')  {
                 dimension "csmos_version"
-
             }
             create('v7-5') {
+                dimension "csmos_version"
+            }
+            create('cm') {
                 dimension "csmos_version"
             }
         }
@@ -101,6 +103,7 @@ dependencies {
 
     implementation project(':common') // 公共依赖库
     implementation project(':GtaStart') // GtaStart 论坛
+    implementation project(':dyso') // 动态库加载
 
 
     // Hilt 依赖注入

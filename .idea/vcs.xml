@@ -2,6 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../Dyso_G" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../Rn_Common" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../Rn_SAMP_Tool/GtaStart" vcs="Git" />
   </component>

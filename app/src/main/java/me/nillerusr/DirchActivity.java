@@ -3,6 +3,8 @@ package me.nillerusr;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -110,7 +112,7 @@ public class DirchActivity extends Activity implements View.OnTouchListener {
     @Override // android.app.Activity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.mPref = getSharedPreferences("mod", 0);
+        this.mPref = getSharedPreferences("mod", Context.MODE_MULTI_PROCESS);
         requestWindowFeature(1);
         if (sdk >= 21) {
             super.setTheme(android.R.style.Theme_Material);
@@ -133,6 +135,9 @@ public class DirchActivity extends Activity implements View.OnTouchListener {
                     SharedPreferences.Editor editor = DirchActivity.this.mPref.edit();
                     editor.putString("gamepath", DirchActivity.cur_dir + "/");
                     editor.commit();
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("result", "OK");
+                    setResult(Activity.RESULT_OK, resultIntent);
                     DirchActivity.this.finish();
                 }
             }

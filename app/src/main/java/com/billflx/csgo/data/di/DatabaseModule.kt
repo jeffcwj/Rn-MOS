@@ -2,6 +2,8 @@ package com.billflx.csgo.data.di
 
 import android.content.Context
 import androidx.room.Room
+import com.billflx.csgo.data.db.CSVersionInfoDao
+import com.billflx.csgo.data.db.CSVersionInfoDatabase
 import com.billflx.csgo.data.db.DownloadInfo
 import com.billflx.csgo.data.db.DownloadInfoDao
 import com.billflx.csgo.data.db.DownloadInfoDatabase
@@ -18,7 +20,7 @@ object DatabaseModule {
 
     // 单例注入database
     @Provides
-    fun provideDatabase(@ApplicationContext context: Context): DownloadInfoDatabase {
+    fun provideDownloadInfoDatabase(@ApplicationContext context: Context): DownloadInfoDatabase {
         return Room.databaseBuilder(
             context,
             DownloadInfoDatabase::class.java,
@@ -27,7 +29,21 @@ object DatabaseModule {
     }
 
     @Provides
+    fun provideCSVersionInfoDatabase(@ApplicationContext context: Context): CSVersionInfoDatabase {
+        return Room.databaseBuilder(
+            context,
+            CSVersionInfoDatabase::class.java,
+            "CSVersionInfoDatabase"
+        ).build()
+    }
+
+    @Provides
     fun provideDownloadInfoDao(database: DownloadInfoDatabase): DownloadInfoDao {
         return database.getDownloadInfoDao()
+    }
+
+    @Provides
+    fun provideCSVersionInfoDao(database: CSVersionInfoDatabase): CSVersionInfoDao {
+        return database.getCSVersionInfoDao()
     }
 }

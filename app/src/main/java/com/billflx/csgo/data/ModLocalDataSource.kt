@@ -1,7 +1,11 @@
 package com.billflx.csgo.data
 
+import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
+import com.billflx.csgo.bean.CSVersionInfoEnum
+import com.billflx.csgo.data.db.CSVersionInfo
+import com.billflx.csgo.data.repo.CSVersionInfoRepository
 import me.nillerusr.LauncherActivity
 
 object ModLocalDataSource {
@@ -10,7 +14,20 @@ object ModLocalDataSource {
     lateinit var sp: SharedPreferences
 
     fun init(context: Context) {
-        sp = context.getSharedPreferences(SP_NAME, Context.MODE_PRIVATE)
+        sp = context.getSharedPreferences(SP_NAME, Context.MODE_MULTI_PROCESS)
+    }
+
+    suspend fun migrateDataToDb(csVersionInfoRepository: CSVersionInfoRepository) {
+        if (csVersionInfoRepository.isDBEmpty()) {
+            val info = CSVersionInfo(
+                versionName = CSVersionInfoEnum.getDefaultName(),
+                env = getEnv(),
+                argv = getArgv(),
+                gamePath = getGamePath(),
+                nickName = getNickName()
+            )
+            csVersionInfoRepository.addInfo(info)
+        }
     }
 
     // SharedPreferences 扩展函数
@@ -75,8 +92,15 @@ object ModLocalDataSource {
         sp.setValue("nickname", value)
     }
     fun getAllowNativeInject() = sp.getValue("allow_native_inject", true)
-    fun setNickName(value: Boolean) {
+    fun setAllowNativeInject(value: Boolean) {
         sp.setValue("allow_native_inject", value)
+    }
+
+    fun getCurrentCSVersion(): String {
+        return sp.getValue("current_cs_version", CSVersionInfoEnum.getDefaultName())
+    }
+    fun setCurrentCSVersion(value: String) {
+        sp.setValue("current_cs_version", value)
     }
 
 }
