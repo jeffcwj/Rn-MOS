@@ -14,9 +14,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -24,6 +26,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -50,6 +53,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -90,6 +94,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
@@ -188,6 +193,7 @@ fun ServerPage(
                 ExtendedFloatingActionButton (
                     onClick = {
                         val currentCSVersion = ModLocalDataSource.getCurrentCSVersion()
+                        vm.applySettingsToModSP(currentCSVersion) // 应用设置到Mod sp
                         if (!CSMOSUtils.isCsSourceInstalled(currentCSVersion)) {
                             MOSDialog.show(
                                 context,
@@ -199,8 +205,8 @@ fun ServerPage(
                             return@ExtendedFloatingActionButton
                         }
 
-                        vm.applySettingsToModSP(currentCSVersion) // 应用设置到Mod sp
                         CSMOSUtils.removeAutoConnectInfo() // 在mod sp应用之后执行文件操作
+                        CSMOSUtils.addCustomMainServers()
                         val intent = Intent(context, SDLActivity::class.java)
                         launcher.launch(intent) // 启动游戏
                     },
@@ -417,7 +423,7 @@ private fun DynamicHighlightedTextField(
             onValueChange = { newValue ->
                 textState.value = newValue
             },
-            modifier = modifier.verticalScroll(scrollState),
+            modifier = modifier.verticalScroll(scrollState).focusable(),
             cursorBrush = SolidColor(TextFieldDefaults.colors().cursorColor), // 光标颜色
             textStyle = LocalTextStyle.current.copy(fontSize = 16.sp, color = Color.Transparent),
             decorationBox = { innerTextField ->
@@ -492,7 +498,7 @@ private fun ServerTabs(
         selectedTabIndex = index,
         tabs = {
             Tab(
-                text = { Text("CSMOS") },
+                text = { Text("CSMOSv6.5") },
                 selected = index == 0,
                 onClick = {
                     index = 0
@@ -546,7 +552,7 @@ private fun ServerList(
 
     val openDialog = rememberSaveable { mutableStateOf(false) }
 
-    val serverDetailStr = rememberSaveable { mutableStateOf("") }
+    val serverDetailStr = remember { mutableStateOf(AnnotatedString("")) }
     val currentServerIP = rememberSaveable { mutableStateOf("") }
     val context = LocalContext.current
     val settingVM = LocalSettingViewModel.current
@@ -558,13 +564,17 @@ private fun ServerList(
         viewModel.refreshServerList()
     }
 
+    val focusRequester = remember { FocusRequester() }
+
     when {
         openDialog.value -> {
+
             MCustomAlertDialog(
                 title = stringResource(R.string.detail),
                 content = {
                     Column(
-                        verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal)
+                        verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal),
+                        modifier = modifier.requiredWidth(IntrinsicSize.Max)
                     ) {
                         Text(serverDetailStr.value)
                         LaunchedEffect(Unit) {
@@ -575,12 +585,11 @@ private fun ServerList(
                             value = viewModel.nickName.value,
                             onValueChange = {
                                 viewModel.nickName.value = it
-//                                viewModel.saveNickName() // 不做保存
                             },
                             label = {
                                 Text(stringResource(R.string.please_input_nickname), maxLines = 1)
                             },
-                            modifier = modifier
+                            modifier = modifier.focusable().fillMaxWidth(),
                         )
                     }
 
@@ -621,6 +630,7 @@ private fun ServerList(
 
                     CSMOSUtils.saveNickName(viewModel.nickName.value)
                     CSMOSUtils.saveAutoConnectInfo(currentServerIP.value)
+                    CSMOSUtils.addCustomMainServers()
                     launcher.launch(intent) // 回调要刷新列表数据
                     openDialog.value = false
                 },
@@ -647,12 +657,21 @@ private fun ServerList(
                     onClick = {
                         currentServerIP.value = item.serverIP.orEmpty()
 
-                        serverDetailStr.value = """
-                            ${item.serverName}
+                        serverDetailStr.value = buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("${item.serverName}\n")
+                            }
+                            append("""
                             ${context.getString(R.string.map)}：${item.serverMap}
                             ${context.getString(R.string.player_count)}：${item.playerCountInfo}
                             ${context.getString(R.string.ping)}：${item.ping} ms
-                        """.trimIndent()
+                        """.trimIndent())
+                        }
+/*                        serverDetailStr.value = """
+                            ${context.getString(R.string.map)}：${item.serverMap}
+                            ${context.getString(R.string.player_count)}：${item.playerCountInfo}
+                            ${context.getString(R.string.ping)}：${item.ping} ms
+                        """.trimIndent()*/
                         openDialog.value = true
                     }
                 )

@@ -33,8 +33,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.billflx.csgo.bean.DataType
 import com.billflx.csgo.bean.DownloadStatus
 import com.billflx.csgo.bean.DownloadExtraInfoBean
@@ -43,11 +46,13 @@ import com.billflx.csgo.bean.MDownloadStatusBean
 import com.billflx.csgo.data.ModLocalDataSource
 import com.billflx.csgo.data.db.DownloadInfo
 import com.billflx.csgo.data.db.DownloadInfoDao
+import com.billflx.csgo.nav.LocalSettingViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.gtastart.common.theme.GtaStartTheme
 import com.gtastart.common.util.MDialog
 import com.gtastart.common.util.MDownload
 import com.gtastart.common.util.MDownloadService
+import com.gtastart.common.util.MOSDialog
 import com.gtastart.common.util.MToast
 import com.gtastart.common.util.ZipUtils
 import com.gtastart.common.util.compose.widget.MButton
@@ -66,7 +71,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DownloadManagerViewModel @Inject constructor(
-    private val downloadInfoDao: DownloadInfoDao
+    private val downloadInfoDao: DownloadInfoDao,
 ) : ViewModel() {
 
     companion object {
@@ -394,7 +399,7 @@ class DownloadManagerViewModel @Inject constructor(
 
     private fun unZipDialog(context: Context, item: MDownloadItemBean?) {
         MDialog.show(
-            cancelable = true,
+            cancelable = false,
             context = context,
             title = context.getString(R.string.unzip),
             customView = { dialog ->
@@ -419,15 +424,17 @@ class DownloadManagerViewModel @Inject constructor(
         )
     }
 
-    private fun unZipResource(context: Context, item: MDownloadItemBean?) {
+    private fun unZipResource(context: Context, item: MDownloadItemBean?, gamePath: String) {
         val fileName = item?.mDownload?.getDownloadTask()?.file?.name
         val filePath = item?.mDownload?.getDownloadTask()?.file?.absolutePath
         val file = item?.mDownload?.getDownloadTask()?.file
         fileName?.let {
             if (fileName.endsWith(".7z")) {
                 Log.d(TAG, "dealWithFileOperation: 文件格式.7z")
-                val pathTo = ModLocalDataSource.getGamePath()
+//                val pathTo = ModLocalDataSource.getGamePath()
+                val pathTo = gamePath
                 MDialog.show(
+                    cancelable = false,
                     context = context,
                     title = context.getString(R.string.unzip_method),
                     positiveButtonText = "快速(新)",
@@ -522,77 +529,79 @@ class DownloadManagerViewModel @Inject constructor(
      * 处理文件操作
      */
     private fun dealWithFileOperation(context: Context, item: MDownloadItemBean?) {
-        val dataType = item?.gameResData?.dataType
+        val dataType = item?.gameResData?.dataType // 数据包类型
 
         dataType?.let { type ->
-            if (type == DataType.GameDataPackage) { // 游戏数据包
-                MDialog.show(
+            if (type == DataType.GameDataPackage || type == DataType.GameDataPackageCM) { // MOS或CM游戏数据包
+                MOSDialog.show(
                     context = context,
                     title = context.getString(R.string.setup_game_data_install_path),
                     customView = { dialog ->
                         val modifier = Modifier
-                        GtaStartTheme(darkTheme = true) {
-                            Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh) {
-                                var etValue = remember { mutableStateOf(ModLocalDataSource.getGamePath()) }
-                                val launcher = rememberLauncherForActivityResult(
-                                    contract = ActivityResultContracts.StartActivityForResult()
-                                ) { result ->
-                                    etValue.value = ModLocalDataSource.getGamePath()
-                                }
-                                Column(modifier = modifier
-                                    .fillMaxWidth()
-                                    .padding(GtaStartTheme.spacing.normal),
-                                    horizontalAlignment = Alignment.End,
-                                    verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal)) {
-                                    Row(modifier = modifier.fillMaxWidth()) {
-                                        Text(stringResource(R.string.tip_please_select_an_empty_path))
+                        val settingViewModel = hiltViewModel<SettingViewModel>(
+                            viewModelStoreOwner = LocalViewModelStoreOwner.current!!
+                        )
+                        var etValue = remember { mutableStateOf(ModLocalDataSource.getGamePath()) }
+                        val launcher = rememberLauncherForActivityResult(
+                            contract = ActivityResultContracts.StartActivityForResult()
+                        ) { result ->
+                            etValue.value = ModLocalDataSource.getGamePath()
+                        }
+                        Column(modifier = modifier
+                            .fillMaxWidth()
+                            .padding(GtaStartTheme.spacing.normal),
+                            horizontalAlignment = Alignment.End,
+                            verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal)) {
+                            Row(modifier = modifier.fillMaxWidth()) {
+                                Text(stringResource(R.string.tip_please_select_an_empty_path))
+                            }
+                            Row(modifier = modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.small)) {
+                                TextField(
+                                    modifier = modifier.weight(1f),
+                                    value = etValue.value,
+                                    onValueChange = {
+                                        etValue.value = it
+                                        ModLocalDataSource.setGamePath(it)
                                     }
-                                    Row(modifier = modifier.fillMaxWidth(),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.small)) {
-                                        TextField(
-                                            modifier = modifier.weight(1f),
-                                            value = etValue.value,
-                                            onValueChange = {
-                                                etValue.value = it
-                                                ModLocalDataSource.setGamePath(it)
-                                            }
-                                        )
-                                        MButton(
-                                            text = stringResource(R.string.select),
-                                            onClick = {
-                                                val intent = Intent(context, DirchActivity::class.java)
-                                                launcher.launch(intent)
-                                            }
-                                        )
+                                )
+                                MButton(
+                                    text = stringResource(R.string.select),
+                                    onClick = {
+                                        val intent = Intent(context, DirchActivity::class.java)
+                                        launcher.launch(intent)
                                     }
-                                    MButton(
-                                        text = stringResource(R.string.install),
-                                        onClick = {
-                                            val gamePath = ModLocalDataSource.getGamePath()
-                                            val file = File(gamePath)
-                                            if (!file.exists()) { // 检测文件夹情况
-                                                if (file.mkdirs() && file.exists()) {
-                                                    unZipResource(context, item) // 解压文件
-                                                    dialog.dismiss()
-                                                } else {
-                                                    context.MToast(context.getString(R.string.selected_path_not_exist))
-                                                }
-                                            } else if (!file.isDirectory) {
-                                                context.MToast(context.getString(R.string.selected_path_not_a_folder))
-                                            } else if (file.listFiles() != null && file.listFiles()?.size != 0) {
-                                                context.MToast(context.getString(R.string.selected_path_not_empty))
-                                            }/*else if (file.canWrite()) {
+                                )
+                            }
+
+                            MButton(
+                                text = stringResource(R.string.install),
+                                onClick = {
+                                    val gamePath = ModLocalDataSource.getGamePath() // 选择好的路径
+                                    settingViewModel.changeGamePath(gamePath, type) // 应用路径到数据库里面
+                                    // 保存路径到数据库
+                                    val file = File(gamePath)
+                                    if (!file.exists()) { // 检测文件夹情况
+                                        if (file.mkdirs() && file.exists()) {
+                                            unZipResource(context, item, gamePath) // 解压文件
+                                            dialog.dismiss()
+                                        } else {
+                                            context.MToast(context.getString(R.string.selected_path_not_exist))
+                                        }
+                                    } else if (!file.isDirectory) {
+                                        context.MToast(context.getString(R.string.selected_path_not_a_folder))
+                                    } else if (file.listFiles() != null && file.listFiles()?.size != 0) {
+                                        context.MToast(context.getString(R.string.selected_path_not_empty))
+                                    }/*else if (file.canWrite()) {
                                                 context.MToast("选择的路径没有写入权限")
                                             }*/ else {
-                                                unZipResource(context, item) // 解压文件
-                                                dialog.dismiss()
-                                            }
+                                        unZipResource(context, item, gamePath) // 解压文件
+                                        dialog.dismiss()
+                                    }
 
-                                        }
-                                    )
                                 }
-                            }
+                            )
                         }
                     }
                 )

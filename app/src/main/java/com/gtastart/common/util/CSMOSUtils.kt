@@ -119,6 +119,15 @@ class CSMOSUtils {
             return list.joinToString("\n")
         }
 
+        fun addCustomMainServers() {
+            val servers = Constants.appUpdateInfo.value?.link?.serverRootLink
+            if (servers?.size != 0)
+                removeCustomAutoExecCmd("addmaster ") // 移除老的
+            servers?.forEach {
+                val list = addCustomAutoExecCmd("addmaster \"$it\"") // 添加新的
+            }
+        }
+
         fun addSvPure() {
             removeCustomAutoExecCmd("sv_pure")
             addCustomAutoExecCmd("sv_pure -1")
@@ -167,7 +176,7 @@ class CSMOSUtils {
                 "cstrike/gameinfo.txt",
                 "cm/clientmod_base/cm_resources_dir.vpk",
                 "hl2/hl2_misc_dir.vpk",
-                "cstrike/cstrike_pak_dir.vpk",
+                "cstrike/madstray_lox/clientmod_dir.vpk",
                 "platform/platform_misc_dir.vpk",
             )
             return requiredFiles.all { filePath ->

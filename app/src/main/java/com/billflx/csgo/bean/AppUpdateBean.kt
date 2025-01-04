@@ -26,12 +26,14 @@ data class AppUpdateBean(
 
     data class Link(
         val dataLink: List<DataLink>,
-        val serverRootLink: List<String>
+        val serverRootLink: List<String>,
+        val cmRootLink: List<String>,
     )
 
     data class DataLink(
         val title: String,
-        val url: String
+        val url: String,
+        val type: String
     )
 
 }

@@ -13,7 +13,7 @@ android {
     compileSdk 35
 
     defaultConfig {
-        applicationId "com.billflx.csgo" // 包名
+        applicationId "rn.csgo.game" // 包名
         minSdk 21
         //noinspection ExpiredTargetSdkVersion
         targetSdk 24
@@ -54,7 +54,8 @@ android {
             variant.outputs.configureEach {
                 def flavorName = variant.flavorName
                 //在这里修改生成的apk文件名
-                outputFileName = "RnMOS_${flavorName.replace("-", ".")}_${variant.versionName}.apk"
+                outputFileName = "RnMOS_${variant.versionName}.apk"
+//                outputFileName = "RnMOS_${flavorName.replace("-", ".")}_${variant.versionName}.apk"
             }
     }
 

@@ -193,7 +193,6 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
     public static native void onNativeTouch(int i, int i2, int i3, float f, float f2, float f3);
 
     static {
-        System.loadLibrary("RnMOS");
         mHasMultiWindow = Build.VERSION.SDK_INT >= 24;
         mBrokenLibraries = true;
     }
@@ -273,6 +272,8 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
 
         LoadLibUtils.fromAssets(this, libRelativePath + "/libSDL2.so", getFilesDir().getPath());
         LoadLibUtils.fromAssets(this, libRelativePath + "/liblauncher.so", getFilesDir().getPath());
+
+        System.loadLibrary("RnMOS"); // 最后加载，不然动态库打开失败
     }
 
     protected String[] getArguments() {

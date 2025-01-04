@@ -1,6 +1,7 @@
 package com.billflx.csgo.nav
 
 import android.provider.DocumentsContract.Root
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -10,16 +11,19 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.billflx.csgo.MainActivity
 import com.billflx.csgo.page.DownloadManagerScreen
 import com.billflx.csgo.page.DownloadManagerViewModel
 import com.billflx.csgo.page.InstallGuideScreen
 import com.billflx.csgo.page.MainScreen
+import com.billflx.csgo.page.SettingViewModel
 import com.gtastart.common.util.compose.navigateSingleTopTo
 import com.gtastart.ui.ServerPanel.cs.CsServerPanelScreen
 import com.gtastart.ui.forum.posts.ResPostScreen
@@ -34,6 +38,10 @@ enum class RootDesc(
 //    ResPost("res_post")
 }
 
+val LocalSettingViewModel = staticCompositionLocalOf<SettingViewModel> {
+    error("LocalSettingViewModel Not Provide")
+}
+
 val LocalRootNav = staticCompositionLocalOf<NavHostController> {
     error("LocalRootNav Not Provide")
 }
@@ -44,8 +52,13 @@ val LocalDownloadManagerVM = staticCompositionLocalOf<DownloadManagerViewModel> 
 @Composable
 fun RootNav() {
     val navController = rememberNavController()
+    val settingViewModel = hiltViewModel<SettingViewModel>(
+        viewModelStoreOwner = LocalViewModelStoreOwner.current!!
+    )
     val downloadManagerVM = hiltViewModel<DownloadManagerViewModel>()
+
     CompositionLocalProvider(
+        LocalSettingViewModel provides settingViewModel,
         LocalRootNav provides navController,
         LocalDownloadManagerVM provides downloadManagerVM
     ) {

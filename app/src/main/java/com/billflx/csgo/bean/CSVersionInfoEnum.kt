@@ -1,6 +1,5 @@
 package com.billflx.csgo.bean
 
-import android.util.Log
 import com.billflx.csgo.data.ModLocalDataSource
 import me.nillerusr.LauncherActivity
 
@@ -22,7 +21,7 @@ enum class CSVersionInfoEnum(
         "RnMOS Player",
         "CSMOS"),
 
-    CSMOSV75("/libs/CSMOS_v75",
+    CSMOSV77("/libs/CSMOS_v77",
         "extras_dir_CSMOSv65.vpk", // 共用
         "-console -game csmos",
         "LIBGL_USEVBO=0",

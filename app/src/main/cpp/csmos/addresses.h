@@ -18,6 +18,7 @@ public:
     static inline std::string CM = "CM";
     static inline std::string CSMOSV65 = "CSMOSV65";
     static inline std::string CSMOSV75 = "CSMOSV75";
+    static inline std::string CSMOSV77 = "CSMOSV77";
 };
 
 class AddressManager {

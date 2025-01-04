@@ -68,11 +68,9 @@ enum class MainPageDestination(
     fun getIcon(selected: Boolean) : ImageVector = if (selected) iconSelected else iconDefault
 }
 
-val LocalSettingViewModel = staticCompositionLocalOf<SettingViewModel> {
-    error("LocalSettingViewModel Not Provide")
-}
+
 val LocalServerViewModel = staticCompositionLocalOf<ServerViewModel> {
-    error("LocalSettingViewModel Not Provide")
+    error("LocalServerViewModel Not Provide")
 }
 
 @Composable
@@ -81,11 +79,9 @@ fun MainPageNav(
     modifier: Modifier = Modifier,
     rootNavController: NavHostController
 ) {
-    val settingViewModel = hiltViewModel<SettingViewModel>()
     val serverViewModel = hiltViewModel<ServerViewModel>()
 
     CompositionLocalProvider(
-        LocalSettingViewModel provides settingViewModel,
         LocalServerViewModel provides serverViewModel,
     ) {
         NavHost(

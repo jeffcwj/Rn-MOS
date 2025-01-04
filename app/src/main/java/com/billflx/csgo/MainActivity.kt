@@ -12,12 +12,14 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.RelativeLayout
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import com.billflx.csgo.constant.Constants
 import com.billflx.csgo.nav.RootNav
 import com.billflx.csgo.page.MainViewModel
@@ -111,6 +113,7 @@ class MainActivity : LauncherActivity() {
             ) {
                 Surface {
                     CompositionLocalProvider(
+                        LocalViewModelStoreOwner provides this,  // 同步作用域
                         LocalMainViewModel provides mainViewModel
                     ) {
                         RootNav()

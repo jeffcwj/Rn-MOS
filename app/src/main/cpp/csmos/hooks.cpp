@@ -56,6 +56,7 @@ DECL_HOOK(void, CMaster_RequestInternetServerList, uintptr_t thiz, const char *g
     if (!masterServersAdded) {
         netadr_t adr;
         std::vector<std::string> servers = g_java->getMasterServers();
+        spdlog::info("adding extra master server...");
         for( int i = 0; i < servers.size(); i++ )
         {
             // Convert to netadr_t

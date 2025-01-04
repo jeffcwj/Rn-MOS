@@ -17,6 +17,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.billflx.csgo.bean.CSVersionInfoEnum
+import com.billflx.csgo.bean.DataType
 import com.billflx.csgo.data.ModLocalDataSource
 import com.billflx.csgo.data.repo.CSVersionInfoRepository
 import com.gtastart.common.util.CSMOSUtils
@@ -88,6 +89,32 @@ class SettingViewModel @Inject constructor(
                 nickName = mutableStateOf(csVersionRepo.getNickName(cmName))
             )
             settingCacheList.add(cmData)
+        }
+    }
+
+    fun changeGamePath(path: String, dataType: String) {
+//        initSettingCache() // 重新加载一下设置缓存
+        Log.d("", "changeGamePath: ${path}")
+        if (dataType == DataType.GameDataPackage) { // csmos
+            settingCacheList.forEach {
+                if (it.versionEnum.getCsType() == "CSMOS") {
+                    it.gamePath.value = path
+                    return@forEach
+                }
+            }
+            saveSettingsToDB()
+        } else { // cm
+            Log.d("", "changeGamePath: CM length: ${settingCacheList.size}")
+            settingCacheList.forEach {
+                Log.d("", "changeGamePath: currentPath: ${it.gamePath}")
+                Log.d("", "changeGamePath: ${it.versionEnum.getCsType()}")
+                if (it.versionEnum.getCsType() == "CM") {
+                    it.gamePath.value = path
+                    Log.d("", "changeGamePath: cm ok")
+                    return@forEach
+                }
+            }
+            saveSettingsToDB()
         }
     }
 

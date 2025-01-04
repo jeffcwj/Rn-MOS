@@ -333,12 +333,12 @@ private fun StatusCard(
                     }
                 )
 
-                MButton(
+                /*MButton(
                     text = "自定义房间",
                     onClick = {
                         navController.navigateSingleTopTo(RootDesc.CsServerPanel.route)
                     }
-                )
+                )*/
             }
 
         }
@@ -361,6 +361,7 @@ private fun GameDataListView(
         items(linkList?: emptyList()) { item ->
             val url = item.url
             val title = item.title
+            val type = item.type
             val parentPath = LauncherActivity.getDefaultDir() + Constants.DOWNLOAD_PATH
             Row(modifier = modifier.padding(horizontal = GtaStartTheme.spacing.medium), verticalAlignment = Alignment.CenterVertically) {
                 Text(title, modifier = modifier.weight(1f))
@@ -369,7 +370,7 @@ private fun GameDataListView(
                         val addDownload = downloadManagerVM.addDownload( // 添加下载任务
                             url = url,
                             parentPath = parentPath,
-                            dataType = DataType.GameDataPackage
+                            dataType = type ?: DataType.GameDataPackage
                         )
                         dialog.dismiss() // 关闭弹窗
                         navController.navigateSingleTopTo(RootDesc.DownloadManager.route)

@@ -30,6 +30,17 @@
 -dontwarn com.gtastart.common.**
 -keep class com.gtastart.common.** { *; }
 
+-dontwarn com.gtastart.**
+-keep class com.gtastart.** { *; }
+-keep interface com.gtastart.** { *; }
+
+# 保留 TimeUtils 类
+-keep class com.gtastart.util.TimeUtils { *; }
+
+-dontwarn com.pika.sillyboy.**
+-keep class com.pika.sillyboy.** { *; }
+-keep interface com.pika.sillyboy.** { *; }
+
 -dontwarn com.valvesoftware.**
 -keep class com.valvesoftware.** { *; }
 
