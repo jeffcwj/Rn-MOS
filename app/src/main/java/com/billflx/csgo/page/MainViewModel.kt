@@ -5,13 +5,13 @@ import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import com.billflx.csgo.bean.AppUpdateBean
 import com.billflx.csgo.bean.DownloadExtraInfoBean
 import com.billflx.csgo.bean.GameResLocalItemBean
 import com.billflx.csgo.bean.MDownloadItemBean
 import com.billflx.csgo.constant.Constants
 import com.billflx.csgo.data.ModLocalDataSource
 import com.billflx.csgo.data.repo.AppRepository
+import com.gtastart.data.bean.cs.AppUpdateBean
 import com.valvesoftware.source.R
 import dagger.hilt.android.internal.Contexts.getApplication
 import dagger.hilt.android.lifecycle.HiltViewModel

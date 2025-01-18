@@ -7,7 +7,6 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.billflx.csgo.bean.AppUpdateBean
 import com.billflx.csgo.bean.AutoExecCmdBean
 import com.billflx.csgo.bean.CSVersionInfoEnum
 import com.billflx.csgo.bean.SampQueryInfoBean
@@ -86,11 +85,13 @@ class ServerViewModel @Inject constructor(
             val samp = CsMosQuery(host, port)
             samp.setPayload(serverPayload.value)
             val ips = samp.serverIps
-            if (ips.size != 0) {
-                Log.d(TAG, "主服务器${rootLink}: 的子ip ${ips}")
-                return ips
-            } else {
-                Log.d(TAG, "主服务器${rootLink} 获取游戏服务器失败")
+            ips?.let {
+                if (ips.size != 0) {
+                    Log.d(TAG, "主服务器${rootLink}: 的子ip ${ips}")
+                    return ips
+                } else {
+                    Log.d(TAG, "主服务器${rootLink} 获取游戏服务器失败")
+                }
             }
             delay(1000)
             retryCount++

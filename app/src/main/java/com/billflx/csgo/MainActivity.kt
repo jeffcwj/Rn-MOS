@@ -27,6 +27,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.gtastart.common.theme.GtaStartTheme
 import com.gtastart.common.util.MHelpers
 import com.gtastart.common.util.MToast
+import com.gtastart.data.constant.CsConstants
 import com.valvesoftware.source.R
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -53,6 +54,7 @@ class MainActivity : LauncherActivity() {
                 val notice = mainViewModel.getNotice()
                 notice?.let {
                     Constants.appUpdateInfo.value = it // 存起来方便其他地方访问
+                    CsConstants.csAppUpdateInfo.value = it
                     if (it.app.version != Constants.appVersion) { // 不是最新版本
                         val builder = MaterialAlertDialogBuilder(context)
                             .setTitle("${context.getString(R.string.has_new_version)} ${it.app.version}")

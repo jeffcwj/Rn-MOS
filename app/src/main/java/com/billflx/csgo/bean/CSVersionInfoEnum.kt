@@ -21,7 +21,7 @@ enum class CSVersionInfoEnum(
         "RnMOS Player",
         "CSMOS"),
 
-    CSMOSV77("/libs/CSMOS_v77",
+    CSMOSV78("/libs/CSMOS_v78",
         "extras_dir_CSMOSv65.vpk", // 共用
         "-console -game csmos",
         "LIBGL_USEVBO=0",

@@ -15,6 +15,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +30,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -548,7 +550,6 @@ private fun ServerList(
 
     val serverList = viewModel.serverInfoList
     var isRefreshing by viewModel.isRefreshing
-    val refreshState = rememberPullToRefreshState()
 
     val openDialog = rememberSaveable { mutableStateOf(false) }
 
@@ -567,20 +568,21 @@ private fun ServerList(
     val focusRequester = remember { FocusRequester() }
 
     when {
-        openDialog.value -> {
+        openDialog.value -> { // 服务器详情弹窗
 
             MCustomAlertDialog(
                 title = stringResource(R.string.detail),
                 content = {
                     Column(
                         verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal),
-                        modifier = modifier.requiredWidth(IntrinsicSize.Max)
+                        modifier = modifier
                     ) {
                         Text(serverDetailStr.value)
                         LaunchedEffect(Unit) {
                             viewModel.loadNickName() // 加载昵称
                         }
                         TextField(
+                            singleLine = true,
                             maxLines = 1,
                             value = viewModel.nickName.value,
                             onValueChange = {
@@ -589,7 +591,7 @@ private fun ServerList(
                             label = {
                                 Text(stringResource(R.string.please_input_nickname), maxLines = 1)
                             },
-                            modifier = modifier.focusable().fillMaxWidth(),
+                            modifier = modifier.focusable(),
                         )
                     }
 
@@ -641,7 +643,6 @@ private fun ServerList(
 
     PullToRefreshBox(
         modifier = modifier.fillMaxSize(),
-        state = refreshState,
         isRefreshing = isRefreshing,
         onRefresh = {
             viewModel.refreshServerList()

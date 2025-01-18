@@ -65,7 +65,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.billflx.csgo.LocalMainViewModel
 import com.billflx.csgo.MainActivity
-import com.billflx.csgo.bean.AppUpdateBean
 import com.billflx.csgo.bean.DataType
 import com.billflx.csgo.bean.DownloadStatus
 import com.billflx.csgo.constant.Constants
@@ -87,6 +86,7 @@ import com.gtastart.common.util.compose.navigateSingleTopTo
 import com.gtastart.common.util.compose.widget.MAlertDialog
 import com.gtastart.common.util.compose.widget.MButton
 import com.gtastart.common.util.compose.widget.MCustomAlertDialog
+import com.gtastart.data.bean.cs.AppUpdateBean
 import com.liulishuo.okdownload.DownloadTask
 import com.liulishuo.okdownload.core.cause.EndCause
 import com.liulishuo.okdownload.core.cause.ResumeFailedCause
@@ -333,12 +333,18 @@ private fun StatusCard(
                     }
                 )
 
-                /*MButton(
-                    text = "自定义房间",
-                    onClick = {
-                        navController.navigateSingleTopTo(RootDesc.CsServerPanel.route)
+                // 云端启用功能
+                Constants.appUpdateInfo.value?.also {
+                    Log.d("", "StatusCard: 触发更新")
+                    if (it.functions?.customRooms == 1) {
+                        MButton(
+                            text = "自定义房间",
+                            onClick = {
+                                navController.navigateSingleTopTo(RootDesc.CsServerPanel.route)
+                            }
+                        )
                     }
-                )*/
+                }
             }
 
         }

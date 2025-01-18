@@ -36,6 +36,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.CSMOS"
         android:extractNativeLibs="true"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
             android:name="com.billflx.csgo.MainActivity"

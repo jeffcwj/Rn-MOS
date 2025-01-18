@@ -2,7 +2,7 @@ package com.billflx.csgo.constant
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import com.billflx.csgo.bean.AppUpdateBean
+import com.gtastart.data.bean.cs.AppUpdateBean
 
 class Constants {
 

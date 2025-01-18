@@ -273,7 +273,12 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
         LoadLibUtils.fromAssets(this, libRelativePath + "/libSDL2.so", getFilesDir().getPath());
         LoadLibUtils.fromAssets(this, libRelativePath + "/liblauncher.so", getFilesDir().getPath());
 
-        System.loadLibrary("RnMOS"); // 最后加载，不然动态库打开失败
+        try {
+            System.loadLibrary("RnMOS"); // 最后加载，不然动态库打开失败
+            initRnMOS(); // 马上初始化RnMOS
+        } catch (Throwable e) {
+            Log.e(TAG, "RnMOS init failed: " + e);
+        }
     }
 
     protected String[] getArguments() {

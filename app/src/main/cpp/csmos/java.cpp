@@ -13,7 +13,13 @@ Java::Java(JavaVM* g_java_vm, JNIEnv* env) {
     initMasterServers();
 }
 
+/**
+ * 设置上下文
+ * @param thiz SDLActivity
+ * @param env
+ */
 void Java::setupContext(jobject thiz, JNIEnv* env) {
+    spdlog::info("setup context...");
     m_Env = env;
     activity = env->NewGlobalRef(thiz);
     jclass sdlClass = env->GetObjectClass(activity);
@@ -43,10 +49,15 @@ jobject Java::getContext() {
 
 void Java::showPasswordDialog(const char* password) {
     JNIEnv *env = getEnv();
+    spdlog::info("showPasswordDialog native method called");
     if (env == nullptr) {
         return;
     }
     jstring jPassword = env->NewStringUTF(password);
+    if (activity == nullptr) {
+        spdlog::info("activity not found");
+        return;
+    }
     env->CallVoidMethod(activity, m_passwordDialog, jPassword);
     env->DeleteLocalRef(jPassword);
 }

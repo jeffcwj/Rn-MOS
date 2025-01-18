@@ -1,9 +1,9 @@
 package com.billflx.csgo.data.net
 
 import android.util.Log
-import com.billflx.csgo.bean.AppUpdateBean
 import com.billflx.csgo.bean.AutoExecCmdBean
 import com.billflx.csgo.constant.Constants
+import com.gtastart.data.bean.cs.AppUpdateBean
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
