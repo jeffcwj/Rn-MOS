@@ -12,6 +12,15 @@ android {
     namespace 'com.valvesoftware.source'
     compileSdk 35
 
+    signingConfigs {
+        release {
+            storeFile file('../csmos.jks')
+            storePassword 'csmos'
+            keyPassword 'csmos'
+            keyAlias 'key0'
+        }
+    }
+
     defaultConfig {
         applicationId "rn.csgo.game" // 包名
         minSdk 21
