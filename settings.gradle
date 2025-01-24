@@ -28,7 +28,8 @@ include ':app'
 include ':common'
 project(':common').projectDir = new File(settingsDir, "../Rn_Common/common")
 include ':GtaStart'
-project(':GtaStart').projectDir = new File(settingsDir, "../Rn_SAMP_Tool/GtaStart")
+//project(':GtaStart').projectDir = new File(settingsDir, "../Rn_SAMP_Tool/GtaStart")
+project(':GtaStart').projectDir = new File(settingsDir, "../GtaStart_app")
 include ':dyso'
 project(':dyso').projectDir = new File(settingsDir, "../Dyso_G/dyso")
 
