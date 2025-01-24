@@ -51,11 +51,13 @@ jint JNI_OnLoad(JavaVM* vm, [[maybe_unused]] void* reserved)
         libEnginePath = "/data/data/rn.csgo.game/files/libs/CSMOS_v75/libengine.so";
         libGameUIPath = "/data/data/rn.csgo.game/files/libs/CSMOS_v75/libGameUI.so";
         libServerBrowserPath = "/data/data/rn.csgo.game/files/libs/CSMOS_v75/libServerBrowser.so";
-    }/* else if (g_java->getFlavor() == CSVersion::CSMOSV77) {
-        libEnginePath = "/data/data/com.billflx.csgo/files/libs/CSMOS_v77/libengine.so";
-        libGameUIPath = "/data/data/com.billflx.csgo/files/libs/CSMOS_v77/libGameUI.so";
-        libServerBrowserPath = "/data/data/com.billflx.csgo/files/libs/CSMOS_v77/libServerBrowser.so";
-    }*/ // TODO: not done
+    } else if (g_java->getFlavor() == CSVersion::CSMOSV78) {
+        libEnginePath = "/data/data/rn.csgo.game/files/libs/CSMOS_v78/libengine.so";
+        libGameUIPath = "/data/data/rn.csgo.game/files/libs/CSMOS_v78/libGameUI.so";
+        libServerBrowserPath = "/data/data/rn.csgo.game/files/libs/CSMOS_v78/libServerBrowser.so";
+    } // TODO: not done
+
+    spdlog::info("CSMOS version: {}", g_java->getFlavor());
 
     GHandle engineHandle = g_libEngine->Open(libEnginePath.c_str());
     if (!engineHandle) {

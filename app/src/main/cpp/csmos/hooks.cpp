@@ -177,6 +177,44 @@ extern "C" JNIEXPORT void JNICALL Java_org_libsdl_app_SDLActivity_onPasswordCall
     CDialogGameInfo_ConnectToServer(cDialogGameInfoInstance); // 加入游戏
 }
 
+
+/*DECL_HOOK(void, SendConnectPacket, int challengeNr, int authProtocol, uint64_t unGSSteamID, bool bGSSecur) {
+    *(unsigned int *)(challengeNr + 328)
+    SendConnectPacket(challengeNr, authProtocol, unGSSteamID, bGSSecur);
+}*/
+
+DECL_HOOK(void*, GetSteamInfIDVersionInfo) {
+    LOGD("我草拟吗");
+    uintptr_t dwRetAddr = 0;
+    __asm__ volatile("mov %0, lr" : "=r"(dwRetAddr)); // 获取调用处的返回地址
+    dwRetAddr = g_libEngine->ToLibAddr(dwRetAddr);
+    LOGD("%p", dwRetAddr);
+    void * shit = GetSteamInfIDVersionInfo();
+    LOGD("%s", (char*)((uintptr_t)shit+8)); // v6.5 6630498  v7.8 6630498 草了，是一样的啊
+    const char* newVersionString = "6630498"; // 6630497 服务端更新
+    strcpy((char*)((uintptr_t)shit+8), newVersionString);
+    return shit;
+}
+
+DECL_HOOK(void*, WriteString, uintptr_t thiz, char* sz) {
+    LOGD("WriteString: %s", sz);
+    return WriteString(thiz, sz);
+}
+DECL_HOOK(void, RejectConnection, uintptr_t thiz,  const netadr_t &adr, int clientChallenge, const char *s ) {
+    LOGD("RejectConnection: %s", s);
+    RejectConnection(thiz, adr, clientChallenge, s);
+}
+DECL_HOOK(int, fuckass, void* a1, void* a2, void* a3, void* a4 ) {
+    LOGD("fuckass:");
+    return 1;
+//    return fuckass(a1, a2, a3, a4);
+}
+DECL_HOOK(int, shitass, void* a1, void* a2) {
+    LOGD("shitass:");
+
+    return shitass(a1, a2);
+}
+
 void installHooks() {
     spdlog::info("Installing global hooks...");
 
@@ -188,11 +226,18 @@ void installHooks() {
     if (Addr::FUNC_CMaster_RequestInternetServerList)
     HOOK_ENGINE_ADDR(Addr::FUNC_CMaster_RequestInternetServerList, CMaster_RequestInternetServerList); // 加载服务器列表
 
-    // GameUI
-    if (Addr::FUNC_CBasePanel)
+
+    HOOK_ENGINE_ADDR2(Addr::FUNC_GetSteamInfIDVersionInfo, GetSteamInfIDVersionInfo);
+//    HOOK_ENGINE_ADDR(0x825420, WriteString);
+    /*HOOK_ENGINE_ADDR(0x55B830, RejectConnection);
+    HOOK_ENGINE_ADDR(0x531FFC, fuckass);
+    HOOK_ENGINE_ADDR(0x5597EC, shitass);*/
+
+    // GameUI 应billflx要求禁止修改加群链接
+    /*if (Addr::FUNC_CBasePanel)
     HOOK_GAMEUI_ADDR(Addr::FUNC_CBasePanel, CBasePanel); // UI面板构造函数
     if (Addr::FUNC_AddUrlButton)
-    HOOK_GAMEUI_ADDR(Addr::FUNC_AddUrlButton, AddUrlButton); // 添加URL按钮
+    HOOK_GAMEUI_ADDR(Addr::FUNC_AddUrlButton, AddUrlButton); // 添加URL按钮*/
 
     // ServerBrowser
     if (Addr::FUNC_CDialogGameInfo_ConnectToServer)

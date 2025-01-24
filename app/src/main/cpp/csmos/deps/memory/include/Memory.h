@@ -17,6 +17,8 @@ extern SymUtils* g_libServerBrowser;
 
 #define HOOK_ENGINE_ADDR(_addr, _name) \
     GlossHookAddr((void*)g_libEngine->Abs((uintptr_t)_addr), (void*)(_name##_hook), (void**)(&_name), false, $ARM64)
+#define HOOK_ENGINE_ADDR2(_addr, _name) \
+    GlossHookAddr((void*)g_libEngine->Abs((uintptr_t)_addr), (void*)(_name##_hook), (void**)(&_name), true, $ARM64)
 
 #define HOOK_GAMEUI_ADDR(_addr, _name) \
     GlossHookAddr((void*)g_libGameUI->Abs((uintptr_t)_addr), (void*)(_name##_hook), (void**)(&_name), false, $ARM64)

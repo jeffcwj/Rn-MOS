@@ -19,6 +19,7 @@ public:
     static inline std::string CSMOSV65 = "CSMOSV65";
     static inline std::string CSMOSV75 = "CSMOSV75";
     static inline std::string CSMOSV77 = "CSMOSV77";
+    static inline std::string CSMOSV78 = "CSMOSV78";
 };
 
 class AddressManager {
@@ -38,6 +39,7 @@ public:
             FUNC_NET_StringToAdr = 0x5B3B0C;
             FUNC_CMaster_AddServer = 0x620CC4;
             FUNC_CMaster_RequestInternetServerList = 0x6210EC;
+            FUNC_GetSteamInfIDVersionInfo = 0x5FAAFC;
 
             // GameUI
             FUNC_AddUrlButton = 0x48D550;
@@ -61,6 +63,10 @@ public:
 
             // ServerBrowser 懒得支持v7.5了
             return true;
+        } else if (flavor == CSVersion::CSMOSV78) {
+            // engine
+            FUNC_GetSteamInfIDVersionInfo = 0x626C10;
+            return true;
         } else {
             return false;
         }
@@ -70,6 +76,7 @@ public:
     static inline uintptr_t FUNC_NET_StringToAdr = 0;
     static inline uintptr_t FUNC_CMaster_AddServer = 0;
     static inline uintptr_t FUNC_CMaster_RequestInternetServerList = 0;
+    static inline uintptr_t FUNC_GetSteamInfIDVersionInfo = 0;
 
     static inline uintptr_t FUNC_AddUrlButton = 0;
     static inline uintptr_t FUNC_CBasePanel = 0;

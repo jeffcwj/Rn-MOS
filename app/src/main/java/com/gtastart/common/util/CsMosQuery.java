@@ -203,13 +203,13 @@ public class CsMosQuery {
             Log.d(TAG, "serverMap: " + serverMap);
 
             /**
-             * 不知道什么东西 csmos
+             * 文件夹名称 csmos
              */
             String s1 = getStringFromBuffer(buff);
             Log.d(TAG, "getInfos: " + s1);
 
             /**
-             * 游戏名 Counter-Strike: Source Offensive
+             * 完整游戏名 Counter-Strike: Source Offensive
              */
             String gameName = getStringFromBuffer(buff);
             Log.d(TAG, "gameName: " + gameName);
