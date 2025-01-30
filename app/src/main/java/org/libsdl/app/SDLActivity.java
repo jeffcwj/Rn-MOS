@@ -268,6 +268,7 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
         String versionName = mPref.getString("current_cs_version", CSVersionInfoEnum.Companion.getDefaultName());
 //        String versionName = ModLocalDataSource.INSTANCE.getCurrentCSVersion(); // 获取当前CS版本
         String libRelativePath = CSVersionInfoEnum.Companion.getLibPathByName(versionName);
+        Log.d(TAG, "loadLibraries: 版本：" + versionName + " 路径：" + libRelativePath);
         libRelativePath = libRelativePath.startsWith("/")?libRelativePath.substring(1):libRelativePath;
 
         LoadLibUtils.fromAssets(this, libRelativePath + "/libSDL2.so", getFilesDir().getPath());

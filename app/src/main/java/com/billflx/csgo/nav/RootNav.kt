@@ -35,7 +35,7 @@ enum class RootDesc(
     InstallGuide("install_guide_screen"),
     DownloadManager("download_manager_screen"),
     CsServerPanel("cs_server_panel_screen"),
-//    ResPost("res_post")
+    ResPost("res_post")
 }
 
 val LocalSettingViewModel = staticCompositionLocalOf<SettingViewModel> {
@@ -102,7 +102,7 @@ fun RootNavHost(
         composable(route = RootDesc.CsServerPanel.route) {
             CsServerPanelScreen() // CS服务器面板
         }
-        /*composable(
+        composable(
             route = "${RootDesc.ResPost.route}/{postId}", // 需要传入文章ID
             arguments = listOf(navArgument("postId") { type = NavType.StringType })
         ) { backStackEntry ->
@@ -113,6 +113,6 @@ fun RootNavHost(
                     rootNavController.popBackStack()
                 }
             )
-        }*/
+        }
     }
 }
