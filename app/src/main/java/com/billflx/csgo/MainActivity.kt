@@ -13,7 +13,11 @@ import android.widget.Button
 import android.widget.RelativeLayout
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.material3.LocalAbsoluteTonalElevation
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -111,15 +115,14 @@ class MainActivity : LauncherActivity() {
         composeView.setContent {
 
             GtaStartTheme(
-                darkTheme = true
+                darkTheme = false
             ) {
-                Surface {
-                    CompositionLocalProvider(
-                        LocalViewModelStoreOwner provides this,  // 同步作用域
-                        LocalMainViewModel provides mainViewModel
-                    ) {
-                        RootNav()
-                    }
+                CompositionLocalProvider(
+                    LocalContentColor provides contentColorFor(MaterialTheme.colorScheme.surface),
+                    LocalViewModelStoreOwner provides this,  // 同步作用域
+                    LocalMainViewModel provides mainViewModel
+                ) {
+                    RootNav()
                 }
             }
         }
