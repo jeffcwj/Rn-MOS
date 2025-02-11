@@ -119,13 +119,15 @@ class MainActivity : LauncherActivity() {
             GtaStartTheme(
                 darkTheme = true
             ) {
-                CompositionLocalProvider(
-                    LocalContentColor provides contentColorFor(MaterialTheme.colorScheme.surface),
-                    LocalViewModelStoreOwner provides this,  // 同步作用域
-                    LocalMainViewModel provides mainViewModel
-                ) {
-                    RootNav()
+                Surface {
+                    CompositionLocalProvider(
+                        LocalViewModelStoreOwner provides this,  // 同步作用域
+                        LocalMainViewModel provides mainViewModel
+                    ) {
+                        RootNav()
+                    }
                 }
+
             }
         }
 

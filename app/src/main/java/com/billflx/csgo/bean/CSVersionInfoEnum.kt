@@ -12,21 +12,20 @@ enum class CSVersionInfoEnum(
     private val defaultNickName: String,
     private val csType: String
 ) {
+    CSMOSV79("/libs/CSMOS_v79",
+        "extras_dir_CSMOSv65.vpk", // 共用
+        "-console -game csmos",
+        "LIBGL_USEVBO=0",
+        LauncherActivity.getDefaultDir() + "/srceng",
+        "RnCS Player",
+        "CSMOS"),
 
     CSMOSV65("/libs/CSMOS_v65",
         "extras_dir_CSMOSv65.vpk",
         "-console -game csmos",
         "LIBGL_USEVBO=0",
         LauncherActivity.getDefaultDir() + "/srceng",
-        "RnMOS Player",
-        "CSMOS"),
-
-    CSMOSV78("/libs/CSMOS_v78",
-        "extras_dir_CSMOSv65.vpk", // 共用
-        "-console -game csmos",
-        "LIBGL_USEVBO=0",
-        LauncherActivity.getDefaultDir() + "/srceng",
-        "RnMOS Player",
+        "RnCS Player",
         "CSMOS"),
 
     /*CMv1("/libs/CM_v1",
@@ -74,29 +73,34 @@ enum class CSVersionInfoEnum(
 
     companion object {
 
+        // 默认MOS版本
+        fun getMosDefault() = CSMOSV79
+        // 默认CM版本
+        fun getCmDefault() = CM
+
         fun getDefaultName(): String {
-            return CSMOSV65.name
+            return getMosDefault().name
         }
         fun getDefaultLibPath(): String {
-            return CSMOSV65.libPath
+            return getMosDefault().libPath
         }
         fun getDefaultVpkName(): String {
-            return CSMOSV65.getVpkName()
+            return getMosDefault().getVpkName()
         }
         fun getDefaultGamePath(): String {
-            return CSMOSV65.getDefaultGamePath()
+            return getMosDefault().getDefaultGamePath()
         }
         fun getDefaultArgs(): String {
-            return CSMOSV65.getDefaultArgs()
+            return getMosDefault().getDefaultArgs()
         }
         fun getDefaultNickName(): String {
-            return CSMOSV65.getDefaultNickName()
+            return getMosDefault().getDefaultNickName()
         }
         fun getDefaultEnv(): String {
-            return CSMOSV65.getDefaultEnv()
+            return getMosDefault().getDefaultEnv()
         }
-        fun getCsType(): String {
-            return CSMOSV65.csType
+        fun getDefaultCsType(): String {
+            return getMosDefault().csType
         }
         fun getVpkNameByName(name: String): String {
             entries.forEach {

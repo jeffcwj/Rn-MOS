@@ -85,17 +85,17 @@ jint JNI_OnLoad(JavaVM* vm, [[maybe_unused]] void* reserved)
     installHooks();
     installPatches();
 
-    spdlog::info("Rn:MOS library loaded! Build time: " __DATE__ " " __TIME__);
+    spdlog::info("Rn:CS library loaded! Build time: " __DATE__ " " __TIME__);
 	return env->GetVersion();
 }
 
 void JNI_OnUnload([[maybe_unused]] JavaVM* vm, [[maybe_unused]] void* reserved)
 {
-    spdlog::info("Rn:MOS library unloaded!");
+    spdlog::info("Rn:CS library unloaded!");
 }
 
 
-extern "C" JNIEXPORT void JNICALL Java_org_libsdl_app_SDLActivity_initRnMOS(JNIEnv* env, jobject obj)
+extern "C" JNIEXPORT void JNICALL Java_org_libsdl_app_SDLActivity_initRnCS(JNIEnv* env, jobject obj)
 {
     g_java->setupContext(obj, env);
 }

@@ -48,6 +48,7 @@ import com.billflx.csgo.LocalMainViewModel
 import com.billflx.csgo.MainActivity
 import com.billflx.csgo.bean.DataType
 import com.billflx.csgo.constant.Constants
+import com.billflx.csgo.data.AppLocalDataSource
 import com.billflx.csgo.nav.LocalDownloadManagerVM
 import com.billflx.csgo.nav.LocalRootNav
 import com.billflx.csgo.nav.LocalSettingViewModel
@@ -75,7 +76,7 @@ fun MainPage(
             val navController = LocalRootNav.current
             TopAppBar(
                 title = {
-                    Text("CS:MOS ${BuildConfig.VERSION_NAME}", modifier = modifier.padding(start = GtaStartTheme.spacing.small))
+                    Text("Rn:CS${stringResource(R.string.launcher)} ${BuildConfig.VERSION_NAME}", modifier = modifier.padding(start = GtaStartTheme.spacing.small))
                 },
                 navigationIcon = {
                     Image(
@@ -202,16 +203,47 @@ private fun NoticeCard(
     var title by rememberSaveable { mutableStateOf(context.getString(R.string.notice)) }
     var content = Constants.appUpdateInfo
     val openDialog = rememberSaveable { mutableStateOf(false) }
+    var isStartUpNotice by rememberSaveable { mutableStateOf(false) }
+    var isContentLoaded by rememberSaveable { mutableStateOf(false) }
+
+    // LaunchedEffect还不好使，只能用传统boolean
+    if (content.value != null && !isContentLoaded) {
+        Log.d("TAG", "NoticeCard: ${content.value?.app?.noticeVersion}, ${AppLocalDataSource.getNoticeVersion()}")
+        if (content.value?.app?.noticeVersion != AppLocalDataSource.getNoticeVersion()) {
+            Log.d("TAG", "NoticeCard: ${content.value?.app?.noticeVersion}, ${AppLocalDataSource.getNoticeVersion()}")
+            isStartUpNotice = true
+            openDialog.value = true
+            isContentLoaded = true
+        }
+    }
 
     when {
         openDialog.value -> {
-            MAlertDialog(
-                title = title,
-                content = content.value?.app?.notice?: stringResource(R.string.getting),
-                positiveButtonText = stringResource(R.string.ok),
-                onPositiveButtonClick = { openDialog.value = false },
-                onDismissRequest = {openDialog.value = false}
-            )
+            if (isStartUpNotice) {
+                MAlertDialog(
+                    title = title,
+                    content = content.value?.app?.popOutNotice?: stringResource(R.string.getting),
+                    positiveButtonText = stringResource(R.string.ok),
+                    onPositiveButtonClick = {
+                        openDialog.value = false
+                    },
+                    onDismissRequest = {openDialog.value = false},
+                    negativeButtonText = stringResource(R.string.dont_popup_anymore),
+                    onNegativeButtonClick = {
+                        openDialog.value = false
+                        AppLocalDataSource.setNoticeVersion(content.value?.app?.noticeVersion?:0)
+                    }
+                )
+            } else {
+                MAlertDialog(
+                    title = title,
+                    content = content.value?.app?.notice?: stringResource(R.string.getting),
+                    positiveButtonText = stringResource(R.string.ok),
+                    onPositiveButtonClick = { openDialog.value = false },
+                    onDismissRequest = {openDialog.value = false},
+                )
+            }
+
         }
     }
 
@@ -219,6 +251,7 @@ private fun NoticeCard(
         modifier = modifier
             .fillMaxWidth()
             .clickable {
+                isStartUpNotice = false
                 openDialog.value = true
             }
     ) {
@@ -298,18 +331,10 @@ private fun StatusCard(
                     }
                 )
 
-                val rootNav = LocalRootNav.current
-                MButton(
-                    text = "WpUserScreen",
-                    onClick = {
-//                        rootNav.navigate()
-                    }
-                )
-
                 // 云端启用功能
                 Constants.appUpdateInfo.value?.also {
                     Log.d("", "StatusCard: 触发更新")
-                    if (it.functions?.customRoomsV2?.enable == 1 && it.functions?.customRoomsV2?.version == 2/* || Constants.IS_DEBUG_MODE*/) {
+                    if (it.functions?.customRoomsV2?.enable == 1 && it.functions?.customRoomsV2?.version == 3/* || Constants.IS_DEBUG_MODE*/) {
                         MButton(
                             text = "自定义房间",
                             onClick = {

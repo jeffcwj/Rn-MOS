@@ -145,9 +145,9 @@ class CSMOSUtils {
          * 粗略判断游戏数据是否存在 仅检查关键文件
          */
         fun isCsSourceInstalled(versionName: String): Boolean {
-            if (versionName.contains(CSVersionInfoEnum.CSMOSV65.getCsType())) { // csmos
+            if (versionName.contains(CSVersionInfoEnum.getMosDefault().getCsType())) { // csmos
                 return checkCSMOSKeyFileExists()
-            } else if (versionName.contains(CSVersionInfoEnum.CM.getCsType())) { // cm
+            } else if (versionName.contains(CSVersionInfoEnum.getCmDefault().getCsType())) { // cm
                 return checkCMKeyFileExists()
             }
             return false

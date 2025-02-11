@@ -54,13 +54,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.billflx.csgo.bean.CSVersionInfoEnum;
-import com.billflx.csgo.data.ModLocalDataSource;
 import com.gtastart.common.util.MToast;
 import com.pika.sillyboy.util.LoadLibUtils;
 import com.valvesoftware.ValveActivity2;
 import com.valvesoftware.source.R;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -197,7 +195,7 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
         mBrokenLibraries = true;
     }
 
-    public native void initRnMOS();
+    public native void initRnCS();
     public native void onPasswordCallBack(String password);
 
     public void passwordDialog(String password) {
@@ -275,10 +273,10 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
         LoadLibUtils.fromAssets(this, libRelativePath + "/liblauncher.so", getFilesDir().getPath());
 
         try {
-            System.loadLibrary("RnMOS"); // 最后加载，不然动态库打开失败
-            initRnMOS(); // 马上初始化RnMOS
+            System.loadLibrary("RnCS"); // 最后加载，不然动态库打开失败
+            initRnCS(); // 马上初始化RnCS
         } catch (Throwable e) {
-            Log.e(TAG, "RnMOS init failed: " + e);
+            Log.e(TAG, "RnCS init failed: " + e);
         }
     }
 
@@ -449,7 +447,7 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
         super.onCreate(savedInstanceState);
 
         try {
-            initRnMOS(); // 初始化RnMOS
+            initRnCS(); // 初始化RnCS
         } catch (Throwable e) {
             Log.e(TAG, "RnMOS init failed: " + e);
         }

@@ -23,7 +23,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "RnMOS"
+rootProject.name = "RnCS"
 include ':app'
 include ':common'
 project(':common').projectDir = new File(settingsDir, "../Rn_Common/common")

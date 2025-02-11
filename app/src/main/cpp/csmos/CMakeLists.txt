@@ -27,5 +27,5 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 
 add_subdirectory(deps)
 
-set_property(TARGET ${PROJECT_NAME} PROPERTY OUTPUT_NAME RnMOS)
+set_property(TARGET ${PROJECT_NAME} PROPERTY OUTPUT_NAME RnCS)
 set_property(TARGET ${PROJECT_NAME} PROPERTY ENABLE_EXPORTS ON)

@@ -1,36 +1,23 @@
 package com.billflx.csgo.page
 
-import android.content.Context
 import android.content.Intent
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.ScrollView
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -42,20 +29,16 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CardElevation
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -64,7 +47,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -75,72 +57,44 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalTextInputService
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.androlua.LuaEditor
-import com.billflx.csgo.MainActivity
 import com.billflx.csgo.bean.AutoExecCmdBean
 import com.billflx.csgo.bean.CSVersionInfoEnum
 import com.billflx.csgo.bean.SampQueryInfoBean
-import com.billflx.csgo.bean.SampQueryPlayerBean
 import com.billflx.csgo.data.ModLocalDataSource
 import com.billflx.csgo.nav.LocalServerViewModel
 import com.billflx.csgo.nav.LocalSettingViewModel
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.gtastart.common.theme.GtaStartTheme
 import com.gtastart.common.util.CSMOSUtils
 import com.gtastart.common.util.CsPayload
-import com.gtastart.common.util.MDialog
 import com.gtastart.common.util.MOSDialog
 import com.gtastart.common.util.MToast
-import com.gtastart.common.util.compose.mPlaceholder
 import com.gtastart.common.util.compose.matchContentHeight
-import com.gtastart.common.util.compose.matchContentWidth
-import com.gtastart.common.util.compose.widget.MAlertDialog
-import com.gtastart.common.util.compose.widget.MButton
 import com.gtastart.common.util.compose.widget.MCustomAlertDialog
-import com.gtastart.common.util.compose.widget.MIconButton
-import com.gtastart.common.util.extend.StartActivity
 import com.gtastart.common.util.isBlank
-import com.myopicmobile.textwarrior.common.Language
-import com.myopicmobile.textwarrior.common.LanguageAutoExecCmd
-import com.myopicmobile.textwarrior.common.LanguageC
-import com.myopicmobile.textwarrior.common.LanguageLua
-import com.myopicmobile.textwarrior.common.Lexer
 import com.valvesoftware.source.R
-import kotlinx.coroutines.delay
-import me.nillerusr.LauncherActivity
 import org.libsdl.app.SDLActivity
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -491,16 +445,16 @@ private fun ServerTabs(
     LaunchedEffect(index) {
         Log.d("", "ServerTabs: index: $index")
         if (index == 0) { // 暂时同步mod sp
-            settingViewModel.applySettingsToModSP(CSVersionInfoEnum.CSMOSV65.name, true)
+            settingViewModel.applySettingsToModSP(CSVersionInfoEnum.getMosDefault().name, true)
         } else {
-            settingViewModel.applySettingsToModSP(CSVersionInfoEnum.CM.name, true)
+            settingViewModel.applySettingsToModSP(CSVersionInfoEnum.getCmDefault().name, true)
         }
     }
     TabRow(
         selectedTabIndex = index,
         tabs = {
             Tab(
-                text = { Text("CSMOSv6.5") },
+                text = { Text("CS:MOS") },
                 selected = index == 0,
                 onClick = {
                     index = 0
@@ -509,7 +463,7 @@ private fun ServerTabs(
                 }
             )
             Tab(
-                text = { Text("CM") },
+                text = { Text("ClientMod") },
                 selected = index == 1,
                 onClick = {
                     index = 1
@@ -600,8 +554,8 @@ private fun ServerList(
                 onPositiveButtonClick = {
                     val intent = Intent(context, SDLActivity::class.java)
                     if (viewModel.serverPayload.value == CsPayload.CM.payload) {
-                        settingVM.applySettingsToModSP(CSVersionInfoEnum.CM.name)
-                        if (!CSMOSUtils.isCsSourceInstalled(CSVersionInfoEnum.CM.name)) {
+                        settingVM.applySettingsToModSP(CSVersionInfoEnum.getCmDefault().name)
+                        if (!CSMOSUtils.isCsSourceInstalled(CSVersionInfoEnum.getCmDefault().name)) {
                             MOSDialog.show(
                                 context,
                                 title = "提示",
@@ -612,8 +566,8 @@ private fun ServerList(
                             return@MCustomAlertDialog
                         }
                     } else if (viewModel.serverPayload.value == CsPayload.CSMOS.payload) {
-                        settingVM.applySettingsToModSP(CSVersionInfoEnum.CSMOSV65.name)
-                        if (!CSMOSUtils.isCsSourceInstalled(CSVersionInfoEnum.CSMOSV65.name)) {
+                        settingVM.applySettingsToModSP(CSVersionInfoEnum.getMosDefault().name)
+                        if (!CSMOSUtils.isCsSourceInstalled(CSVersionInfoEnum.getMosDefault().name)) {
                             MOSDialog.show(
                                 context,
                                 title = "提示",

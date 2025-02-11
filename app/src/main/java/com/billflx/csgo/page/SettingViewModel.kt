@@ -68,7 +68,7 @@ class SettingViewModel @Inject constructor(
 
         viewModelScope.launch {
             // CSMOS
-            val csmosName = CSVersionInfoEnum.CSMOSV65.name
+            val csmosName = CSVersionInfoEnum.CSMOSV65.name // 设置的版本倒可以不用改
             val csmosData = SettingDataBean(
                 settingTitle = settingVersions[0],
                 versionEnum = CSVersionInfoEnum.CSMOSV65,

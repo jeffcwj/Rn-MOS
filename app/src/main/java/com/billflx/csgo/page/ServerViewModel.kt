@@ -53,11 +53,11 @@ class ServerViewModel @Inject constructor(
     }
 
     fun loadNickName() {
-        var version = CSVersionInfoEnum.CSMOSV65.name
+        var version = CSVersionInfoEnum.getMosDefault().name
         if (serverPayload.value == CsPayload.CSMOS.payload) {
-            version = CSVersionInfoEnum.CSMOSV65.name
+            version = CSVersionInfoEnum.getMosDefault().name
         } else {
-            version = CSVersionInfoEnum.CM.name
+            version = CSVersionInfoEnum.getCmDefault().name
         }
         viewModelScope.launch {
             nickName.value = versionRepository.getNickName(version)

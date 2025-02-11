@@ -2,6 +2,7 @@ package com.billflx.csgo
 
 import android.app.Application
 import android.content.Context
+import com.billflx.csgo.data.AppLocalDataSource
 import com.billflx.csgo.data.ModLocalDataSource
 import com.billflx.csgo.data.db.CSVersionInfoDao
 import com.billflx.csgo.data.repo.CSVersionInfoRepository
@@ -32,6 +33,7 @@ class CSApplication : GtaStartApplication() {
         logcat.saveLog()
 
         ModLocalDataSource.init(context)
+        AppLocalDataSource.init(context)
 
         Coroutines.main {
             ModLocalDataSource.migrateDataToDb(csVersionInfoRepository) // 从老版本升级到新版本的，初始化数据库
