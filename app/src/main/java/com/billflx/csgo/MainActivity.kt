@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -32,6 +33,7 @@ import com.gtastart.common.theme.GtaStartTheme
 import com.gtastart.common.util.MHelpers
 import com.gtastart.common.util.MToast
 import com.gtastart.data.constant.CsConstants
+import com.gtastart.ui.forum.auth.activity.WPLoginActivity
 import com.valvesoftware.source.R
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -115,7 +117,7 @@ class MainActivity : LauncherActivity() {
         composeView.setContent {
 
             GtaStartTheme(
-                darkTheme = false
+                darkTheme = true
             ) {
                 CompositionLocalProvider(
                     LocalContentColor provides contentColorFor(MaterialTheme.colorScheme.surface),
@@ -148,6 +150,8 @@ class MainActivity : LauncherActivity() {
         lifecycleScope.launch {
             checkUpdate(mainViewModel, this@MainActivity)
         }
+
+//        startActivity(Intent(this, WPLoginActivity::class.java))
     }
 
 

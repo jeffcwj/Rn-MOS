@@ -128,12 +128,12 @@ public class LauncherActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         PKG_NAME = getApplication().getPackageName();
-//        requestWindowFeature(1);
-//        if (sdk >= 21) {
-//            super.setTheme(android.R.style.Theme_Material);
-//        } else {
-//            super.setTheme(android.R.style.Theme);
-//        }
+        requestWindowFeature(1);
+        /*if (sdk >= 21) {
+            super.setTheme(R.style.Theme_CSMOS);
+        } else {
+            super.setTheme(android.R.style.Theme);
+        }*/
         this.mPref = getSharedPreferences("mod", Context.MODE_MULTI_PROCESS);
         setContentView(R.layout.activity_launcher);
         cmdArgs = (EditText) findViewById(R.id.edit_cmdline);

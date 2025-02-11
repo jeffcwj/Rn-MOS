@@ -3,12 +3,13 @@ package com.billflx.csgo.constant
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import com.gtastart.data.bean.cs.AppUpdateBean
+import com.valvesoftware.source.BuildConfig
 
 class Constants {
 
     companion object {
         var appUpdateInfo: MutableState<AppUpdateBean?> = mutableStateOf(null)
-        val appVersion = "r6.2"
+        val appVersion = "r8.2"
         val isAppUpdateInfoFailed = mutableStateOf(false)
 
         const val SOURCE_HOST = "135.125.188.162"
@@ -22,6 +23,8 @@ class Constants {
 
         const val CHECK_UPDATE_URL = "https://samp.fun/RnSAMP/CSMOS/checkUpdate.php"
         const val AUTO_EXEC_CMD_URL = "https://samp.fun/RnSAMP/CSMOS/autoExecCmds.php"
+
+        val IS_DEBUG_MODE = BuildConfig.DEBUG
 
     }
 }

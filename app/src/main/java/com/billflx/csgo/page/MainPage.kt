@@ -1,43 +1,31 @@
 package com.billflx.csgo.page
 
-import android.content.DialogInterface
-import android.content.Intent
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.ViewGroup
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FileDownload
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -45,59 +33,36 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.billflx.csgo.LocalMainViewModel
 import com.billflx.csgo.MainActivity
 import com.billflx.csgo.bean.DataType
-import com.billflx.csgo.bean.DownloadStatus
 import com.billflx.csgo.constant.Constants
 import com.billflx.csgo.nav.LocalDownloadManagerVM
 import com.billflx.csgo.nav.LocalRootNav
 import com.billflx.csgo.nav.LocalSettingViewModel
 import com.billflx.csgo.nav.RootDesc
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.gtastart.common.theme.GtaStartTheme
-import com.gtastart.common.util.CSMOSUtils
-import com.gtastart.common.util.Coroutines
-import com.gtastart.common.util.MDialog
-import com.gtastart.common.util.MDownload
 import com.gtastart.common.util.MHelpers
 import com.gtastart.common.util.MOSDialog
-import com.gtastart.common.util.MToast
-import com.gtastart.common.util.ZipUtils
 import com.gtastart.common.util.compose.navigateSingleTopTo
 import com.gtastart.common.util.compose.widget.MAlertDialog
 import com.gtastart.common.util.compose.widget.MButton
-import com.gtastart.common.util.compose.widget.MCustomAlertDialog
 import com.gtastart.data.bean.cs.AppUpdateBean
-import com.liulishuo.okdownload.DownloadTask
-import com.liulishuo.okdownload.core.cause.EndCause
-import com.liulishuo.okdownload.core.cause.ResumeFailedCause
-import com.umeng.commonsdk.statistics.common.HelperUtils
 import com.valvesoftware.source.BuildConfig
 import com.valvesoftware.source.R
 import kotlinx.coroutines.launch
-import me.nillerusr.DirchActivity
 import me.nillerusr.LauncherActivity
-import net.lingala.zip4j.util.FileUtils
-import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -333,10 +298,18 @@ private fun StatusCard(
                     }
                 )
 
+                val rootNav = LocalRootNav.current
+                MButton(
+                    text = "WpUserScreen",
+                    onClick = {
+//                        rootNav.navigate()
+                    }
+                )
+
                 // 云端启用功能
                 Constants.appUpdateInfo.value?.also {
                     Log.d("", "StatusCard: 触发更新")
-                    if (it.functions?.customRooms == 1) {
+                    if (it.functions?.customRoomsV2?.enable == 1 && it.functions?.customRoomsV2?.version == 2/* || Constants.IS_DEBUG_MODE*/) {
                         MButton(
                             text = "自定义房间",
                             onClick = {
@@ -362,7 +335,8 @@ private fun GameDataListView(
     val coroutineScope = rememberCoroutineScope()
 
     LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.medium),
+        verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal),
+        contentPadding = PaddingValues(GtaStartTheme.spacing.normal)
     ) {
         items(linkList?: emptyList()) { item ->
             val url = item.url

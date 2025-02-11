@@ -29,13 +29,13 @@ enum class CSVersionInfoEnum(
         "RnMOS Player",
         "CSMOS"),
 
-    CMv1("/libs/CM_v1",
+    /*CMv1("/libs/CM_v1",
         "extras_dir_CM.vpk",
         "-console -game cm",
         "LIBGL_USEVBO=0",
         LauncherActivity.getDefaultDir() + "/CM",
         "ClientMod Player",
-        "CM"),
+        "CM"),*/
 
     CM("/libs/CM",
         "extras_dir_CM.vpk",
