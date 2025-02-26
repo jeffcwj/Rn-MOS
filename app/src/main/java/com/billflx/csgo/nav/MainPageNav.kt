@@ -52,12 +52,12 @@ enum class MainPageDestination(
         "a_server",
         R.string.server
     ),
-    /*ARes(
+    ARes(
         Icons.Default.Forum,
         Icons.Outlined.Forum,
         "a_res",
         R.string.resource
-    ),*/
+    ),
     ASetting(
         Icons.Default.Settings,
         Icons.Outlined.Settings,
@@ -101,12 +101,12 @@ fun MainPageNav(
             }
 
             // TODO 记得添加回来
-            /*composable(route = MainPageDestination.ARes.route) {
+            composable(route = MainPageDestination.ARes.route) {
                 val rootNav = LocalRootNav.current
                 CsMosResPage(onGotoResPostDetailClick = { id ->
                     rootNav.navigateSingleTopTo("${RootDesc.ResPost.route}/$id")
                 })
-            }*/
+            }
 
             composable(route = MainPageDestination.ASetting.route) {
                 SettingPage(navController = navController)

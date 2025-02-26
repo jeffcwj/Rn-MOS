@@ -56,6 +56,7 @@ import com.billflx.csgo.nav.RootDesc
 import com.gtastart.common.theme.GtaStartTheme
 import com.gtastart.common.util.MHelpers
 import com.gtastart.common.util.MOSDialog
+import com.gtastart.common.util.MToast
 import com.gtastart.common.util.compose.navigateSingleTopTo
 import com.gtastart.common.util.compose.widget.MAlertDialog
 import com.gtastart.common.util.compose.widget.MButton
@@ -332,17 +333,24 @@ private fun StatusCard(
                 )
 
                 // 云端启用功能
-                Constants.appUpdateInfo.value?.also {
-                    Log.d("", "StatusCard: 触发更新")
-                    if (it.functions?.customRoomsV2?.enable == 1 && it.functions?.customRoomsV2?.version == 3/* || Constants.IS_DEBUG_MODE*/) {
-                        MButton(
-                            text = "自定义房间",
-                            onClick = {
+                MButton(
+                    text = "自定义房间",
+                    onClick = {
+                        Constants.appUpdateInfo.value?.also {
+                            if (Constants.IS_DEBUG_MODE) {
+                                navController.navigateSingleTopTo(RootDesc.CsServerPanel.route)
+                            } else if (it.functions?.customRoomsV2?.enable != 1) {
+                                context.MToast("此功能暂时被禁用")
+                            } else if (it.functions?.customRoomsV2?.version != Constants.customRoomVersion) {
+                                context.MToast("要使用此功能，请更新软件至最新版本")
+                            } else {
                                 navController.navigateSingleTopTo(RootDesc.CsServerPanel.route)
                             }
-                        )
+                        } ?: also {
+                            context.MToast("功能正在加载中...")
+                        }
                     }
-                }
+                )
             }
 
         }

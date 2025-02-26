@@ -24,9 +24,11 @@ import com.billflx.csgo.page.DownloadManagerViewModel
 import com.billflx.csgo.page.InstallGuideScreen
 import com.billflx.csgo.page.MainScreen
 import com.billflx.csgo.page.SettingViewModel
+import com.billflx.csgo.page.test.TestComposeRvScreen
 import com.gtastart.common.util.compose.navigateSingleTopTo
 import com.gtastart.ui.ServerPanel.cs.CsServerPanelScreen
 import com.gtastart.ui.forum.posts.ResPostScreen
+import com.gtastart.ui.forum.user.WpUserScreen
 
 enum class RootDesc(
     val route: String
@@ -35,7 +37,9 @@ enum class RootDesc(
     InstallGuide("install_guide_screen"),
     DownloadManager("download_manager_screen"),
     CsServerPanel("cs_server_panel_screen"),
-    ResPost("res_post")
+    ResPost("res_post"),
+    TestComposeRv("test_compose_rv"),
+    WpUserScreen("wp_user_screen")
 }
 
 val LocalSettingViewModel = staticCompositionLocalOf<SettingViewModel> {
@@ -73,7 +77,7 @@ fun RootNavHost(
 ) {
     NavHost(
         navController = rootNavController,
-        startDestination = RootDesc.Main.route,
+        startDestination = RootDesc.WpUserScreen.route,
         modifier = modifier,
         enterTransition = {
             slideInHorizontally(initialOffsetX = { it }) + fadeIn()
@@ -101,6 +105,12 @@ fun RootNavHost(
         }
         composable(route = RootDesc.CsServerPanel.route) {
             CsServerPanelScreen() // CS服务器面板
+        }
+        composable(route = RootDesc.TestComposeRv.route) {
+            TestComposeRvScreen() // BaseQuickAdapter融合Compose测试
+        }
+        composable(route = RootDesc.WpUserScreen.route) {
+            WpUserScreen() // 用户主页
         }
         composable(
             route = "${RootDesc.ResPost.route}/{postId}", // 需要传入文章ID

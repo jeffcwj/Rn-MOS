@@ -8,7 +8,6 @@ data class SampQueryInfoBean(
     var ping: Long = 0,
     var robotCount: Int = 0,
     var serverMap: String? = null
-
 ) {
     var playerCountInfo: String? = "$players / $maxPlayers"
 }
