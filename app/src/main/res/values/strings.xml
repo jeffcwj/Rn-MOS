@@ -119,5 +119,9 @@
     <string name="tip_app_config_load_failed">软件配置加载失败，部分功能将无法使用</string>
     <string name="launcher">启动器</string>
     <string name="dont_popup_anymore">不再提示</string>
+    <string name="game_settings">游戏设置</string>
+    <string name="general_settings">全局设置</string>
+    <string name="more">更多</string>
+    <string name="join_qq_group">加入QQ群</string>
 
 </resources>

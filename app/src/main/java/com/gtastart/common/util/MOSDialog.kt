@@ -35,7 +35,7 @@ class MOSDialog {
                     CompositionLocalProvider(
                         LocalViewModelStoreOwner provides (context as MainActivity) // 同步作用域
                     ) {
-                        GtaStartTheme(darkTheme = true) {
+                        GtaStartTheme {
                             Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh) {
                                 customView(dialog)
                             }

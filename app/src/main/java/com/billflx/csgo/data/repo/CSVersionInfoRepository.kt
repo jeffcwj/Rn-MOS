@@ -116,10 +116,18 @@ class CSVersionInfoRepository @Inject constructor(
                     env = it.env.value,
                     argv = it.argv.value,
                     gamePath = it.gamePath.value,
-                    nickName = it.nickName.value,
+                    nickName = it.nickName.value
                 )
                 csVersionInfoDao.updateOrInsertInfo(info)
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "saveAllData: ", e)
+        }
+    }
+
+    suspend fun saveData(info: CSVersionInfo) {
+        try {
+            csVersionInfoDao.updateOrInsertInfo(info)
         } catch (e: Exception) {
             Log.e(TAG, "saveAllData: ", e)
         }
@@ -143,6 +151,50 @@ class CSVersionInfoRepository @Inject constructor(
             Log.e(TAG, "isDBEmpty: ", e)
             return false
         }
+    }
+
+    suspend fun insertIfEmpty(versions: List<CSVersionInfo>) {
+        runCatching {
+            val list = csVersionInfoDao.getAll()
+            versions.forEach a@ { version ->
+                val item = list.find { it.versionName == version.versionName }
+                if (item == null) {
+                    csVersionInfoDao.upsert(version)
+                    return@a
+                }
+                val clazz = version.javaClass
+                clazz.declaredFields.forEach b@ { member ->
+                    member.isAccessible = true
+                    if (member.name in listOf("env", "argv", "gamePath", "nickName")) {
+                        member.set(version, member.get(item))
+                    } else {
+                        return@b
+                    }
+                }
+                Log.d(TAG, "insertIfEmpty: $version")
+                csVersionInfoDao.upsert(version)
+            }
+        }.onFailure {
+            it.printStackTrace()
+        }
+    }
+
+    suspend fun getAll(): List<CSVersionInfo> {
+        runCatching {
+            return csVersionInfoDao.getAll()
+        }.onFailure {
+            it.printStackTrace()
+        }
+        return emptyList()
+    }
+
+    suspend fun getByVersionName(versionName: String): CSVersionInfo {
+        runCatching {
+            return csVersionInfoDao.getVersionInfo(versionName = versionName)
+        }.onFailure {
+            it.printStackTrace()
+        }
+        return CSVersionInfo()
     }
 
 }

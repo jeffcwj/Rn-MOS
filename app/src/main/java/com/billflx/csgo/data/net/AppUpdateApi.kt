@@ -2,6 +2,7 @@ package com.billflx.csgo.data.net
 
 import android.util.Log
 import com.billflx.csgo.bean.AutoExecCmdBean
+import com.billflx.csgo.bean.CsRemoteVersionInfo
 import com.billflx.csgo.constant.Constants
 import com.gtastart.data.bean.cs.AppUpdateBean
 import okhttp3.OkHttpClient
@@ -42,5 +43,8 @@ interface AppUpdateApi {
 
     @GET(Constants.AUTO_EXEC_CMD_URL)
     suspend fun getAutoExecCmds(): Response<List<AutoExecCmdBean>>
+
+    @GET(Constants.CS_VERSION_URL)
+    suspend fun getCsVersion(): List<CsRemoteVersionInfo>
 
 }

@@ -5,12 +5,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.billflx.csgo.data.AppLocalDataSource
 import com.billflx.csgo.nav.MainPageDestination
 import com.billflx.csgo.nav.MainPageNav
 import com.gtastart.common.util.compose.navigateSingleTopTo
@@ -23,12 +26,16 @@ fun MainScreen(
     val navController = rememberNavController()
     val currentBackStack by navController.currentBackStackEntryAsState()
     val currentDestination = currentBackStack?.destination
-    val currentScreen = MainPageDestination.entries.find { it.route == currentDestination?.route } ?: MainPageDestination.AHome
+    val currentScreen = MainPageDestination.list(
+        experimental = AppLocalDataSource.isExperimental() // 是否启用实验性页面 （也就是资源页）
+    ).find { it.route == currentDestination?.route } ?: MainPageDestination.AHome
 
     NavigationSuiteScaffold(
         containerColor = Color.Transparent,
         navigationSuiteItems = {
-            MainPageDestination.entries.forEach {
+            MainPageDestination.list(
+                experimental = AppLocalDataSource.isExperimental()
+            ).forEach {
                 item(
                     selected = it == currentScreen,
                     icon = {

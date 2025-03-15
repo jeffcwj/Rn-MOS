@@ -76,11 +76,23 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>-->
         </activity>
+        <activity
+            android:name="com.gtastart.ui.forum.posts.create.NewPostActivity"
+            android:exported="true">
+            <!--<intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>-->
+        </activity>
 
         <activity
             android:name="com.gtastart.ui.forum.auth.activity.WPLoginActivity"
             android:configChanges="orientation|screenSize"
-            android:exported="false" />
+            android:exported="true" >
+
+        </activity>
+
 
         <activity
             android:name="org.libsdl.app.SDLActivity"

@@ -32,6 +32,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
@@ -55,9 +56,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.billflx.csgo.bean.CSVersionInfoEnum
+import com.billflx.csgo.data.AppLocalDataSource
 import com.billflx.csgo.data.ModLocalDataSource
 import com.billflx.csgo.nav.LocalSettingViewModel
 import com.gtastart.common.theme.GtaStartTheme
+import com.gtastart.common.util.MToast
 import com.gtastart.common.util.compose.matchContentWidth
 import com.gtastart.common.util.compose.widget.MAlertDialog
 import com.gtastart.common.util.compose.widget.MButton
@@ -125,7 +128,43 @@ private fun ScrollingContent(
 
 ) {
     SelectVersionCard()
+    ExtraSettingCard()
     VersionSettingCard()
+}
+
+@Composable
+private fun ExtraSettingCard(
+    modifier: Modifier = Modifier
+) {
+    ElevatedCard {
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(GtaStartTheme.spacing.medium),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            var isChecked by rememberSaveable { mutableStateOf(false) }
+            val context = LocalContext.current
+            Column(
+                verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.small),
+                modifier = modifier.weight(1f)
+            ) {
+                Text("实验性内容", style = MaterialTheme.typography.titleMedium)
+                Text("是否显示正在开发中的内容", style = MaterialTheme.typography.bodyMedium)
+            }
+            LaunchedEffect(Unit) {
+                isChecked = AppLocalDataSource.isExperimental()
+            }
+            Switch(
+                checked = isChecked,
+                onCheckedChange = {
+                    isChecked = it
+                    AppLocalDataSource.setExperimental(it)
+                    context.MToast("已应用，请重启软件")
+                }
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

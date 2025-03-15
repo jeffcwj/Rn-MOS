@@ -1,11 +1,13 @@
 package com.billflx.csgo.data.db
 
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 
 @Dao
 interface CSVersionInfoDao {
@@ -32,4 +34,17 @@ interface CSVersionInfoDao {
 
     @Query("select count(*) from csversioninfo")
     suspend fun getRowCount(): Int
+
+    @Query("select * from csversioninfo")
+    suspend fun getAll(): List<CSVersionInfo>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE) // 跳过
+    suspend fun insertAll(csVersionInfos: List<CSVersionInfo>)
+
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(csVersionInfo: CSVersionInfo)
+
+    @Query("select * from csversioninfo")
+    fun pagingSource(): PagingSource<Int, CSVersionInfo>
 }

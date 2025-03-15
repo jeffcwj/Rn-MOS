@@ -116,9 +116,7 @@ class MainActivity : LauncherActivity() {
         val composeView = findViewById<ComposeView>(R.id.composeView)
         composeView.setContent {
 
-            GtaStartTheme(
-                darkTheme = true
-            ) {
+            GtaStartTheme {
                 Surface {
                     CompositionLocalProvider(
                         LocalViewModelStoreOwner provides this,  // 同步作用域

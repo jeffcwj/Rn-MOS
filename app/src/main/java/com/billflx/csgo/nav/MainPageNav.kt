@@ -26,6 +26,7 @@ import com.billflx.csgo.page.ServerPage
 import com.billflx.csgo.page.ServerViewModel
 import com.billflx.csgo.page.SettingPage
 import com.billflx.csgo.page.SettingViewModel
+import com.billflx.csgo.page.settings.MainSettingsNav
 import com.gtastart.common.util.compose.navigateSingleTopTo
 import com.gtastart.ui.forum.csmos.CsMosResPage
 import com.valvesoftware.source.R
@@ -58,14 +59,31 @@ enum class MainPageDestination(
         "a_res",
         R.string.resource
     ),
-    ASetting(
+    /*ASetting(
         Icons.Default.Settings,
         Icons.Outlined.Settings,
         "a_setting",
         R.string.setting
+    ),*/
+    ASettingV2(
+        Icons.Default.Settings,
+        Icons.Outlined.Settings,
+        "a_setting_v2",
+        R.string.setting
     );
 
     fun getIcon(selected: Boolean) : ImageVector = if (selected) iconSelected else iconDefault
+
+    companion object {
+        fun list(experimental: Boolean): List<MainPageDestination> {
+            return if (!experimental) {
+                entries.toList().filter { it != ARes }
+            } else {
+                entries.toList()
+            }
+        }
+    }
+
 }
 
 
@@ -103,13 +121,21 @@ fun MainPageNav(
             // TODO 记得添加回来
             composable(route = MainPageDestination.ARes.route) {
                 val rootNav = LocalRootNav.current
-                CsMosResPage(onGotoResPostDetailClick = { id ->
-                    rootNav.navigateSingleTopTo("${RootDesc.ResPost.route}/$id")
-                })
+                CsMosResPage(
+                    onGotoResPostDetailClick = { id ->
+                        rootNav.navigateSingleTopTo("${RootDesc.ResPost.route}/$id")
+                    },
+                    onGotoUserScreenClick = { id ->
+                        rootNav.navigateSingleTopTo("${RootDesc.WpUserScreen.route}/$id")
+                    }
+                )
             }
 
-            composable(route = MainPageDestination.ASetting.route) {
+            /*composable(route = MainPageDestination.ASetting.route) {
                 SettingPage(navController = navController)
+            }*/
+            composable(route = MainPageDestination.ASettingV2.route) {
+                MainSettingsNav()
             }
         }
     }

@@ -29,6 +29,7 @@ import com.gtastart.common.util.compose.navigateSingleTopTo
 import com.gtastart.ui.ServerPanel.cs.CsServerPanelScreen
 import com.gtastart.ui.forum.posts.ResPostScreen
 import com.gtastart.ui.forum.user.WpUserScreen
+import com.gtastart.ui.main.screen.WpResPage
 
 enum class RootDesc(
     val route: String
@@ -39,7 +40,8 @@ enum class RootDesc(
     CsServerPanel("cs_server_panel_screen"),
     ResPost("res_post"),
     TestComposeRv("test_compose_rv"),
-    WpUserScreen("wp_user_screen")
+    WpUserScreen("wp_user_screen"),
+    GtaStartHomeScreen("gtastart_home_screen")
 }
 
 val LocalSettingViewModel = staticCompositionLocalOf<SettingViewModel> {
@@ -77,7 +79,7 @@ fun RootNavHost(
 ) {
     NavHost(
         navController = rootNavController,
-        startDestination = RootDesc.WpUserScreen.route,
+        startDestination = RootDesc.Main.route,
         modifier = modifier,
         enterTransition = {
             slideInHorizontally(initialOffsetX = { it }) + fadeIn()
@@ -109,8 +111,17 @@ fun RootNavHost(
         composable(route = RootDesc.TestComposeRv.route) {
             TestComposeRvScreen() // BaseQuickAdapter融合Compose测试
         }
-        composable(route = RootDesc.WpUserScreen.route) {
-            WpUserScreen() // 用户主页
+        composable(
+            route = "${RootDesc.WpUserScreen.route}/{userId}",
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId")
+            WpUserScreen(
+                userId = userId.orEmpty()
+            ) // 用户主页
+        }
+        composable(route = RootDesc.GtaStartHomeScreen.route) {
+            WpResPage() // GtaStart 老主页（含GtaModX）
         }
         composable(
             route = "${RootDesc.ResPost.route}/{postId}", // 需要传入文章ID

@@ -404,7 +404,7 @@ class DownloadManagerViewModel @Inject constructor(
             title = context.getString(R.string.unzip),
             customView = { dialog ->
                 val modifier: Modifier = Modifier
-                GtaStartTheme(darkTheme = true) {
+                GtaStartTheme {
                     Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh) {
                         Column(
                             modifier = modifier.padding(GtaStartTheme.spacing.medium),
@@ -617,7 +617,7 @@ class DownloadManagerViewModel @Inject constructor(
         view.layoutParams = ViewGroup.LayoutParams(-1, -1)
         view.findViewById<ComposeView>(R.id.composeView).setContent {
             val modifier = Modifier
-            GtaStartTheme(darkTheme = true) {
+            GtaStartTheme {
                 Surface(
                     color = MaterialTheme.colorScheme.surfaceContainerHigh
                 ) {

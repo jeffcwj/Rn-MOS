@@ -25,6 +25,9 @@ class Constants {
 
         const val CHECK_UPDATE_URL = "https://samp.fun/RnSAMP/CSMOS/checkUpdate.php"
         const val AUTO_EXEC_CMD_URL = "https://samp.fun/RnSAMP/CSMOS/autoExecCmds.php"
+        const val CS_VERSION_URL = "https://samp.fun/RnSAMP/CSMOS/getCsVersion.php"
+
+        const val RnCSQQGroupKey = "KHO17k0fUFnUlO73zH6L4kntKzGDJlZm"
 
         val IS_DEBUG_MODE = BuildConfig.DEBUG
 

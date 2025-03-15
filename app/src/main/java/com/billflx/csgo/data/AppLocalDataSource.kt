@@ -48,5 +48,10 @@ object AppLocalDataSource {
         sp.setValue("NoticeVersion", value)
     }
 
+    fun isExperimental() = sp.getValue("experimental", false)
+    fun setExperimental(value: Boolean) {
+        sp.setValue("experimental", value)
+    }
+
 
 }

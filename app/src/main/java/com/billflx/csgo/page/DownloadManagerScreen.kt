@@ -274,7 +274,7 @@ private fun DownloadingItem(
                     context = context,
                     customView = { dialog ->
                         val modifier = Modifier
-                        GtaStartTheme(darkTheme = true) {
+                        GtaStartTheme() {
                             Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh) {
                                 Column(
                                     modifier

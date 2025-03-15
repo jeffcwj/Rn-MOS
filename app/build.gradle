@@ -133,6 +133,7 @@ dependencies {
     implementation "androidx.room:room-runtime:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
     ksp "androidx.room:room-compiler:$room_version"
+    implementation "androidx.room:room-paging:$room_version"
 
     // 更方便的 compose 页面导航 需要在每个要用的模块中添加
     implementation 'io.github.raamcosta.compose-destinations:core:1.11.9'

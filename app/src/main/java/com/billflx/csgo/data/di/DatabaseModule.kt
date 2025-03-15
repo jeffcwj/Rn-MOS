@@ -2,6 +2,8 @@ package com.billflx.csgo.data.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.billflx.csgo.data.db.CSVersionInfoDao
 import com.billflx.csgo.data.db.CSVersionInfoDatabase
 import com.billflx.csgo.data.db.DownloadInfo
@@ -34,7 +36,19 @@ object DatabaseModule {
             context,
             CSVersionInfoDatabase::class.java,
             "CSVersionInfoDatabase"
-        ).build()
+        )
+            .addMigrations(object : Migration(1, 2) {
+                override fun migrate(database: SupportSQLiteDatabase) {
+                    database.execSQL("ALTER TABLE csversioninfo ADD COLUMN libPackUrl TEXT")
+                    database.execSQL("ALTER TABLE csversioninfo ADD COLUMN libPath TEXT")
+                    database.execSQL("ALTER TABLE csversioninfo ADD COLUMN vpkName TEXT")
+                    database.execSQL("ALTER TABLE csversioninfo ADD COLUMN vpkUrl TEXT")
+                    database.execSQL("ALTER TABLE csversioninfo ADD COLUMN csType TEXT")
+                    database.execSQL("ALTER TABLE csversioninfo ADD COLUMN versionNameForShow TEXT")
+                    database.execSQL("ALTER TABLE csversioninfo ADD COLUMN fileList TEXT")  // **存 JSON**
+                }
+            })
+            .build()
     }
 
     @Provides

@@ -24,7 +24,8 @@ object ModLocalDataSource {
                 env = getEnv(),
                 argv = getArgv(),
                 gamePath = getGamePath(),
-                nickName = getNickName()
+                nickName = getNickName(),
+                fileList = emptyList() // TODO 这对吗？
             )
             csVersionInfoRepository.addInfo(info)
         }
