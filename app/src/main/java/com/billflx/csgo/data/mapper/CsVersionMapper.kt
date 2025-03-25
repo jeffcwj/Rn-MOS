@@ -19,6 +19,8 @@ fun CsRemoteVersionInfo.toEntity(): CSVersionInfo {
         csType = this.csType,
         versionNameForShow = this.versionName,
         fileList = this.fileList,
+        vpkMd5 = this.vpkMd5,
+        dataLink = this.dataLink
     )
 }
 
@@ -35,6 +37,8 @@ fun CSVersionInfo.toRemoteEntity(): CsRemoteVersionInfo {
         defaultEnv = this.env,
         defaultRelativeGamePath = File.separator + File(this.gamePath.orEmpty()).name,
         defaultNickName = this.nickName,
-        fileList = this.fileList
+        fileList = this.fileList,
+        vpkMd5 = this.vpkMd5,
+        dataLink = this.dataLink
     )
 }

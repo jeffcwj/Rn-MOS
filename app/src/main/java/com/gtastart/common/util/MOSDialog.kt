@@ -27,8 +27,8 @@ class MOSDialog {
             onNegativeButtonClick: ((DialogInterface, Int) -> Unit)? = null,
             onNeutralButtonClick: ((DialogInterface, Int) -> Unit)? = null,
             cancelable: Boolean = true
-        ) {
-            MDialog.show(
+        ): AlertDialog {
+            return MDialog.show(
                 context = context,
                 title = title,
                 customView = customView?.let {{ dialog ->

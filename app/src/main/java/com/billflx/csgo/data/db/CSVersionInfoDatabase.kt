@@ -11,7 +11,7 @@ import kotlinx.coroutines.internal.synchronized
 
 @Database(
     entities = [CSVersionInfo::class],
-    version = 2,
+    version = 4,
     exportSchema = false // 禁用架构导出，懒得配置没啥用
 )
 @TypeConverters(GsonConverters::class)

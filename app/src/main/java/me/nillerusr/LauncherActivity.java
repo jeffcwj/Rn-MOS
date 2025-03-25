@@ -180,7 +180,11 @@ public class LauncherActivity extends AppCompatActivity {
         EnvEdit.setText(this.mPref.getString("env", "LIBGL_USEVBO=0"));
         changeButtonsStyle((ViewGroup) getWindow().getDecorView());
         if (sdk >= 23) {
-            applyPermissions(new String[]{"android.permission.WRITE_EXTERNAL_STORAGE", "android.permission.RECORD_AUDIO"}, REQUEST_PERMISSIONS);
+            applyPermissions(
+                    new String[]{
+                            "android.permission.WRITE_EXTERNAL_STORAGE",
+                            "android.permission.RECORD_AUDIO",
+                    }, REQUEST_PERMISSIONS);
         }
     }
 

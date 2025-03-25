@@ -1,5 +1,6 @@
 package com.billflx.csgo.data
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
@@ -8,13 +9,16 @@ import com.billflx.csgo.data.db.CSVersionInfo
 import com.billflx.csgo.data.repo.CSVersionInfoRepository
 import me.nillerusr.LauncherActivity
 
+@SuppressLint("StaticFieldLeak")
 object AppLocalDataSource {
 
     const val SP_NAME = "app"
     lateinit var sp: SharedPreferences
+    lateinit var context: Context
 
     fun init(context: Context) {
         sp = context.getSharedPreferences(SP_NAME, Context.MODE_MULTI_PROCESS)
+        this.context = context
     }
 
     // SharedPreferences 扩展函数
@@ -52,6 +56,8 @@ object AppLocalDataSource {
     fun setExperimental(value: Boolean) {
         sp.setValue("experimental", value)
     }
-
-
+    fun getLibParentPath() = sp.getValue("libParentPath", context.filesDir.path)
+    fun setLibParentPath(value: String) {
+        sp.setValue("libParentPath", value)
+    }
 }

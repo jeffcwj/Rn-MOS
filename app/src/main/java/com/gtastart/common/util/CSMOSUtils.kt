@@ -1,10 +1,13 @@
 package com.gtastart.common.util
 
 import android.util.Log
+import androidx.compose.runtime.MutableState
 import com.billflx.csgo.bean.CSVersionInfoEnum
 import com.billflx.csgo.constant.Constants
 import com.billflx.csgo.data.ModLocalDataSource
 import com.billflx.csgo.data.db.CSVersionInfo
+import com.billflx.csgo.page.settings.game.GameSettingViewModel
+import com.billflx.csgo.page.settings.game.GameSettingViewModel.Companion
 import com.gtastart.common.util.extend.safeReadLines
 import com.gtastart.common.util.extend.safeReadText
 import com.gtastart.common.util.extend.safeWriteText
@@ -61,8 +64,7 @@ class CSMOSUtils {
         }
 
         fun saveNickName(nickName: String) {
-            val version = ModLocalDataSource.getCurrentCSVersion()
-            val csType = CSVersionInfoEnum.getCsTypeByName(version)
+            val csType = ModLocalDataSource.getCsType()
             val configFile = File(ModLocalDataSource.getGamePath(), String.format(Constants.CONFIG_PATH, csType.lowercase()))
             val configText = configFile.safeReadText()
             val sb = StringBuilder()
@@ -77,22 +79,19 @@ class CSMOSUtils {
         }
 
         fun readAutoExecText(): String {
-            val version = ModLocalDataSource.getCurrentCSVersion()
-            val csType = CSVersionInfoEnum.getCsTypeByName(version)
+            val csType = ModLocalDataSource.getCsType()
             val configFile = File(ModLocalDataSource.getGamePath(), String.format(Constants.AUTOEXEC_CONFIG_PATH, csType))
             return configFile.safeReadText()
         }
 
         fun writeAutoExecText(text: String) {
-            val version = ModLocalDataSource.getCurrentCSVersion()
-            val csType = CSVersionInfoEnum.getCsTypeByName(version)
+            val csType = ModLocalDataSource.getCsType()
             val configFile = File(ModLocalDataSource.getGamePath(), String.format(Constants.AUTOEXEC_CONFIG_PATH, csType))
             configFile.safeWriteText(text)
         }
 
         fun addCustomAutoExecCmd(cmd: String) {
-            val version = ModLocalDataSource.getCurrentCSVersion()
-            val csType = CSVersionInfoEnum.getCsTypeByName(version)
+            val csType = ModLocalDataSource.getCsType()
             val configFile = File(ModLocalDataSource.getGamePath(), String.format(Constants.AUTOEXEC_CONFIG_PATH, csType))
             val configList = configFile.safeReadLines().toMutableList()
             configList.add(cmd)
@@ -100,10 +99,12 @@ class CSMOSUtils {
         }
 
         fun removeCustomAutoExecCmd(cmd: String): List<String> {
-            val version = ModLocalDataSource.getCurrentCSVersion()
-            val csType = CSVersionInfoEnum.getCsTypeByName(version)
-            val configFile = File(ModLocalDataSource.getGamePath(), String.format(Constants.AUTOEXEC_CONFIG_PATH, csType))
+            val csType = ModLocalDataSource.getCsType()
+            val gamePath = ModLocalDataSource.getGamePath()
+            Log.d(TAG, "removeCustomAutoExecCmd: $gamePath")
+            val configFile = File(gamePath, String.format(Constants.AUTOEXEC_CONFIG_PATH, csType))
             val configLines = configFile.safeReadLines().toMutableList()
+            Log.d(TAG, "removeCustomAutoExecCmd: $configLines")
             val updatedLines = configLines.filterNot { it.trimStart().startsWith(cmd) }
             configFile.safeWriteText(updatedLines.joinToString("\n"))
             return updatedLines
@@ -141,9 +142,40 @@ class CSMOSUtils {
 
         }
 
+        fun addOrEditArgs(argv: String, key: String, value: String): String {
+            val map = CSMOSUtils.stringToArgsMap(argv)
+            map[key] = value
+            val args = CSMOSUtils.argsMapToString(map)
+            return args
+        }
+
+        fun setResolution(argv: String, width: Int, height: Int): String {
+            var args = argv
+            args = addOrEditArgs(args, "-w", width.toString())
+            args = addOrEditArgs(args, "-h", height.toString())
+            return args
+        }
+
+        /**
+         * @return -1 数据不存在 0 数据正常 2 数据缺失
+         */
+        fun checkSourceData(path: String): Int {
+            val targetFile = File(path)
+            val childFiles = targetFile.listFiles()
+            if (!targetFile.exists() ||
+                targetFile.isFile ||
+                childFiles == null ||
+                childFiles.isEmpty()
+                ) {
+                return -1
+            }
+            return 0
+        }
+
         /**
          * 粗略判断游戏数据是否存在 仅检查关键文件
          */
+        @Deprecated("老方法，已不再使用")
         fun isCsSourceInstalled(versionName: String): Boolean {
             if (versionName.contains(CSVersionInfoEnum.getMosDefault().getCsType())) { // csmos
                 return checkCSMOSKeyFileExists()
@@ -153,7 +185,7 @@ class CSMOSUtils {
             return false
         }
 
-        fun checkCSMOSKeyFileExists(): Boolean {
+        private fun checkCSMOSKeyFileExists(): Boolean {
             val gamePath = ModLocalDataSource.getGamePath()
             val requiredFiles = listOf(
                 "csmos/gameinfo.txt",
@@ -168,7 +200,7 @@ class CSMOSUtils {
                 File(gamePath, filePath).exists()
             }
         }
-        fun checkCMKeyFileExists(): Boolean {
+        private fun checkCMKeyFileExists(): Boolean {
             val gamePath = ModLocalDataSource.getGamePath()
             val requiredFiles = listOf(
                 "cm/gameinfo.txt",

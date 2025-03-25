@@ -43,9 +43,9 @@ class CSApplication : GtaStartApplication() {
         ModLocalDataSource.init(context)
         AppLocalDataSource.init(context)
 
-        Coroutines.main {
+        /*Coroutines.main {
             ModLocalDataSource.migrateDataToDb(csVersionInfoRepository) // 从老版本升级到新版本的，初始化数据库
-        }
+        }*/
 
     }
 

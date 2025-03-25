@@ -1,6 +1,10 @@
 package com.billflx.csgo.page.settings.game
 
 import android.app.Application
+import android.content.ComponentName
+import android.content.Context
+import android.content.ServiceConnection
+import android.os.IBinder
 import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
@@ -12,18 +16,23 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
+import com.billflx.csgo.data.AppLocalDataSource
 import com.billflx.csgo.data.db.CSVersionInfo
 import com.billflx.csgo.data.db.CSVersionInfoDatabase
 import com.billflx.csgo.data.net.AppUpdateApi
 import com.billflx.csgo.data.repo.CSVersionInfoRepository
 import com.billflx.csgo.data.repo.paging.GameVersionRemoteMediator
 import com.gtastart.common.util.MDownload
+import com.gtastart.common.util.MSingleDownloadService
 import com.gtastart.common.util.MToast
 import com.gtastart.common.util.ZipUtils
+import com.gtastart.common.util.extend.calculateMd5
 import com.liulishuo.okdownload.DownloadTask
 import com.liulishuo.okdownload.core.cause.EndCause
 import com.liulishuo.okdownload.core.cause.ResumeFailedCause
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
@@ -52,6 +61,8 @@ class GameSettingViewModel @Inject constructor(
     val unZipProgress = mutableIntStateOf(0)
     val showDownloadButton = mutableStateOf(true)
 
+    val isFilesMd5Passed = mutableStateOf(0) // 0 校验中 1 通过 -1 异常
+
     @OptIn(ExperimentalPagingApi::class)
     val pager: Pager<Int, CSVersionInfo> = Pager(
         config = PagingConfig(pageSize = 114),
@@ -61,7 +72,9 @@ class GameSettingViewModel @Inject constructor(
             repo = repository
         ),
         pagingSourceFactory = {
-            db.getCSVersionInfoDao().pagingSource()
+            val pagingSource = db.getCSVersionInfoDao().pagingSource()
+            Log.d(TAG, "pagingsource: inited")
+            pagingSource
         }
     )
     var pagingFlow = pager
@@ -70,6 +83,11 @@ class GameSettingViewModel @Inject constructor(
 
     init {
         getLocalVersionList()
+    }
+
+    fun refreshVersionList() {
+        val pagingSource = db.getCSVersionInfoDao().pagingSource()
+        pagingSource.invalidate()
     }
 
     private fun saveSettings() {
@@ -105,6 +123,51 @@ class GameSettingViewModel @Inject constructor(
             _currentVersion.value = item
             isVersionExist()
             showDownloadButton()
+        }
+    }
+
+    fun checkSourceDataDialog() {
+
+    }
+
+    suspend fun verifyFileMd5(file: File, md5: String)
+    = file.calculateMd5().lowercase() == md5.lowercase()
+
+    private var verifyJob: Job? = null
+    fun verifyAllFile() {
+        verifyJob?.cancel()
+        verifyJob = viewModelScope.launch(Dispatchers.IO) {
+            isFilesMd5Passed.value = 0
+            _currentVersion.value?.let b@ { version ->
+                val parent = File(AppLocalDataSource.getLibParentPath(), version.libPath.orEmpty())
+                val vpkFile = File(AppLocalDataSource.getLibParentPath(), version.vpkName.orEmpty())
+
+                version.vpkMd5?.let {
+                        if (!vpkFile.exists() ||
+                            !verifyFileMd5(vpkFile, it)) {
+                            isFilesMd5Passed.value = -1
+                        return@b
+                    }
+                } ?: also {
+                    isFilesMd5Passed.value = 2
+                    return@b
+                }
+
+                version.fileList?.let a@ {
+                    it.forEach {
+                        val soFile = File(parent, it.fileName.orEmpty())
+                        if (soFile.name.endsWith(".so") && (!soFile.exists() || !verifyFileMd5(soFile, it.md5.orEmpty()))) {
+                            isFilesMd5Passed.value = -1
+                            return@b
+                        }
+                    }
+                } ?: also {
+                    isFilesMd5Passed.value = 2
+                    return@b
+                }
+                isFilesMd5Passed.value = 1
+            }
+
         }
     }
 
@@ -145,12 +208,21 @@ class GameSettingViewModel @Inject constructor(
                     }
                 }
                 app.MToast("删除完成")
-                isVersionExist()
+                changeVersion(_currentVersion.value?.versionName.orEmpty())
             }
         }
     }
 
-    fun downloadLibs() {
+    val downloadConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            val myService = (service as MSingleDownloadService.LocalBinder).getService()
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+
+        }
+    }
+    fun downloadLibs(context: Context) {
         _currentVersion.value?.let { version ->
             if (version.libPackUrl == null) {
                 showDownloadButton()
@@ -169,6 +241,13 @@ class GameSettingViewModel @Inject constructor(
                 parentPath = parentPath,
                 fileName = fileName,
                 connectionCount = 1
+            )
+            MSingleDownloadService.startDownloadService(
+                context = context,
+                url = version.libPackUrl,
+                parentPath = parentPath,
+                fileName = fileName,
+                connection = downloadConnection
             )
             mDownload?.setListener(downloadListener())
             mDownload?.start()
@@ -230,7 +309,7 @@ class GameSettingViewModel @Inject constructor(
         } else {
             file.setReadable(true)
             file.setWritable(true)
-            file.setExecutable(true)
+            file.setExecutable(false) // 如果为true，会导致目录不安全，从而无法执行run-as命令
         }
     }
 

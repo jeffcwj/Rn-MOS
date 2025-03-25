@@ -1,17 +1,22 @@
 package com.billflx.csgo.page
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.database.sqlite.SQLiteConstraintException
+import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AlertDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,15 +24,25 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -44,17 +59,21 @@ import com.billflx.csgo.bean.DownloadExtraInfoBean
 import com.billflx.csgo.bean.MDownloadItemBean
 import com.billflx.csgo.bean.MDownloadStatusBean
 import com.billflx.csgo.data.ModLocalDataSource
+import com.billflx.csgo.data.db.CSVersionInfo
 import com.billflx.csgo.data.db.DownloadInfo
 import com.billflx.csgo.data.db.DownloadInfoDao
 import com.billflx.csgo.nav.LocalSettingViewModel
+import com.billflx.csgo.page.settings.game.GameSettingViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.gtastart.common.theme.GtaStartTheme
+import com.gtastart.common.util.M7ZipService
 import com.gtastart.common.util.MDialog
 import com.gtastart.common.util.MDownload
 import com.gtastart.common.util.MDownloadService
 import com.gtastart.common.util.MOSDialog
 import com.gtastart.common.util.MToast
 import com.gtastart.common.util.ZipUtils
+import com.gtastart.common.util.compose.widget.CircleProgressPlaceHolder
 import com.gtastart.common.util.compose.widget.MButton
 import com.gtastart.common.util.isBlank
 import com.liulishuo.okdownload.DownloadTask
@@ -66,12 +85,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.nillerusr.DirchActivity
+import me.nillerusr.LauncherActivity
 import java.io.File
 import javax.inject.Inject
 
+// @SuppressLint("MissingPermission") // 通知权限直接忽略
 @HiltViewModel
 class DownloadManagerViewModel @Inject constructor(
     private val downloadInfoDao: DownloadInfoDao,
+    private val app: Application
 ) : ViewModel() {
 
     companion object {
@@ -93,7 +115,6 @@ class DownloadManagerViewModel @Inject constructor(
             mBinder = service as MDownloadService.LocalBinder
             downloadService = mBinder.getService()
             Log.d(TAG, "onServiceConnected: 服务已连接！")
-            isBound = true
             viewModelScope.launch {
                 loadDownloadingListDB() // 加载数据库的下载中列表
                 loadDownloadedListDB() // 加载已完成列表
@@ -103,7 +124,65 @@ class DownloadManagerViewModel @Inject constructor(
         override fun onServiceDisconnected(name: ComponentName) {
             Log.d(TAG, "onServiceDisconnected: 服务已断开！")
             downloadService = null
-            isBound = false
+        }
+    }
+
+    private var currentUnZipStatus: MutableState<DownloadStatus>? = null
+    private var currentUnZipProgress: MutableState<String>? = null
+    private var currentUnzippedCount by mutableIntStateOf(0)
+    private var currentTotalZipCount by mutableIntStateOf(0)
+    private val isShowCloseButton = mutableStateOf(false)
+
+    private val unZipConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
+            (binder as M7ZipService.LocalBinder).let {
+                it.setListener(object : ZipUtils.Companion.NameProgressListener {
+                    override fun onStart() {
+                        viewModelScope.launch {
+                            currentTotalZipCount = 0
+                            currentUnzippedCount = 0
+                            isShowCloseButton.value = false
+                        }
+                    }
+
+                    override fun onGetFileNum(num: Int) {
+                        viewModelScope.launch {
+                            currentTotalZipCount = num
+                        }
+                    }
+
+                    override fun onProgressUpdate(name: String, size: Long) {
+                        viewModelScope.launch {
+                            // 更新 UI，比如进度条
+                            currentUnzippedCount++
+                            currentUnZipProgress?.value = "正在解压...(${currentUnzippedCount}/${currentTotalZipCount})\n$name"
+                            Log.d("解压", "正在解压: $name, 大小: $size")
+                        }
+                    }
+
+                    override fun onError(errorMessage: String) {
+                        viewModelScope.launch {
+                            currentUnZipProgress?.value = "解压失败: $errorMessage"
+                            currentUnZipStatus?.value = DownloadStatus.Finished
+                            app.MToast("解压失败: $errorMessage")
+                            isShowCloseButton.value = true
+                        }
+                    }
+
+                    override fun onCompleted() {
+                        viewModelScope.launch {
+                            currentUnZipProgress?.value = "解压完成"
+                            currentUnZipStatus?.value = DownloadStatus.Finished
+                            app.MToast("解压完成")
+                            isShowCloseButton.value = true
+                        }
+                    }
+                })
+                it
+            }
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
         }
     }
 
@@ -122,10 +201,12 @@ class DownloadManagerViewModel @Inject constructor(
     }
 
     fun startDownloadService(context: Context) {
-/*        if (!isServiceRunning(context, MDownloadService::class.java)) {
-
-        }*/
         val intent = Intent(context, MDownloadService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent)
+        } else {
+            context.startService(intent)
+        }
         context.bindService(intent, mConnection, Context.BIND_AUTO_CREATE)
     }
 
@@ -170,11 +251,14 @@ class DownloadManagerViewModel @Inject constructor(
         }
     }
 
+
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     suspend fun removeDownloadingItem(item: MDownloadItemBean) {
         val url = item.mDownload?.url
         val status = item.downloadStatusData?.downloadStatus?.value
         if (status == DownloadStatus.Downloading || status == DownloadStatus.Started) {
-            item.mDownload?.stop() // 停止下载
+            // item.mDownload?.stop() // 停止下载
+            downloadService?.stopSingleTask(item.mDownload)
             Log.d(TAG, "removeDownloadingItem: 停止下载")
         }
         item.mDownload?.getDownloadTask()?.file?.delete() // 删除未完成的文件
@@ -330,6 +414,7 @@ class DownloadManagerViewModel @Inject constructor(
         }
     }
 
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     suspend fun addDownload(
         url: String,
         parentPath: String,
@@ -372,7 +457,8 @@ class DownloadManagerViewModel @Inject constructor(
             val targetDownloadData = downloadList.find { it.mDownload?.url == url }
             if (targetDownloadData != null) {
                 if (targetDownloadData.downloadStatusData?.downloadStatus?.value != DownloadStatus.Downloading) { // 没处于下载状态
-                    targetDownloadData.mDownload?.start() // 直接启动下载已存在的任务
+                    //targetDownloadData.mDownload?.start() // 直接启动下载已存在的任务
+                    downloadService?.startSingleTask(targetDownloadData.mDownload)
                 }
                 return targetDownloadData
             }
@@ -389,7 +475,8 @@ class DownloadManagerViewModel @Inject constructor(
 
         // 用单个任务启动下载试试
         if (startNow) {
-            mDownload.start()
+            // mDownload.start()
+            downloadService?.startSingleTask(mDownload)
         }
         /* viewModel.mBinder.getService().startQueueDownload(
              listener = listener
@@ -397,8 +484,8 @@ class DownloadManagerViewModel @Inject constructor(
         return downloadData
     }
 
-    private fun unZipDialog(context: Context, item: MDownloadItemBean?) {
-        MDialog.show(
+    private fun unZipDialog(context: Context, item: MDownloadItemBean?, isShowCloseButton: MutableState<Boolean>): AlertDialog {
+        val dialog = MDialog.show(
             cancelable = false,
             context = context,
             title = context.getString(R.string.unzip),
@@ -413,15 +500,39 @@ class DownloadManagerViewModel @Inject constructor(
                             Text(
                                 stringResource(R.string.tip_not_support_background_unzip),
                                 style = MaterialTheme.typography.bodySmall)
-                            Text(item?.downloadStatusData?.downloadProgressStr?.value?: stringResource(
-                                R.string.ready_to_unzip
-                            ),
-                                style = MaterialTheme.typography.titleLarge)
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                if (isShowCloseButton.value) {
+                                    Text("✅")
+                                } else {
+                                    CircleProgressPlaceHolder()
+                                }
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal)
+                                ) {
+                                    Text(
+                                        text = item?.downloadStatusData?.downloadProgressStr?.value?: stringResource(
+                                            R.string.ready_to_unzip
+                                        ),
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+                            }
+                            if (isShowCloseButton.value) {
+                                TextButton (onClick = {
+                                    dialog.dismiss()
+                                }) {
+                                    Text("关闭")
+                                }
+                            }
                         }
                     }
                 }
             }
         )
+        return dialog
     }
 
     private fun unZipResource(context: Context, item: MDownloadItemBean?, gamePath: String) {
@@ -439,7 +550,7 @@ class DownloadManagerViewModel @Inject constructor(
                     title = context.getString(R.string.unzip_method),
                     positiveButtonText = "快速(新)",
                     onPositiveButtonClick = { _,_ ->
-                        unZipDialog(context, item) // 解压弹窗
+                        val dialog = unZipDialog(context, item, isShowCloseButton) // 解压弹窗
                         viewModelScope.launch(Dispatchers.IO) {
                             if (file!!.length() > 1024L * 1024L * 1024L) { // 大于1G提示大文件
                                 item.downloadStatusData?.downloadProgressStr?.value = context.getString(R.string.tip_unziping_big_file)
@@ -447,51 +558,32 @@ class DownloadManagerViewModel @Inject constructor(
                                 item.downloadStatusData?.downloadProgressStr?.value = context.getString(R.string.tip_unzipping)
                             }
                             item.downloadStatusData?.downloadStatus?.value = DownloadStatus.Downloading
-                            val result = ZipUtils.nativeUnZip(
+                            /*val result = ZipUtils.nativeUnZip(
                                 pathFrom = filePath.orEmpty(),
                                 pathTo = pathTo,
+                            )*/
+
+                            currentUnZipProgress = item.downloadStatusData?.downloadProgressStr
+                            currentUnZipStatus = item.downloadStatusData?.downloadStatus
+                            M7ZipService.startExtractService(
+                                context,
+                                from = filePath.orEmpty(),
+                                to = pathTo,
+                                unZipConnection
                             )
-                            if (result != 0) {
+                            /*if (result != 0) {
                                 item.downloadStatusData?.downloadProgressStr?.value = context.getString(R.string.error_happened)
                                 item.downloadStatusData?.downloadStatus?.value = DownloadStatus.Finished
                             } else {
                                 item.downloadStatusData?.downloadProgressStr?.value = context.getString(R.string.finish_installing)
                                 item.downloadStatusData?.downloadStatus?.value = DownloadStatus.Finished
-                            }
+                            }*/
                         }
                     },
-                    negativeButtonText = context.getString(R.string.regular),
-                    onNegativeButtonClick = { _,_ ->
-                        unZipDialog(context, item) // 解压弹窗
-                        viewModelScope.launch(Dispatchers.IO) {
-                            ZipUtils.sevenUnZip(
-                                pathFrom = filePath.orEmpty(),
-                                pathTo = pathTo,
-                                object : ZipUtils.Companion.ProgressListener {
-                                    override fun onProgressUpdate(percent: Int) {
-//                                Log.d(TAG, "onProgressUpdate: $percent")
-                                        item.downloadStatusData?.downloadProgressStr?.value = "$percent %"
-                                        item.downloadStatusData?.downloadStatus?.value = DownloadStatus.Downloading
-                                    }
-
-                                    override fun onCompleted() {
-                                        item.downloadStatusData?.downloadProgressStr?.value = context.getString(R.string.install_finished)
-                                        item.downloadStatusData?.downloadStatus?.value = DownloadStatus.Finished
-                                    }
-
-                                    override fun onError(error: String) {
-                                        item.downloadStatusData?.downloadProgressStr?.value = context.getString(R.string.unzip_failed)
-                                        item.downloadStatusData?.downloadStatus?.value = DownloadStatus.ERROR
-                                    }
-
-                                }
-                            )
-                        }
-                    }
                 )
             } else if (fileName.endsWith(".zip")) {
                 Log.d(TAG, "dealWithFileOperation: 文件格式.zip")
-                unZipDialog(context, item) // 解压弹窗
+                unZipDialog(context, item, isShowCloseButton) // 解压弹窗
                 viewModelScope.launch(Dispatchers.IO) {
                     val pathTo = ModLocalDataSource.getGamePath()
                     ZipUtils.unZip(
@@ -500,16 +592,19 @@ class DownloadManagerViewModel @Inject constructor(
                         object : ZipUtils.Companion.ProgressListener {
                             override fun onProgressUpdate(percent: Int) {
 //                                Log.d(TAG, "onProgressUpdate: $percent")
+                                isShowCloseButton.value = false
                                 item.downloadStatusData?.downloadProgressStr?.value = "$percent %"
                                 item.downloadStatusData?.downloadStatus?.value = DownloadStatus.Downloading
                             }
 
                             override fun onCompleted() {
+                                isShowCloseButton.value = true
                                 item.downloadStatusData?.downloadProgressStr?.value = context.getString(R.string.install_finished)
                                 item.downloadStatusData?.downloadStatus?.value = DownloadStatus.Finished
                             }
 
                             override fun onError(error: String) {
+                                isShowCloseButton.value = true
                                 item.downloadStatusData?.downloadProgressStr?.value = context.getString(R.string.unzip_failed)
                                 item.downloadStatusData?.downloadStatus?.value = DownloadStatus.ERROR
                             }
@@ -541,21 +636,56 @@ class DownloadManagerViewModel @Inject constructor(
                         val settingViewModel = hiltViewModel<SettingViewModel>(
                             viewModelStoreOwner = LocalViewModelStoreOwner.current!!
                         )
-                        var etValue = remember { mutableStateOf(ModLocalDataSource.getGamePath()) }
+                        val serverViewModel = hiltViewModel<ServerViewModel>(
+                            viewModelStoreOwner = LocalViewModelStoreOwner.current!!
+                        )
+                        val gameSettingViewModel = hiltViewModel<GameSettingViewModel>(
+                            viewModelStoreOwner = LocalViewModelStoreOwner.current!!
+                        )
+                        // 默认文件夹，不知道有什么其它好方法
+                        var etValue = rememberSaveable { mutableStateOf(LauncherActivity.getDefaultDir() + "/srceng") }
+                        var selectedVersion by remember { mutableStateOf(CSVersionInfo()) }
                         val launcher = rememberLauncherForActivityResult(
                             contract = ActivityResultContracts.StartActivityForResult()
                         ) { result ->
                             etValue.value = ModLocalDataSource.getGamePath()
+                        }
+                        fun SelectVersion() { // 选择版本弹窗
+                            viewModelScope.launch {
+                                val versions = serverViewModel.getExistVersion()
+                                selectVersionDialog(
+                                    context,
+                                    list = versions,
+                                    listText = { it.versionNameForShow?:it.versionName.orEmpty() },
+                                    onItemClick = {
+                                        etValue.value = it.gamePath?:etValue.value
+                                        selectedVersion = it
+                                    }
+                                )
+                            }
+                        }
+                        LaunchedEffect(Unit) {
+                            SelectVersion()
                         }
                         Column(modifier = modifier
                             .fillMaxWidth()
                             .padding(GtaStartTheme.spacing.normal),
                             horizontalAlignment = Alignment.End,
                             verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal)) {
-                            Row(modifier = modifier.fillMaxWidth()) {
+                            Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.small)) {
                                 Text(stringResource(R.string.tip_please_select_an_empty_path))
+                                Row(horizontalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.small)) {
+                                    Text("已选择为 ${selectedVersion.versionNameForShow?:selectedVersion.versionName.orEmpty()} 安装",
+                                        style = MaterialTheme.typography.bodySmall)
+                                    Text("重新选择",
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.clickable {
+                                        SelectVersion()
+                                    }, style = MaterialTheme.typography.bodySmall)
+                                }
                             }
-                            Row(modifier = modifier.fillMaxWidth(),
+                            Row(
+                                modifier = modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.small)) {
                                 TextField(
@@ -574,32 +704,51 @@ class DownloadManagerViewModel @Inject constructor(
                                     }
                                 )
                             }
-
                             MButton(
                                 text = stringResource(R.string.install),
                                 onClick = {
-                                    val gamePath = ModLocalDataSource.getGamePath() // 选择好的路径
-                                    settingViewModel.changeGamePath(gamePath, type) // 应用路径到数据库里面
-                                    // 保存路径到数据库
-                                    val file = File(gamePath)
-                                    if (!file.exists()) { // 检测文件夹情况
-                                        if (file.mkdirs() && file.exists()) {
-                                            unZipResource(context, item, gamePath) // 解压文件
-                                            dialog.dismiss()
-                                        } else {
-                                            context.MToast(context.getString(R.string.selected_path_not_exist))
-                                        }
-                                    } else if (!file.isDirectory) {
-                                        context.MToast(context.getString(R.string.selected_path_not_a_folder))
-                                    } else if (file.listFiles() != null && file.listFiles()?.size != 0) {
-                                        context.MToast(context.getString(R.string.selected_path_not_empty))
-                                    }/*else if (file.canWrite()) {
+                                    viewModelScope.launch {
+                                        val gamePath = ModLocalDataSource.getGamePath() // 选择好的路径
+
+                                        val file = File(gamePath)
+                                        if (!file.exists()) { // 检测文件夹情况
+                                            if (file.mkdirs() && file.exists()) {
+                                                gameSettingViewModel.changeSettings(
+                                                    info = selectedVersion.copy(gamePath = gamePath) // 保存路径到数据库
+                                                )
+                                                unZipResource(context, item, gamePath) // 解压文件
+                                                dialog.dismiss()
+                                            } else {
+                                                context.MToast(context.getString(R.string.selected_path_not_exist))
+                                            }
+                                        } else if (!file.isDirectory) {
+                                            context.MToast(context.getString(R.string.selected_path_not_a_folder))
+                                        } else if (file.listFiles() != null && file.listFiles()?.size != 0) {
+                                            //context.MToast(context.getString(R.string.selected_path_not_empty))
+                                            val folderName = mutableStateOf(selectedVersion.versionName.orEmpty())
+                                            createSubFolderDialog(
+                                                context,
+                                                folderName = folderName,
+                                                onClick = {
+                                                    val newFile = File(file, folderName.value)
+                                                    if (newFile.mkdirs()) newFile.mkdirs()
+                                                    gameSettingViewModel.changeSettings(
+                                                        info = selectedVersion.copy(gamePath = gamePath) // 保存路径到数据库
+                                                    )
+                                                    unZipResource(context, item, newFile.path) // 解压文件
+                                                    dialog.dismiss()
+                                                }
+                                            )
+                                        }/*else if (file.canWrite()) {
                                                 context.MToast("选择的路径没有写入权限")
                                             }*/ else {
-                                        unZipResource(context, item, gamePath) // 解压文件
-                                        dialog.dismiss()
+                                            gameSettingViewModel.changeSettings(
+                                                info = selectedVersion.copy(gamePath = gamePath) // 保存路径到数据库
+                                            )
+                                            unZipResource(context, item, gamePath) // 解压文件
+                                            dialog.dismiss()
+                                        }
                                     }
-
                                 }
                             )
                         }
@@ -609,6 +758,71 @@ class DownloadManagerViewModel @Inject constructor(
         } ?: also {
             context.MToast(context.getString(R.string.unknown_file_type))
         }
+    }
+
+
+    fun createSubFolderDialog(
+        context: Context,
+        folderName: MutableState<String>,
+        onClick: () -> Unit
+    ): AlertDialog {
+        var dialog: AlertDialog? = null
+        val value by folderName
+        dialog = MOSDialog.show(
+            context = context,
+            title = context.getString(R.string.create_folder),
+            customView = {
+                Column {
+                    Text(context.getString(R.string.selected_path_not_empty) + "，是否创建新文件夹并开始安装？文件夹请不要包含空格和符号",
+                        style = MaterialTheme.typography.bodySmall)
+                    TextField(
+                        modifier = Modifier.fillMaxWidth(),
+                        value = value,
+                        onValueChange = {
+                            folderName.value = it
+                        }
+                    )
+                }
+            },
+            positiveButtonText = context.getString(R.string.ok),
+            onPositiveButtonClick = { dialogInterface, i ->
+                onClick.invoke()
+                dialogInterface.dismiss()
+            }
+        )
+        return dialog
+    }
+
+    fun <T> selectVersionDialog(
+        context: Context,
+        list: List<T>,
+        listText: (T) -> String,
+        onItemClick: (T) -> Unit
+    ): AlertDialog {
+        var dialog: AlertDialog? = null
+        fun dismissDialog() {
+            dialog?.dismiss()
+        }
+         dialog = MOSDialog.show(
+            context,
+             cancelable = false,
+            title = "请选择为哪个版本安装",
+            customView = {
+                LazyColumn {
+                    items(list) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth().clickable {
+                                onItemClick(it)
+                                dismissDialog()
+                            }.padding(GtaStartTheme.spacing.medium)
+                        ) {
+                            Text(listText(it))
+                        }
+                    }
+                }
+            }
+        )
+        return dialog
     }
 
     fun downloadedContentOperation(context: Context, item: MDownloadItemBean?) {
@@ -626,7 +840,7 @@ class DownloadManagerViewModel @Inject constructor(
                             .fillMaxWidth()
                             .clickable {
                                 if (item?.downloadStatusData?.downloadStatus?.value == DownloadStatus.Downloading) {
-                                    unZipDialog(context, item)
+                                    unZipDialog(context, item, isShowCloseButton)
                                     return@clickable
                                 }
                                 val url = item?.mDownload?.url.orEmpty()
@@ -647,7 +861,7 @@ class DownloadManagerViewModel @Inject constructor(
                             .clickable {
                                 if (item?.downloadStatusData?.downloadStatus?.value == DownloadStatus.Downloading) {
                                     context.MToast(context.getString(R.string.tip_unzipping_plz_try_later))
-                                    unZipDialog(context, item)
+                                    unZipDialog(context, item, isShowCloseButton)
                                     return@clickable
                                 }
                                 val url = item?.mDownload?.url.orEmpty()

@@ -123,5 +123,7 @@
     <string name="general_settings">全局设置</string>
     <string name="more">更多</string>
     <string name="join_qq_group">加入QQ群</string>
+    <string name="game_version_manage">游戏版本管理</string>
+    <string name="game">游戏</string>
 
 </resources>

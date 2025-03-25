@@ -12,6 +12,8 @@
     <string name="srceng_launcher_error_missing_obb_b">檔案。請檢查該路徑的檔案是否完整：</string>
     <string name="srceng_launcher_error_test_write">測試寫入失敗，所有檔案將儲存到：</string>
     <string name="srceng_launcher_error_no_permission">遊戲需要足夠的許可權才能執行。</string>
+    <string name="srceng_launcher_error_find_gameinfo">请选择你下载的游戏数据路径\n\n若没有下载，可在主页下载，下载完成后选择合适的路径解压。\n\n请牢记解压时候的路径，并在此页面选择相同路径</string>
+    <string name="srceng_launcher_error_find_platform">在你设置的游戏数据路径下，找不到 platform 文件夹!</string>
 
     <string name="srceng_launcher_command_args">命令列參數</string>
     <string name="srceng_launcher_env">執行環境</string>
@@ -111,4 +113,6 @@
     <string name="general_settings">全局设置</string>
     <string name="more">更多</string>
     <string name="join_qq_group">加入QQ群</string>
+    <string name="game_version_manage">游戏版本管理</string>
+    <string name="game">游戏</string>
 </resources>

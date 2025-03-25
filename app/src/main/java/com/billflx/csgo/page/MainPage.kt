@@ -90,11 +90,7 @@ fun MainPage(
                     )
                 },
                 actions = {
-                    IconButton(onClick = {
-                        navController.navigateSingleTopTo(RootDesc.DownloadManager.route)
-                    }) {
-                        Icon(Icons.Default.FileDownload, contentDescription = stringResource(R.string.download_manager))
-                    }
+
                 }
             )
         },
@@ -313,7 +309,7 @@ private fun StatusCard(
                 }
 
                 //下载数据包按钮
-                MButton(
+                /*MButton(
                     text = stringResource(viewModel.addDownloadText.value),
                     onClick = {
                         val linkList = Constants.appUpdateInfo.value?.link?.dataLink
@@ -330,7 +326,7 @@ private fun StatusCard(
                             }
                         )
                     }
-                )
+                )*/
 
                 // 云端启用功能
                 MButton(

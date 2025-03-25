@@ -92,6 +92,7 @@ class SettingViewModel @Inject constructor(
         }
     }
 
+    @Deprecated("新版已废弃，请勿使用")
     fun changeGamePath(path: String, dataType: String) {
 //        initSettingCache() // 重新加载一下设置缓存
         Log.d("", "changeGamePath: ${path}")
@@ -139,6 +140,7 @@ class SettingViewModel @Inject constructor(
     /**
      * 同步到sharedPref
      */
+    @Deprecated("方法已失效")
     fun applySettingsToModSP(versionName: String, isTempApply: Boolean = false) {
         settingCacheList.forEach {
             if (versionName.contains(it.versionEnum.getCsType())) {

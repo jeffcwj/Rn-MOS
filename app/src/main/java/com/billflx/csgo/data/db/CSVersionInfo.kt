@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.billflx.csgo.bean.CsRemoteVersionInfo.FileDetail
+import com.gtastart.data.bean.cs.AppUpdateBean
 
 @Entity(
     indices = [Index(value = ["version_name"], unique = true)]
@@ -27,7 +28,9 @@ data class CSVersionInfo(
     val vpkUrl: String? = null,
     val csType: String? = null,
     val versionNameForShow: String? = null,
-    val fileList: List<FileDetail>? = emptyList()
+    val fileList: List<FileDetail>? = emptyList(),
+    val vpkMd5: String? = null,
+    val dataLink: List<AppUpdateBean.DataLink>? = null
 ) {
 
 }

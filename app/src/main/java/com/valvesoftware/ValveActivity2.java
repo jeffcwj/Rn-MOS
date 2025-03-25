@@ -103,7 +103,8 @@ public class ValveActivity2 {
 //        String vpks = context.getFilesDir().getPath() + "/" + ExtractAssets.VPK_NAME; // old
 //        String versionName = ModLocalDataSource.INSTANCE.getCurrentCSVersion(); // 获取当前CS版本
         String versionName = mPref.getString("current_cs_version", CSVersionInfoEnum.Companion.getDefaultName());
-        String vpks = context.getFilesDir().getPath() + "/" + CSVersionInfoEnum.Companion.getVpkNameByName(versionName);
+        String vpkName = mPref.getString("current_vpk", "extras_dir.vpk");
+        String vpks = context.getFilesDir().getPath() + "/" + vpkName;
         if (customVPK != null && !customVPK.isEmpty()) {
             vpks = customVPK + "," + vpks;
         }
@@ -112,7 +113,9 @@ public class ValveActivity2 {
         setenv("LANG", Locale.getDefault().toString(), 1);
         setenv("APP_DATA_PATH", appinf.dataDir, 1);
 //        setenv("APP_LIB_PATH", appinf.nativeLibraryDir, 1); // Old
-        String libPath = context.getFilesDir().getPath() + CSVersionInfoEnum.Companion.getLibPathByName(versionName);
+
+        String spLibPath = mPref.getString("current_lib_path", "/libs/CSMOS");
+        String libPath = context.getFilesDir().getPath() + spLibPath;
         setenv("APP_LIB_PATH", libPath, 1);
         if (mPref.getBoolean("rodir", false)) {
             setenv("VALVE_GAME_PATH", LauncherActivity.getAndroidDataDir(), 1);

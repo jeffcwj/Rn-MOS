@@ -11,13 +11,17 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -28,13 +32,16 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
@@ -43,9 +50,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -55,6 +65,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -77,6 +88,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -95,6 +107,7 @@ import com.gtastart.common.util.compose.matchContentHeight
 import com.gtastart.common.util.compose.widget.MCustomAlertDialog
 import com.gtastart.common.util.isBlank
 import com.valvesoftware.source.R
+import kotlinx.coroutines.launch
 import org.libsdl.app.SDLActivity
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -120,85 +133,152 @@ fun ServerPage(
                             .size(36.dp)
                             .clip(CircleShape),
                     )
-                }
-            )
-        },
-        floatingActionButton = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal),
-                horizontalAlignment = Alignment.End
-            ) {
-                /*FloatingActionButton(
-                    onClick = {
-                        viewModel.refreshServerList()
-                    },
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = null
-                    )
-                }*/
-                val launcher = rememberLauncherForActivityResult(
-                    contract = ActivityResultContracts.StartActivityForResult()
-                ) { result ->
-                    // 游戏结束以后刷新列表数据
-                    Log.d("", "ServerPage: 游戏结束")
-                    viewModel.refreshServerList()
-                }
-                val vm = LocalSettingViewModel.current
-                ExtendedFloatingActionButton (
-                    onClick = {
-                        val currentCSVersion = ModLocalDataSource.getCurrentCSVersion()
-                        vm.applySettingsToModSP(currentCSVersion) // 应用设置到Mod sp
-                        if (!CSMOSUtils.isCsSourceInstalled(currentCSVersion)) {
-                            MOSDialog.show(
-                                context,
-                                title = "提示",
-                                message = "请先安装游戏",
-                                positiveButtonText = "确定",
-                                onPositiveButtonClick = {d,_ -> d.dismiss()}
+                },
+                actions = {
+                    val density = LocalDensity.current
+                    var showDialog = rememberSaveable { mutableStateOf(false) }
+                    when {
+                        showDialog.value -> {
+                            EditAutoExecDialog( // 编辑自定义参数弹窗
+                                showDialog = showDialog
                             )
-                            return@ExtendedFloatingActionButton
                         }
-
-                        CSMOSUtils.removeAutoConnectInfo() // 在mod sp应用之后执行文件操作
-                        CSMOSUtils.addCustomMainServers()
-                        val intent = Intent(context, SDLActivity::class.java)
-                        launcher.launch(intent) // 启动游戏
-                    },
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.PlayArrow,
-                        contentDescription = null
-                    )
-                    Text(stringResource(R.string.launch_game_to_main_interface))
-                }
-
-                val density = LocalDensity.current
-                var showDialog = rememberSaveable { mutableStateOf(false) }
-                when {
-                    showDialog.value -> {
-                        EditAutoExecDialog( // 编辑自定义参数弹窗
-                            showDialog = showDialog
-                        )
                     }
-                }
-                /// 设置自定义启动命令
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                    /// 设置自定义启动命令
                     Text(stringResource(R.string.custom_autoexec_cmd),
                         style = MaterialTheme.typography.bodyMedium)
                     IconButton(
                         onClick = {
                             showDialog.value = true
-//                            CustomExecCmdEditor(context = context, density = density)
                         }
                     ) {
                         Icon(
-                            modifier = modifier.width(18.dp),
                             imageVector = Icons.Default.Settings,
                             contentDescription = null
+                        )
+                    }
+                }
+            )
+        },
+        floatingActionButton = {
+            val scope = rememberCoroutineScope()
+            val launcher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.StartActivityForResult()
+            ) { result ->
+                // 游戏结束以后刷新列表数据
+                Log.d("", "ServerPage: 游戏结束")
+                viewModel.refreshServerList()
+            }
+            val fabContainerColor = FloatingActionButtonDefaults.containerColor
+            ElevatedCard(
+                modifier = Modifier,
+                colors = CardDefaults.elevatedCardColors().copy(
+                    containerColor = fabContainerColor,
+                    contentColor = contentColorFor(fabContainerColor)
+                ),
+            ) {
+                Row(
+                    modifier = Modifier.wrapContentSize().height(IntrinsicSize.Min),
+                ) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.small),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.clickable {
+                            scope.launch {
+                                if (!viewModel.isCurrentVersionExist()) {
+                                    MOSDialog.show(
+                                        context,
+                                        title = "提示",
+                                        message = "请先前往设置下载版本基础数据",
+                                        positiveButtonText = "确定",
+                                        onPositiveButtonClick = {d,_ -> d.dismiss()}
+                                    )
+                                    return@launch
+                                } else {
+                                    viewModel.applySettingsToModSpNew() // 从数据库应用设置
+                                    CSMOSUtils.removeAutoConnectInfo() // 在设置应用之后执行文件操作
+                                    CSMOSUtils.addCustomMainServers() // 添加主服
+                                    val intent = Intent(context, SDLActivity::class.java)
+                                    launcher.launch(intent) // 启动游戏
+                                }
+                            }
+                        }.padding(vertical = GtaStartTheme.spacing.medium, horizontal = GtaStartTheme.spacing.large)
+                    ) {
+
+                        Text(
+                            text = stringResource(R.string.launch_game_to_main_interface),
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        Text(
+                            text = viewModel.currentVersion.value,
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
+                    VerticalDivider()
+                    var currentVersion by viewModel.currentVersion
+                    LaunchedEffect(Unit) {
+                        currentVersion = viewModel.getVersionForShow(
+                            ModLocalDataSource.getCurrentCSVersion()
+                        )
+                    }
+                    LaunchedEffect(currentVersion) {
+                        if (currentVersion.isBlank()) {
+                            currentVersion = "请选择游戏"
+                        }
+                    }
+                    Box (
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxHeight().clickable {
+                        scope.launch {
+                            viewModel.getExistVersion()
+                            MOSDialog.show(
+                                context,
+                                title = "选择版本",
+                                customView = { dialog ->
+                                    LazyColumn {
+                                        items(viewModel.versionList) {
+                                            Column(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable {
+                                                        scope.launch {
+                                                            ModLocalDataSource.setCurrentCSVersion(it.versionName.orEmpty()) // 先设置版本
+                                                            viewModel.applySettingsToModSpNew()
+                                                            currentVersion = viewModel.getVersionForShow(it.versionName.orEmpty())
+                                                            dialog.dismiss()
+                                                        }
+                                                    }
+                                                    .padding(GtaStartTheme.spacing.medium)
+                                            ) {
+                                                Text(
+                                                    text = it.versionNameForShow
+                                                        ?: it.versionName.orEmpty()
+                                                )
+                                            }
+                                        }
+                                        item {
+                                            if (viewModel.versionList.isEmpty()) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                ) {
+                                                    Text("空空如也，请前往设置页面下载~")
+                                                    /*TextButton(
+                                                        onClick = {
+
+                                                        }
+                                                    ) { Text("前往设置") }*/
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            )
+                        }
+                    }.padding(horizontal = GtaStartTheme.spacing.small)) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropUp,
+                            contentDescription = null,
+                            modifier = Modifier
                         )
                     }
                 }
@@ -222,10 +302,12 @@ private fun EditAutoExecDialog(
     // 存储用户输入内容
     val textState = remember { mutableStateOf(TextFieldValue("")) }
     val settingVM = LocalSettingViewModel.current
+    val viewModel = hiltViewModel<ServerViewModel>()
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
-        val currentCSVersion = ModLocalDataSource.getCurrentCSVersion()
-        settingVM.applySettingsToModSP(currentCSVersion, true) // 临时切换路径
+        // val currentCSVersion = ModLocalDataSource.getCurrentCSVersion()
+        // settingVM.applySettingsToModSP(currentCSVersion, true) // 临时切换路径
         textState.value = TextFieldValue(CSMOSUtils.removeAutoConnectInfo())
     }
 
@@ -309,12 +391,14 @@ private fun EditAutoExecDialog(
         },
         positiveButtonText = stringResource(R.string.save),
         onPositiveButtonClick = {
-            // 保存
-            val currentCSVersion = ModLocalDataSource.getCurrentCSVersion()
-            settingVM.applySettingsToModSP(currentCSVersion, true) // 临时切换路径
-            CSMOSUtils.writeAutoExecText(textState.value.text)
-            MToast.show(context, context.getString(R.string.save_finished))
-            showDialog.value = false
+            scope.launch {
+                // 保存
+                // val currentCSVersion = ModLocalDataSource.getCurrentCSVersion()
+                viewModel.applySettingsToModSpNew()
+                CSMOSUtils.writeAutoExecText(textState.value.text)
+                MToast.show(context, context.getString(R.string.save_finished))
+                showDialog.value = false
+            }
         },
         onDismissRequest = {
             showDialog.value = false
@@ -442,14 +526,6 @@ private fun ServerTabs(
     settingViewModel: SettingViewModel = LocalSettingViewModel.current
 ) {
     var index by rememberSaveable { mutableIntStateOf(0) }
-    LaunchedEffect(index) {
-        Log.d("", "ServerTabs: index: $index")
-        if (index == 0) { // 暂时同步mod sp
-            settingViewModel.applySettingsToModSP(CSVersionInfoEnum.getMosDefault().name, true)
-        } else {
-            settingViewModel.applySettingsToModSP(CSVersionInfoEnum.getCmDefault().name, true)
-        }
-    }
     TabRow(
         selectedTabIndex = index,
         tabs = {
@@ -459,6 +535,7 @@ private fun ServerTabs(
                 onClick = {
                     index = 0
                     viewModel.serverPayload.value = CsPayload.CSMOS.payload
+                    viewModel.serverCsType.value = "CSMOS"
                     viewModel.refreshServerList()
                 }
             )
@@ -468,6 +545,7 @@ private fun ServerTabs(
                 onClick = {
                     index = 1
                     viewModel.serverPayload.value = CsPayload.CM.payload
+                    viewModel.serverCsType.value = "CM"
                     viewModel.refreshServerList()
                 }
             )
@@ -523,7 +601,9 @@ private fun ServerList(
 
     when {
         openDialog.value -> { // 服务器详情弹窗
-
+            var currentVersion by viewModel.currentVersion
+            var serverCsType by viewModel.serverCsType
+            val scope = rememberCoroutineScope()
             MCustomAlertDialog(
                 title = stringResource(R.string.detail),
                 content = {
@@ -553,42 +633,54 @@ private fun ServerList(
                 positiveButtonText = stringResource(R.string.start_game),
                 onPositiveButtonClick = {
                     val intent = Intent(context, SDLActivity::class.java)
-                    if (viewModel.serverPayload.value == CsPayload.CM.payload) {
-                        settingVM.applySettingsToModSP(CSVersionInfoEnum.getCmDefault().name)
-                        if (!CSMOSUtils.isCsSourceInstalled(CSVersionInfoEnum.getCmDefault().name)) {
-                            MOSDialog.show(
-                                context,
-                                title = "提示",
-                                message = "请先安装游戏",
-                                positiveButtonText = "确定",
-                                onPositiveButtonClick = {d,_ -> d.dismiss()}
-                            )
-                            return@MCustomAlertDialog
-                        }
-                    } else if (viewModel.serverPayload.value == CsPayload.CSMOS.payload) {
-                        settingVM.applySettingsToModSP(CSVersionInfoEnum.getMosDefault().name)
-                        if (!CSMOSUtils.isCsSourceInstalled(CSVersionInfoEnum.getMosDefault().name)) {
-                            MOSDialog.show(
-                                context,
-                                title = "提示",
-                                message = "请先安装游戏",
-                                positiveButtonText = "确定",
-                                onPositiveButtonClick = {d,_ -> d.dismiss()}
-                            )
-                            return@MCustomAlertDialog
-                        }
-                    }
+                    MOSDialog.show(
+                        context,
+                        title = "选择版本",
+                        customView = { dialog ->
+                            LazyColumn {
+                                items(viewModel.versionList.filter { it.csType == serverCsType }) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                scope.launch {
+                                                    if (!viewModel.saveNickName()) {
+                                                        context.MToast(context.getString(R.string.nickname_cannot_empty))
+                                                        return@launch
+                                                    }
+                                                    ModLocalDataSource.setCurrentCSVersion(it.versionName.orEmpty())
+                                                    viewModel.applySettingsToModSpNew()
+                                                    currentVersion = viewModel.getVersionForShow(it.versionName.orEmpty())
 
-                    if (!viewModel.saveNickName()) {
-                        context.MToast(context.getString(R.string.nickname_cannot_empty))
-                        return@MCustomAlertDialog
-                    }
+                                                    CSMOSUtils.saveNickName(viewModel.nickName.value)
+                                                    CSMOSUtils.saveAutoConnectInfo(currentServerIP.value)
+                                                    CSMOSUtils.addCustomMainServers()
+                                                    launcher.launch(intent) // 回调要刷新列表数据
+                                                    openDialog.value = false
+                                                    dialog.dismiss()
+                                                }
+                                            }
+                                            .padding(GtaStartTheme.spacing.medium)
+                                    ) {
+                                        Text(
+                                            text = it.versionNameForShow
+                                                ?: it.versionName.orEmpty()
+                                        )
+                                    }
+                                }
+                                item {
+                                    if (viewModel.versionList.isEmpty()) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ) {
+                                            Text("未找到游戏版本，请前往设置页面下载")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    )
 
-                    CSMOSUtils.saveNickName(viewModel.nickName.value)
-                    CSMOSUtils.saveAutoConnectInfo(currentServerIP.value)
-                    CSMOSUtils.addCustomMainServers()
-                    launcher.launch(intent) // 回调要刷新列表数据
-                    openDialog.value = false
                 },
                 onDismissRequest = {openDialog.value = false}
             )

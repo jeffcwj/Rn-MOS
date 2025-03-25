@@ -11,7 +11,7 @@ import androidx.room.PrimaryKey
 data class DownloadInfo(
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0, // 主键
-    @ColumnInfo(name = "file_name")
+        @ColumnInfo(name = "file_name")
     val fileName: String,
 /*    @ColumnInfo(name = "file_size")
     val fileSize: Long,*/

@@ -35,25 +35,26 @@ import com.akira.tyranoemu.ui.prefs.GroupHeader
 import com.akira.tyranoemu.ui.prefs.SimpleItem
 import com.billflx.csgo.constant.Constants
 import com.billflx.csgo.page.settings.game.GameSettings
+import com.billflx.csgo.page.settings.general.GeneralSettings
 import com.gtastart.common.util.MHelpers
 import com.gtastart.common.util.MToast
 import com.gtastart.common.util.compose.navigateSingleTopTo
 import com.valvesoftware.source.R
 
 private val mainSettingPages = listOf(
-    SettingsPageChild(
+/*    SettingsPageChild(
         "settings_game",
-        R.string.game_settings,
+        R.string.game_version_manage,
         Icons.Filled.SportsEsports
     ) {
         GameSettings()
-    },
+    },*/
     SettingsPageChild(
         "settings_general",
         R.string.general_settings,
         Icons.Filled.Settings
     ) {
-
+        GeneralSettings()
     },
 )
 
@@ -151,6 +152,17 @@ fun MainSettings(
                 ) {
                     // 加QQ群
                     if (!MHelpers.joinQQGroup(key = Constants.RnCSQQGroupKey, context = context)) {
+                        context.MToast("跳转失败")
+                    }
+                }
+            }
+            item {
+                SimpleItem(
+                    icon = painterResource(R.drawable.qq),
+                    text = "加入CNSR™起源引擎主群"
+                ) {
+                    // 加QQ群
+                    if (!MHelpers.joinQQGroup(key = "t0N9hfPH9KMRKr-GmvIdUQC4bjL0nuM0", context = context)) {
                         context.MToast("跳转失败")
                     }
                 }

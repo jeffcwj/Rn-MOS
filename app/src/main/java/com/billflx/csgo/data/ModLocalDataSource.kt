@@ -1,5 +1,6 @@
 package com.billflx.csgo.data
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
@@ -8,15 +9,20 @@ import com.billflx.csgo.data.db.CSVersionInfo
 import com.billflx.csgo.data.repo.CSVersionInfoRepository
 import me.nillerusr.LauncherActivity
 
+@SuppressLint("StaticFieldLeak") // 没办法的办法，只需要避免跨进程调用即可，目前运行在主进程中
 object ModLocalDataSource {
 
     const val SP_NAME = "mod"
-    lateinit var sp: SharedPreferences
+    lateinit var context: Context
 
     fun init(context: Context) {
-        sp = context.getSharedPreferences(SP_NAME, Context.MODE_MULTI_PROCESS)
+        this.context = context
     }
 
+    var sp: SharedPreferences? = null
+        get() = context.getSharedPreferences(SP_NAME, Context.MODE_MULTI_PROCESS)
+
+    @Deprecated("最新策略会导致初始化问题")
     suspend fun migrateDataToDb(csVersionInfoRepository: CSVersionInfoRepository) {
         if (csVersionInfoRepository.isDBEmpty()) {
             val info = CSVersionInfo(
@@ -25,7 +31,7 @@ object ModLocalDataSource {
                 argv = getArgv(),
                 gamePath = getGamePath(),
                 nickName = getNickName(),
-                fileList = emptyList() // TODO 这对吗？
+                fileList = emptyList()
             )
             csVersionInfoRepository.addInfo(info)
         }
@@ -58,50 +64,71 @@ object ModLocalDataSource {
     }
 
     fun getImmersiveMode(): Boolean {
-        return sp.getBoolean("immersive_mode", true)
+        return sp!!.getBoolean("immersive_mode", true)
     }
 
     fun setImmersiveMode(mode: Boolean) {
-        sp.edit().putBoolean("immersive_mode", mode).apply()
+        sp!!.edit().putBoolean("immersive_mode", mode).apply()
     }
 
     fun setEnv(env: String) {
-        sp.edit().putString("env", env).apply()
+        sp!!.edit().putString("env", env).apply()
     }
     fun getEnv(): String {
-        return sp.getString("env", "LIBGL_USEVBO=0")?:"LIBGL_USEVBO=0"
+        return sp!!.getString("env", "LIBGL_USEVBO=0")?:"LIBGL_USEVBO=0"
     }
     fun getPakVersion(): Int {
-        return sp.getInt("pakversion", 24)
+        return sp!!.getInt("pakversion", 24)
     }
     fun setPakVersion(version: Int) {
-        sp.setValue("pakversion", version)
+        sp!!.setValue("pakversion", version)
     }
 
-    fun getArgv() = sp.getValue("argv", "-console -game csmos")
+    fun getArgv() = sp!!.getValue("argv", "-console -game csmos")
     fun setArgv(value: String) {
-        sp.setValue("argv", value)
+        sp!!.setValue("argv", value)
     }
 
-    fun getGamePath() = sp.getValue("gamepath", LauncherActivity.getDefaultDir() + "/srceng")
+    fun getGamePath() = sp!!.getValue("gamepath", LauncherActivity.getDefaultDir() + "/srceng")
     fun setGamePath(value: String) {
-        sp.setValue("gamepath", value)
+        sp!!.setValue("gamepath", value)
     }
 
-    fun getNickName() = sp.getValue("nickname", "")
+    fun getNickName() = sp!!.getValue("nickname", "")
     fun setNickName(value: String) {
-        sp.setValue("nickname", value)
+        sp!!.setValue("nickname", value)
     }
-    fun getAllowNativeInject() = sp.getValue("allow_native_inject", true)
+    fun getAllowNativeInject() = sp!!.getValue("allow_native_inject", true)
     fun setAllowNativeInject(value: Boolean) {
-        sp.setValue("allow_native_inject", value)
+        sp!!.setValue("allow_native_inject", value)
     }
 
     fun getCurrentCSVersion(): String {
-        return sp.getValue("current_cs_version", CSVersionInfoEnum.getDefaultName())
+        return sp!!.getValue("current_cs_version", "")
     }
     fun setCurrentCSVersion(value: String) {
-        sp.setValue("current_cs_version", value)
+        sp!!.setValue("current_cs_version", value)
+    }
+
+    fun getCurrentVpk(): String {
+        return sp!!.getValue("current_vpk", "extras_dir.vpk")
+    }
+    fun setCurrentVpk(value: String) {
+        sp!!.setValue("current_vpk", value)
+    }
+
+    fun getCurrentLibPath(): String {
+        return sp!!.getValue("current_lib_path", "/libs/CSMOS")
+    }
+    fun setCurrentLibPath(value: String) {
+        sp!!.setValue("current_lib_path", value)
+    }
+
+    fun getCsType(): String {
+        return sp!!.getValue("current_cs_type", "csmos").lowercase()
+    }
+    fun setCsType(value: String) {
+        sp!!.setValue("current_cs_type", value)
     }
 
 }

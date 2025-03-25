@@ -246,21 +246,26 @@ private fun DownloadingItem(
             text = buttonDownloadText,
             onClick = {
                 if (downloadStatus?.value == DownloadStatus.Started) {
-                    mDownload?.stop()
+                    //mDownload?.stop()
+                    downloadManagerVM.downloadService?.stopSingleTask(mDownload)
                     buttonDownloadText = context.getString(R.string.resume)
                 } else if (downloadStatus?.value == DownloadStatus.Downloading) {
                     item.downloadStatusData?.downloadProgressStr?.value?:context.getString(R.string.waiting)
-                    mDownload?.stop()
+                    //mDownload?.stop()
+                    downloadManagerVM.downloadService?.stopSingleTask(mDownload)
                     buttonDownloadText = context.getString(R.string.resume)
                 } else if (downloadStatus?.value == DownloadStatus.IDLE) {
-                    mDownload?.start()
+                    downloadManagerVM.downloadService?.startSingleTask(mDownload)
+                    //mDownload?.start()
                     buttonDownloadText = context.getString(R.string.pause)
                 } else if (downloadStatus?.value == DownloadStatus.PAUSE) {
-                    mDownload?.start()
+                    //mDownload?.start()
+                    downloadManagerVM.downloadService?.startSingleTask(mDownload)
                     buttonDownloadText = context.getString(R.string.pause)
                 } else if (downloadStatus?.value == DownloadStatus.ERROR) {
                     Log.d("", "DownloadItem: 重试")
-                    mDownload?.start()
+                    //mDownload?.start()
+                    downloadManagerVM.downloadService?.startSingleTask(mDownload)
                     buttonDownloadText = context.getString(R.string.pause)
                 } else if (downloadStatus?.value == DownloadStatus.Finished) {
                     buttonDownloadText = context.getString(R.string.done)

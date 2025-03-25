@@ -1,6 +1,7 @@
 package com.billflx.csgo.nav
 
 import android.provider.DocumentsContract.Root
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -23,7 +24,10 @@ import com.billflx.csgo.page.DownloadManagerScreen
 import com.billflx.csgo.page.DownloadManagerViewModel
 import com.billflx.csgo.page.InstallGuideScreen
 import com.billflx.csgo.page.MainScreen
+import com.billflx.csgo.page.ServerViewModel
 import com.billflx.csgo.page.SettingViewModel
+import com.billflx.csgo.page.settings.game.GameSettingViewModel
+import com.billflx.csgo.page.settings.game.GameSettings
 import com.billflx.csgo.page.test.TestComposeRvScreen
 import com.gtastart.common.util.compose.navigateSingleTopTo
 import com.gtastart.ui.ServerPanel.cs.CsServerPanelScreen
@@ -41,11 +45,15 @@ enum class RootDesc(
     ResPost("res_post"),
     TestComposeRv("test_compose_rv"),
     WpUserScreen("wp_user_screen"),
-    GtaStartHomeScreen("gtastart_home_screen")
+    GtaStartHomeScreen("gtastart_home_screen"),
+    GameSettingPage("game_setting_page")
 }
 
 val LocalSettingViewModel = staticCompositionLocalOf<SettingViewModel> {
     error("LocalSettingViewModel Not Provide")
+}
+val LocalGameSettingViewModel = staticCompositionLocalOf<GameSettingViewModel> {
+    error("LocalGameSettingViewModel Not Provide")
 }
 
 val LocalRootNav = staticCompositionLocalOf<NavHostController> {
@@ -54,6 +62,9 @@ val LocalRootNav = staticCompositionLocalOf<NavHostController> {
 val LocalDownloadManagerVM = staticCompositionLocalOf<DownloadManagerViewModel> {
     error("LocalDownloadManagerVM Not Provide")
 }
+val LocalServerViewModel = staticCompositionLocalOf<ServerViewModel> {
+    error("LocalServerViewModel Not Provide")
+}
 
 @Composable
 fun RootNav() {
@@ -61,12 +72,20 @@ fun RootNav() {
     val settingViewModel = hiltViewModel<SettingViewModel>(
         viewModelStoreOwner = LocalViewModelStoreOwner.current!!
     )
+    val gameSettingViewModel = hiltViewModel<GameSettingViewModel>(
+        viewModelStoreOwner = LocalViewModelStoreOwner.current!!
+    )
     val downloadManagerVM = hiltViewModel<DownloadManagerViewModel>()
+    val serverViewModel = hiltViewModel<ServerViewModel>(
+        viewModelStoreOwner = LocalViewModelStoreOwner.current!!
+    )
 
     CompositionLocalProvider(
         LocalSettingViewModel provides settingViewModel,
         LocalRootNav provides navController,
-        LocalDownloadManagerVM provides downloadManagerVM
+        LocalDownloadManagerVM provides downloadManagerVM,
+        LocalServerViewModel provides serverViewModel,
+        LocalGameSettingViewModel provides gameSettingViewModel
     ) {
         RootNavHost(navController)
     }
@@ -111,6 +130,9 @@ fun RootNavHost(
         composable(route = RootDesc.TestComposeRv.route) {
             TestComposeRvScreen() // BaseQuickAdapter融合Compose测试
         }
+        composable(route = RootDesc.GameSettingPage.route) {
+            GameSettings()
+        }
         composable(
             route = "${RootDesc.WpUserScreen.route}/{userId}",
             arguments = listOf(navArgument("userId") { type = NavType.StringType })
@@ -128,10 +150,17 @@ fun RootNavHost(
             arguments = listOf(navArgument("postId") { type = NavType.StringType })
         ) { backStackEntry ->
             val postId = backStackEntry.arguments?.getString("postId")
+            val rootNav = LocalRootNav.current
             ResPostScreen( // 资源帖详情页
                 postId = postId.orEmpty(),
                 onGoToMainScreenClick = {
                     rootNavController.popBackStack()
+                },
+                onAvatarClick = { id ->
+                    Log.d("", "RootNavHost: $id")
+                    rootNav.navigateSingleTopTo(
+                        "${RootDesc.WpUserScreen.route}/${id}"
+                    )
                 }
             )
         }

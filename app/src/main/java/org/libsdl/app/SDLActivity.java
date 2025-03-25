@@ -54,6 +54,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.billflx.csgo.bean.CSVersionInfoEnum;
+import com.billflx.csgo.page.settings.game.GameSettingActivity;
 import com.gtastart.common.util.MToast;
 import com.pika.sillyboy.util.LoadLibUtils;
 import com.valvesoftware.ValveActivity2;
@@ -265,7 +266,7 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
         SharedPreferences mPref = getSharedPreferences("mod", Context.MODE_MULTI_PROCESS);
         String versionName = mPref.getString("current_cs_version", CSVersionInfoEnum.Companion.getDefaultName());
 //        String versionName = ModLocalDataSource.INSTANCE.getCurrentCSVersion(); // 获取当前CS版本
-        String libRelativePath = CSVersionInfoEnum.Companion.getLibPathByName(versionName);
+        String libRelativePath = mPref.getString("current_lib_path", "/libs/CSMOS");
         Log.d(TAG, "loadLibraries: 版本：" + versionName + " 路径：" + libRelativePath);
         libRelativePath = libRelativePath.startsWith("/")?libRelativePath.substring(1):libRelativePath;
 
@@ -386,9 +387,13 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
                     dlgAlert2.setNegativeButton(R.string.srceng_launcher_set, new DialogInterface.OnClickListener() { // from class: org.libsdl.app.SDLActivity.2
                         @Override // android.content.DialogInterface.OnClickListener
                         public void onClick(DialogInterface dialog, int id) {
-                            Intent intent = new Intent(SDLActivity.this, (Class<?>) DirchActivity.class);
+                            /*Intent intent = new Intent(SDLActivity.this, (Class<?>) DirchActivity.class);
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             SDLActivity.this.startActivity(intent);
+                            SDLActivity.mSingleton.finish();*/
+                            Intent intent = new Intent(SDLActivity.this, GameSettingActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
                             SDLActivity.mSingleton.finish();
                         }
                     });

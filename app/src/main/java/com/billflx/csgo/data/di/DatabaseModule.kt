@@ -48,6 +48,18 @@ object DatabaseModule {
                     database.execSQL("ALTER TABLE csversioninfo ADD COLUMN fileList TEXT")  // **存 JSON**
                 }
             })
+            .addMigrations(object : Migration(2, 3) {
+                override fun migrate(database: SupportSQLiteDatabase) {
+                    // 新增 vpkMd5字段
+                    database.execSQL("ALTER TABLE csversioninfo ADD COLUMN vpkMd5 TEXT")
+                }
+            })
+            .addMigrations(object : Migration(3, 4) {
+                override fun migrate(database: SupportSQLiteDatabase) {
+                    // 新增 dataLink 字段
+                    database.execSQL("ALTER TABLE csversioninfo ADD COLUMN dataLink TEXT")
+                }
+            })
             .build()
     }
 

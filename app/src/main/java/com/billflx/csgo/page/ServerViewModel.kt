@@ -1,5 +1,6 @@
 package com.billflx.csgo.page
 
+import android.app.Application
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -12,23 +13,29 @@ import com.billflx.csgo.bean.CSVersionInfoEnum
 import com.billflx.csgo.bean.SampQueryInfoBean
 import com.billflx.csgo.constant.Constants
 import com.billflx.csgo.data.ModLocalDataSource
+import com.billflx.csgo.data.db.CSVersionInfo
 import com.billflx.csgo.data.repo.AppRepository
 import com.billflx.csgo.data.repo.CSVersionInfoRepository
 import com.billflx.csgo.page.MainViewModel.Companion
+import com.billflx.csgo.page.settings.game.GameSettingViewModel
 import com.gtastart.common.util.Coroutines
 import com.gtastart.common.util.CsMosQuery
 import com.gtastart.common.util.CsPayload
+import com.gtastart.common.util.MToast
 import com.gtastart.common.util.isBlank
+import com.gtastart.ui.ServerPanel.cs.bean.CsServerType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
 class ServerViewModel @Inject constructor(
+    private val app: Application,
     private val repository: AppRepository,
     private val versionRepository: CSVersionInfoRepository
 ) : ViewModel() {
@@ -47,9 +54,17 @@ class ServerViewModel @Inject constructor(
     var isAutoExecCmdLoading = mutableStateOf(false)
 
     var serverPayload = mutableStateOf(CsPayload.CSMOS.payload)
+    var serverCsType = mutableStateOf("CSMOS")
+
+    val versionList = mutableStateListOf<CSVersionInfo>()
+    val currentVersion = mutableStateOf(
+        ModLocalDataSource.getCurrentCSVersion()
+    )
 
     init {
-
+        viewModelScope.launch {
+            getExistVersion()
+        }
     }
 
     fun loadNickName() {
@@ -177,8 +192,60 @@ class ServerViewModel @Inject constructor(
         }
     }
 
+    suspend fun getLocalVersion(): List<CSVersionInfo> {
+        val versions = versionRepository.getAll()
+        return versions
+    }
+
+    suspend fun getExistVersion(): List<CSVersionInfo> {
+        val versions = getLocalVersion()
+        val localVersion = versions.filter { isVersionExist(it.versionName.orEmpty()) }
+        versionList.clear()
+        versionList.addAll(localVersion)
+        return localVersion
+    }
+
+    suspend fun applySettingsToModSpNew() {
+        val versionName = ModLocalDataSource.getCurrentCSVersion()
+        val info = versionRepository.getByVersionName(versionName)
+        Log.d(TAG, "applySettingsToModSpNew: $info")
+        ModLocalDataSource.setCurrentVpk(info.vpkName.orEmpty())
+        ModLocalDataSource.setArgv(info.argv.orEmpty())
+        ModLocalDataSource.setEnv(info.env.orEmpty())
+        ModLocalDataSource.setGamePath(info.gamePath.orEmpty())
+        ModLocalDataSource.setCurrentLibPath(info.libPath.orEmpty())
+        ModLocalDataSource.setCsType(info.csType.orEmpty())
+    }
+
+    suspend fun isCurrentVersionExist(): Boolean {
+        val currentVersion = ModLocalDataSource.getCurrentCSVersion()
+        return isVersionExist(currentVersion)
+    }
+
+    suspend fun getVersionForShow(versionName: String): String {
+        return getLocalVersion().firstOrNull { it.versionName == versionName }?.versionNameForShow?:versionName
+    }
+
+    suspend fun isVersionExist(versionName: String): Boolean {
+        val infos = getLocalVersion().firstOrNull { it.versionName == versionName }
+        if (infos != null) {
+            val version = infos
+            val parentPath = app.filesDir.path + version.libPath
+            version.fileList?.forEach {
+                val path = parentPath + File.separator + it.fileName
+                Log.d(TAG, "isVersionExist: $path")
+                if (!File(path).exists()) {
+                    return false
+                }
+            }
+        } else {
+            return false
+        }
+        return true
+    }
+
     override fun onCleared() {
         super.onCleared()
-        Log.d(TAG, "onCleared: 别说真被清理了吧")
+        Log.d(TAG, "onCleared: ServerViewModel被清理")
     }
 }

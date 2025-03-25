@@ -1,14 +1,17 @@
 package com.billflx.csgo.data.repo
 
 import android.util.Log
+import androidx.room.withTransaction
 import com.billflx.csgo.bean.CSVersionInfoEnum
 import com.billflx.csgo.data.db.CSVersionInfo
 import com.billflx.csgo.data.db.CSVersionInfoDao
+import com.billflx.csgo.data.db.CSVersionInfoDatabase
 import com.billflx.csgo.page.SettingDataBean
 import javax.inject.Inject
 
 class CSVersionInfoRepository @Inject constructor(
-    private val csVersionInfoDao: CSVersionInfoDao
+    private val csVersionInfoDao: CSVersionInfoDao,
+    private val db: CSVersionInfoDatabase
 ) {
 
     // TODO 是不是可以把 try catch 换成异常处理的 BaseRepository 类方法
@@ -153,9 +156,10 @@ class CSVersionInfoRepository @Inject constructor(
         }
     }
 
-    suspend fun insertIfEmpty(versions: List<CSVersionInfo>) {
+    suspend fun insertIfEmpty(csVersionInfoDao: CSVersionInfoDao, versions: List<CSVersionInfo>) {
         runCatching {
             val list = csVersionInfoDao.getAll()
+            csVersionInfoDao.clearAll()
             versions.forEach a@ { version ->
                 val item = list.find { it.versionName == version.versionName }
                 if (item == null) {

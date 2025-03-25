@@ -1,66 +1,134 @@
 package com.billflx.csgo.page.settings.game
 
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.akira.tyranoemu.ui.prefs.NoScrollPrefsScreen
 import com.akira.tyranoemu.ui.prefs.PrefsScreen
 import com.akira.tyranoemu.ui.prefs.prefs.EditTextProPref
+import com.akira.tyranoemu.ui.prefs.prefs.ListDialogHtmlTextPref
 import com.akira.tyranoemu.ui.prefs.prefs.ListDialogTextPref
 import com.akira.tyranoemu.ui.prefs.prefs.TextPref
 import com.akira.tyranoemu.ui.prefs.prefs.TextPrefDialogConfirm
+import com.billflx.csgo.bean.DataType
+import com.billflx.csgo.constant.Constants
 import com.billflx.csgo.data.ModLocalDataSource
 import com.billflx.csgo.data.db.CSVersionInfo
+import com.billflx.csgo.nav.LocalDownloadManagerVM
+import com.billflx.csgo.nav.LocalGameSettingViewModel
+import com.billflx.csgo.nav.LocalRootNav
+import com.billflx.csgo.nav.RootDesc
+import com.gtastart.common.util.CSMOSUtils
 import com.gtastart.common.util.MOSDialog
+import com.gtastart.common.util.compose.navigateSingleTopTo
+import com.gtastart.common.util.compose.widget.RotatingEdgeGlowBox
+import com.gtastart.common.util.prefs.EditTextArgvPref
 import com.gtastart.common.util.prefs.FolderChooserPref
 import com.heyanle.okkv2.core.OkkvDefaultProvider
+import com.valvesoftware.source.R
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import me.nillerusr.DirchActivity
+import me.nillerusr.LauncherActivity
 
-@OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("MissingPermission")
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun GameSettings(
     modifier: Modifier = Modifier,
-    viewModel: GameSettingViewModel = hiltViewModel()
+    viewModel: GameSettingViewModel = LocalGameSettingViewModel.current,
+    focusGameResPathItem: Boolean = false
 ) {
     val context = LocalContext.current
     val versionList = viewModel.pagingFlow.collectAsLazyPagingItems()
     val currentVersion by viewModel.currentVersion
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(currentVersion) {
+        scope.launch(Dispatchers.Main) {
+            versionList.refresh()
+        }
+    }
+    LaunchedEffect(versionList.itemSnapshotList) {
+        Log.d("", "GameSettings: versionList")
+    }
+    val rootNav = LocalRootNav.current
 
     Scaffold (
         topBar = {
             TopAppBar(
                 title = {
                     Text("游戏设置")
+                },
+                actions = {
+                    IconButton(onClick = {
+                        rootNav.navigateSingleTopTo(RootDesc.DownloadManager.route)
+                    }) {
+                        Icon(Icons.Default.FileDownload, contentDescription = stringResource(R.string.download_manager))
+                    }
                 }
             )
-        }
+        },
     ) { innerPadding ->
         Column(
-            Modifier.padding(innerPadding)
+            Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(innerPadding)
         ) {
-            PrefsScreen(dataStore = OkkvDefaultProvider.def()) {
+            NoScrollPrefsScreen (dataStore = OkkvDefaultProvider.def()) {
                 prefsGroup(title = "版本") {
                     prefsItem {
                         Spacer(Modifier.height(8.dp))
@@ -91,10 +159,61 @@ fun GameSettings(
                         viewModel.changeSettings(CSVersionInfo(gamePath = ModLocalDataSource.getGamePath()))
                     }
                 }
-                PrefsScreen(dataStore = OkkvDefaultProvider.def()) {
+                NoScrollPrefsScreen (dataStore = OkkvDefaultProvider.def()) {
+
+                    prefsGroup(title = "数据包设置") {
+                        prefsItem {
+                            val downloadManagerVM = LocalDownloadManagerVM.current
+                            val rootNav = LocalRootNav.current
+                            ListDialogHtmlTextPref(
+                                title = "下载游戏数据包",
+                                list = currentVersion?.dataLink?: emptyList(),
+                                itemText = { it.title },
+                                itemLeadingIcon = {
+                                    Icon(imageVector = Icons.Default.Download, contentDescription = null)
+                                },
+                                itemTrailingContent = { item ->
+                                    Button(
+                                        onClick = {
+                                            val url = item.url
+                                            val title = item.title
+                                            val type = item.type
+                                            val parentPath = LauncherActivity.getDefaultDir() + Constants.DOWNLOAD_PATH
+                                            scope.launch {
+                                                val addDownload = downloadManagerVM.addDownload( // 添加下载任务
+                                                    url = url,
+                                                    parentPath = parentPath,
+                                                    dataType = type ?: DataType.GameDataPackage
+                                                )
+                                                rootNav.navigateSingleTopTo(RootDesc.DownloadManager.route)
+                                            }
+                                        }
+                                    ) {
+                                        Text("下载")
+                                    }
+                                }
+                            )
+                        }
+                    }
+
                     prefsGroup(title = "版本设置") {
                         prefsItem {
+                            val transition = rememberInfiniteTransition()
+                            val hue by transition.animateFloat(
+                                initialValue = 0f,
+                                targetValue = 360f, // 360° 颜色循环
+                                animationSpec = infiniteRepeatable(
+                                    animation = tween(durationMillis = 5000, easing = LinearEasing),
+                                    repeatMode = RepeatMode.Restart
+                                ), label = "hueAnimation"
+                            )
+                            val bgColor = Color.hsv(hue, 1f, 1f).copy(alpha = 0.3f)
                             FolderChooserPref(
+                                modifier = if (focusGameResPathItem) Modifier
+                                    .clip(
+                                        RoundedCornerShape(12.dp)
+                                    )
+                                    .background(bgColor) else Modifier,
                                 key = "choose_cs_folder",
                                 title = "游戏资源路径",
                                 dialogTitle = "选择游戏资源路径",
@@ -108,16 +227,19 @@ fun GameSettings(
                                 },
                                 trailingContent = {
                                     Column(
-                                        modifier = Modifier.weight(1f).padding(start = 8.dp),
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(start = 8.dp),
                                         horizontalAlignment = Alignment.End,
                                     ) {
                                         Text(currentVersion?.gamePath.orEmpty(), maxLines = 3, textAlign = TextAlign.End)
                                     }
                                 }
                             )
+
                         }
                         prefsItem {
-                            EditTextProPref(
+                            EditTextArgvPref(
                                 key = "cmdline_params",
                                 title = "命令行参数",
                                 dialogTitle = "命令行参数",
@@ -147,6 +269,35 @@ fun GameSettings(
                     }
                     prefsGroup("更多") {
                         prefsItem {
+                            val isVerify by viewModel.isFilesMd5Passed
+                            val errorColor = MaterialTheme.colorScheme.error
+                            val passColor = MaterialTheme.colorScheme.primary
+                            val color = if (isVerify == 0)
+                                Color.Unspecified to "校验中"
+                            else if (isVerify == 1) {
+                                passColor to "通过"
+                            } else if (isVerify == -1) {
+                                errorColor to "失败，若遇到问题请删除重下"
+                            } else {
+                                Color.Unspecified to "无法加载联网数据"
+                            }
+                            LaunchedEffect(currentVersion) {
+                                viewModel.verifyAllFile()
+                            }
+                            TextPref(
+                                title = "校验完整性",
+                                onClick = {
+                                    viewModel.verifyAllFile()
+                                },
+                                trailingContent = {
+                                    Text(
+                                        text = color.second,
+                                        color = color.first
+                                    )
+                                }
+                            )
+                        }
+                        prefsItem {
                             TextPrefDialogConfirm(
                                 title = "删除",
                                 textColor = MaterialTheme.colorScheme.error,
@@ -160,7 +311,7 @@ fun GameSettings(
                 }
 
             } else { // 未安装，显示下载页面
-                DownloadPanel()
+                DownloadPanel(viewModel = viewModel) // 往里传
             }
         }
     }
@@ -169,7 +320,7 @@ fun GameSettings(
 @Composable
 fun DownloadPanel(
     modifier: Modifier = Modifier,
-    viewModel: GameSettingViewModel = hiltViewModel()
+    viewModel: GameSettingViewModel = LocalGameSettingViewModel.current
 ) {
     Box(
         modifier = modifier.fillMaxSize(),
@@ -178,20 +329,20 @@ fun DownloadPanel(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = ""
-            )
             val progress by viewModel.downloadProgress
             CircularProgressIndicator(
-                progress = progress.toFloat() / 100f
+                progress = {
+                    progress.toFloat() / 100f
+                }
             )
             Spacer(Modifier.height(8.dp))
             var showButton by viewModel.showDownloadButton
+            val context = LocalContext.current
             if (showButton) {
                 Button(
                     onClick = {
                         showButton = false
-                        viewModel.downloadLibs()
+                        viewModel.downloadLibs(context)
                     }
                 ) { Text("下载") }
             }

@@ -6,8 +6,10 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.RawQuery
 import androidx.room.Update
 import androidx.room.Upsert
+import androidx.sqlite.db.SupportSQLiteQuery
 
 @Dao
 interface CSVersionInfoDao {
@@ -45,6 +47,12 @@ interface CSVersionInfoDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(csVersionInfo: CSVersionInfo)
 
+    @RawQuery(observedEntities = [CSVersionInfo::class])
+    fun invalidatePagingSource(query: SupportSQLiteQuery): Int
+
     @Query("select * from csversioninfo")
     fun pagingSource(): PagingSource<Int, CSVersionInfo>
+
+    @Query("DELETE FROM csversioninfo")
+    fun clearAll()
 }

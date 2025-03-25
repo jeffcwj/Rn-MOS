@@ -5,11 +5,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.PlayCircleOutline
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.SportsEsports
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -27,6 +30,7 @@ import com.billflx.csgo.page.ServerViewModel
 import com.billflx.csgo.page.SettingPage
 import com.billflx.csgo.page.SettingViewModel
 import com.billflx.csgo.page.settings.MainSettingsNav
+import com.billflx.csgo.page.settings.game.GameSettings
 import com.gtastart.common.util.compose.navigateSingleTopTo
 import com.gtastart.ui.forum.csmos.CsMosResPage
 import com.valvesoftware.source.R
@@ -46,6 +50,12 @@ enum class MainPageDestination(
         Icons.Outlined.Home,
         "a_home",
         R.string.home
+    ),
+    AGameSetting(
+        Icons.Default.SportsEsports,
+        Icons.Outlined.SportsEsports,
+        "a_game_setting",
+        R.string.game
     ),
     AServer(
         Icons.Default.Dns,
@@ -86,21 +96,14 @@ enum class MainPageDestination(
 
 }
 
-
-val LocalServerViewModel = staticCompositionLocalOf<ServerViewModel> {
-    error("LocalServerViewModel Not Provide")
-}
-
 @Composable
 fun MainPageNav(
     navController: NavHostController,
     modifier: Modifier = Modifier,
     rootNavController: NavHostController
 ) {
-    val serverViewModel = hiltViewModel<ServerViewModel>()
 
     CompositionLocalProvider(
-        LocalServerViewModel provides serverViewModel,
     ) {
         NavHost(
             navController = navController,
@@ -116,6 +119,9 @@ fun MainPageNav(
             }
             composable(route = MainPageDestination.AServer.route) {
                 ServerPage()
+            }
+            composable(route = MainPageDestination.AGameSetting.route) {
+                GameSettings()
             }
 
             // TODO 记得添加回来
