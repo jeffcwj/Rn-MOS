@@ -20,6 +20,7 @@ class Constants {
         const val CONFIG_PATH = "/%s/cfg/config.cfg"
         const val AUTOEXEC_CONFIG_PATH = "/%s/cfg/autoexec.cfg"
         const val DOWNLOAD_PATH = "/Download/CSMOSDownload"
+        const val GAME_ROOT_PATH = "/RnCS"
 
         const val GAME_PKG_CACHE_PATH = "/gameZip"
 

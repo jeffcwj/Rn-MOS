@@ -96,14 +96,17 @@ import com.billflx.csgo.bean.AutoExecCmdBean
 import com.billflx.csgo.bean.CSVersionInfoEnum
 import com.billflx.csgo.bean.SampQueryInfoBean
 import com.billflx.csgo.data.ModLocalDataSource
+import com.billflx.csgo.nav.LocalMainPageNav
 import com.billflx.csgo.nav.LocalServerViewModel
 import com.billflx.csgo.nav.LocalSettingViewModel
+import com.billflx.csgo.nav.MainPageDestination
 import com.gtastart.common.theme.GtaStartTheme
 import com.gtastart.common.util.CSMOSUtils
 import com.gtastart.common.util.CsPayload
 import com.gtastart.common.util.MOSDialog
 import com.gtastart.common.util.MToast
 import com.gtastart.common.util.compose.matchContentHeight
+import com.gtastart.common.util.compose.navigateSingleTopTo
 import com.gtastart.common.util.compose.widget.MCustomAlertDialog
 import com.gtastart.common.util.isBlank
 import com.valvesoftware.source.R
@@ -117,7 +120,7 @@ fun ServerPage(
     viewModel: ServerViewModel = LocalServerViewModel.current
 ) {
     val context = LocalContext.current
-
+    val mainPageNav = LocalMainPageNav.current
     Scaffold(
         topBar = {
             TopAppBar(
@@ -189,9 +192,12 @@ fun ServerPage(
                                     MOSDialog.show(
                                         context,
                                         title = "提示",
-                                        message = "请先前往设置下载版本基础数据",
+                                        message = "请先前往游戏版本管理页面，下载版本基础数据和游戏数据",
                                         positiveButtonText = "确定",
-                                        onPositiveButtonClick = {d,_ -> d.dismiss()}
+                                        onPositiveButtonClick = {d,_ ->
+                                            mainPageNav.navigateSingleTopTo(MainPageDestination.AGameSetting.route)
+                                            d.dismiss()
+                                        }
                                     )
                                     return@launch
                                 } else {
@@ -673,7 +679,7 @@ private fun ServerList(
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
                                         ) {
-                                            Text("未找到游戏版本，请前往设置页面下载")
+                                            Text("未找到游戏版本，请前往游戏页下载")
                                         }
                                     }
                                 }

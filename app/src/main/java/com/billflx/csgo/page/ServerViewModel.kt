@@ -68,21 +68,21 @@ class ServerViewModel @Inject constructor(
     }
 
     fun loadNickName() {
-        var version = CSVersionInfoEnum.getMosDefault().name
+        /*var version = CSVersionInfoEnum.getMosDefault().name
         if (serverPayload.value == CsPayload.CSMOS.payload) {
             version = CSVersionInfoEnum.getMosDefault().name
         } else {
             version = CSVersionInfoEnum.getCmDefault().name
-        }
+        }*/
         viewModelScope.launch {
-            nickName.value = versionRepository.getNickName(version)
+            nickName.value = ModLocalDataSource.getNickName()//versionRepository.getNickName(version)
         }
     }
 
     fun saveNickName(): Boolean {
         if (!nickName.value.isBlank()) {
             viewModelScope.launch {
-                versionRepository.setNickName(ModLocalDataSource.getCurrentCSVersion(), nickName.value)
+                // versionRepository.setNickName(ModLocalDataSource.getCurrentCSVersion(), nickName.value)
                 withContext(Dispatchers.Main) {
                     ModLocalDataSource.setNickName(nickName.value)
                 }

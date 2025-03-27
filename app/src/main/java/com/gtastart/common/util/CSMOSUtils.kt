@@ -2,6 +2,7 @@ package com.gtastart.common.util
 
 import android.util.Log
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.billflx.csgo.bean.CSVersionInfoEnum
 import com.billflx.csgo.constant.Constants
 import com.billflx.csgo.data.ModLocalDataSource
@@ -154,6 +155,109 @@ class CSMOSUtils {
             args = addOrEditArgs(args, "-w", width.toString())
             args = addOrEditArgs(args, "-h", height.toString())
             return args
+        }
+
+        val cliendModBasePaths = listOf(
+            "cm",
+            "cstrike",
+            "hl2",
+            "platform",
+        )
+        val csmosBasePaths = listOf(
+            "csmos",
+            "cstrike",
+            "hl2",
+            "platform",
+        )
+
+        val csmosKeyPaths = listOf(
+            "csmos/cfg",
+            "csmos/classes",
+            "csmos/materials",
+            "csmos/particles",
+            "csmos/resource",
+            "csmos/scripts",
+            "csmos/sound",
+            "csmos/gameinfo.txt",
+            "csmos/mos_extras_dir.vpk",
+            "csmos/mos_extras_000.vpk",
+            "csmos/mos_pak_dir.vpk",
+            "csmos/mos_pak_000.vpk",
+            "cstrike/gameinfo.txt",
+            "cstrike/cstrike_pak_000.vpk",
+            "cstrike/cstrike_pak_dir.vpk",
+            "hl2/gameinfo.txt",
+            "hl2/hl2_misc_000.vpk",
+            "hl2/hl2_misc_dir.vpk",
+            "hl2/hl2_textures_000.vpk",
+            "hl2/hl2_textures_dir.vpk",
+            "platform/platform_misc_000.vpk",
+            "platform/platform_misc_dir.vpk",
+        )
+        val cmKeyPaths = listOf(
+            "cm/cfg",
+            "cm/clientmod_base",
+            "cm/extras",
+            "cm/materials",
+            "cm/resource",
+            "cm/gameinfo.txt",
+            "cstrike/madstray_lox",
+            "cstrike/madstray_lox/clientmod_000.vpk",
+            "cstrike/madstray_lox/clientmod_dir.vpk",
+            "hl2/gameinfo.txt",
+            "hl2/hl2_pak_000.vpk",
+            "hl2/hl2_pak_dir.vpk",
+            "hl2/hl2_misc_000.vpk",
+            "hl2/hl2_misc_dir.vpk",
+            "hl2/hl2_textures_000.vpk",
+            "hl2/hl2_textures_dir.vpk",
+            "platform/platform_misc_000.vpk",
+            "platform/platform_misc_dir.vpk",
+        )
+        val csmosAutoExecCfgPath = listOf(
+            "csmos/cfg/autoexec.cfg"
+        )
+        val cmAutoExecCfgPath = listOf(
+            "cm/cfg/autoexec.cfg"
+        )
+
+        val csmosCheckList = listOf(
+            csmosBasePaths,
+            csmosKeyPaths,
+        )
+        val cmCheckList = listOf(
+            cliendModBasePaths,
+            cmKeyPaths
+        )
+        suspend fun scanSourceData(gamePath: String, onDataUpdate: (String) -> Unit) {
+            fun formatOutput(path: String, isDone: Boolean) = "$path ${if (isDone) "✅" else "❌"}"
+            val targetFile = File(gamePath)
+            var csmosResult = true
+            var cmResult = true
+            cmCheckList.forEach {
+                it.forEach {
+                    val file = File(targetFile, it)
+                    val isExist = file.exists()
+                    if (!isExist) cmResult = false
+                    onDataUpdate(formatOutput(file.path, isExist))
+                }
+            }
+            csmosCheckList.forEach {
+                it.forEach {
+                    val file = File(targetFile, it)
+                    val isExist = file.exists()
+                    if (!isExist) csmosResult = false
+                    onDataUpdate(formatOutput(file.path, isExist))
+                }
+            }
+            // 检测结果
+            if (csmosResult) {
+                onDataUpdate(formatOutput("检测完毕，CSMOS特征通过", true))
+            } else if (cmResult) {
+                onDataUpdate(formatOutput("检测完毕，ClientMod特征通过", true))
+            } else {
+                onDataUpdate(formatOutput("检测完毕，特征检测不通过", false))
+            }
         }
 
         /**

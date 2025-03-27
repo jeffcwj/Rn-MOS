@@ -6,10 +6,22 @@ import android.content.Context
 import android.content.ServiceConnection
 import android.os.IBinder
 import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.ExperimentalPagingApi
@@ -22,7 +34,10 @@ import com.billflx.csgo.data.db.CSVersionInfoDatabase
 import com.billflx.csgo.data.net.AppUpdateApi
 import com.billflx.csgo.data.repo.CSVersionInfoRepository
 import com.billflx.csgo.data.repo.paging.GameVersionRemoteMediator
+import com.gtastart.common.theme.GtaStartTheme
+import com.gtastart.common.util.CSMOSUtils
 import com.gtastart.common.util.MDownload
+import com.gtastart.common.util.MOSDialog
 import com.gtastart.common.util.MSingleDownloadService
 import com.gtastart.common.util.MToast
 import com.gtastart.common.util.ZipUtils
@@ -33,6 +48,7 @@ import com.liulishuo.okdownload.core.cause.ResumeFailedCause
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
@@ -90,23 +106,39 @@ class GameSettingViewModel @Inject constructor(
         pagingSource.invalidate()
     }
 
-    private fun saveSettings() {
-        viewModelScope.launch {
-            _currentVersion.value?.let {
-                repository.saveData(it)
-            }
+    suspend private fun saveSettings() {
+        _currentVersion.value?.let {
+            repository.saveData(it)
         }
     }
 
     fun changeSettings(info: CSVersionInfo) {
-        val version = _currentVersion.value
-        _currentVersion.value = _currentVersion.value?.copy(
-            argv = info.argv?:version?.argv,
-            env = info.env?:version?.env,
-            gamePath = info.gamePath?:version?.gamePath,
-            nickName = info.nickName?:version?.nickName,
-        )
-        saveSettings()
+        viewModelScope.launch {
+            val version = _currentVersion.value
+            _currentVersion.value = _currentVersion.value?.copy(
+                argv = info.argv?:version?.argv,
+                env = info.env?:version?.env,
+                gamePath = info.gamePath?:version?.gamePath,
+                nickName = info.nickName?:version?.nickName,
+            )
+            saveSettings()
+        }
+    }
+
+    fun changeSpecficSettings(currentVersion: CSVersionInfo, info: CSVersionInfo) {
+        viewModelScope.launch {
+            val bkp = _currentVersion.value
+            _currentVersion.value = currentVersion
+            val version = _currentVersion.value
+            _currentVersion.value = _currentVersion.value?.copy(
+                argv = info.argv?:version?.argv,
+                env = info.env?:version?.env,
+                gamePath = info.gamePath?:version?.gamePath,
+                nickName = info.nickName?:version?.nickName,
+            )
+            saveSettings()
+            _currentVersion.value = bkp
+        }
     }
 
     fun getLocalVersionList() {
@@ -126,8 +158,45 @@ class GameSettingViewModel @Inject constructor(
         }
     }
 
-    fun checkSourceDataDialog() {
-
+    fun checkSourceDataDialog(context: Context) {
+        val gamePath = currentVersion.value?.gamePath.orEmpty()
+        MOSDialog.show(
+            context,
+            title = "检测游戏资源特征",
+            customView = {
+                val state = rememberLazyListState()
+                val list = remember { mutableStateListOf<String>() }
+                LazyColumn(
+                    state = state,
+                    verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.small),
+                    contentPadding = PaddingValues(horizontal = 24.dp)
+                ) {
+                    items(list) {
+                        Row {
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+                LaunchedEffect(Unit) {
+                    viewModelScope.launch(Dispatchers.IO) {
+                        CSMOSUtils.scanSourceData(gamePath) {
+                            list.add(it)
+                            launch(Dispatchers.Main) {
+                                delay(200)
+                                if (list.isNotEmpty()) {
+                                    state.scrollToItem(list.size - 1)
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            positiveButtonText = "关闭",
+            onPositiveButtonClick = { d,_ -> d.dismiss() }
+        )
     }
 
     suspend fun verifyFileMd5(file: File, md5: String)
@@ -240,15 +309,15 @@ class GameSettingViewModel @Inject constructor(
                 url = version.libPackUrl,
                 parentPath = parentPath,
                 fileName = fileName,
-                connectionCount = 1
+                connectionCount = 3
             )
-            MSingleDownloadService.startDownloadService(
+            /*MSingleDownloadService.startDownloadService(
                 context = context,
                 url = version.libPackUrl,
                 parentPath = parentPath,
                 fileName = fileName,
                 connection = downloadConnection
-            )
+            )*/
             mDownload?.setListener(downloadListener())
             mDownload?.start()
         } ?: also {

@@ -96,6 +96,10 @@ enum class MainPageDestination(
 
 }
 
+val LocalMainPageNav = staticCompositionLocalOf<NavHostController> {
+    error("LocalMainPageNav Not Provide")
+}
+
 @Composable
 fun MainPageNav(
     navController: NavHostController,
@@ -104,6 +108,7 @@ fun MainPageNav(
 ) {
 
     CompositionLocalProvider(
+        LocalMainPageNav provides navController
     ) {
         NavHost(
             navController = navController,

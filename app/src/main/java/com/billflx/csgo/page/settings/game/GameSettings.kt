@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -71,6 +73,7 @@ import com.billflx.csgo.nav.LocalDownloadManagerVM
 import com.billflx.csgo.nav.LocalGameSettingViewModel
 import com.billflx.csgo.nav.LocalRootNav
 import com.billflx.csgo.nav.RootDesc
+import com.gtastart.common.theme.GtaStartTheme
 import com.gtastart.common.util.CSMOSUtils
 import com.gtastart.common.util.MOSDialog
 import com.gtastart.common.util.compose.navigateSingleTopTo
@@ -100,6 +103,11 @@ fun GameSettings(
     LaunchedEffect(currentVersion) {
         scope.launch(Dispatchers.Main) {
             versionList.refresh()
+            currentVersion?.let {
+                it.versionName?.let {
+                    viewModel.changeVersion(versionName = it)
+                }
+            }
         }
     }
     LaunchedEffect(versionList.itemSnapshotList) {
@@ -172,14 +180,16 @@ fun GameSettings(
                                 itemLeadingIcon = {
                                     Icon(imageVector = Icons.Default.Download, contentDescription = null)
                                 },
-                                itemTrailingContent = { item ->
+                                itemTrailingContent = { item, showDialog ->
                                     Button(
+                                        contentPadding = PaddingValues(horizontal = GtaStartTheme.spacing.normal),
                                         onClick = {
                                             val url = item.url
                                             val title = item.title
                                             val type = item.type
                                             val parentPath = LauncherActivity.getDefaultDir() + Constants.DOWNLOAD_PATH
                                             scope.launch {
+                                                showDialog.value = false
                                                 val addDownload = downloadManagerVM.addDownload( // 添加下载任务
                                                     url = url,
                                                     parentPath = parentPath,
@@ -294,6 +304,33 @@ fun GameSettings(
                                         text = color.second,
                                         color = color.first
                                     )
+                                }
+                            )
+                        }
+                        prefsItem {
+                            val isVerify = 1
+                            val errorColor = MaterialTheme.colorScheme.error
+                            val passColor = MaterialTheme.colorScheme.primary
+                            val color = if (isVerify == 0)
+                                Color.Unspecified to "校验中"
+                            else if (isVerify == 1) {
+                                passColor to "通过"
+                            } else if (isVerify == -1) {
+                                errorColor to "失败，若遇到问题请删除重下"
+                            } else {
+                                Color.Unspecified to "无法加载联网数据"
+                            }
+
+                            TextPref(
+                                title = "检测游戏资源特征",
+                                onClick = {
+                                    viewModel.checkSourceDataDialog(context)
+                                },
+                                trailingContent = {
+                                    /*Text(
+                                        text = color.second,
+                                        color = color.first
+                                    )*/
                                 }
                             )
                         }

@@ -28,8 +28,25 @@ public class ExtractAssets {
     public static String TAG = "ExtractAssets";
     public static int PAK_VERSION = 24;
 
+    /**
+     * 按照安卓最新规范，动态库仅在read-only时可被加载
+     * @param path
+     * @param mode
+     * @return
+     */
     private static int chmod(String path, int mode) {
-        try {
+        File targetFile = new File(path);
+        if (mode == 511) {
+            targetFile.setReadable(true);
+            targetFile.setWritable(false);
+            targetFile.setExecutable(false);
+        } else if (mode == 400) {
+            targetFile.setReadable(true);
+            targetFile.setWritable(true);
+            targetFile.setExecutable(false);
+        }
+
+        /*try {
             int ret = Runtime.getRuntime().exec("chmod " + Integer.toOctalString(mode) + " " + path).waitFor();
             Log.d(TAG, "chmod " + Integer.toOctalString(mode) + " " + path + ": " + ret);
         } catch (Exception e) {
@@ -43,7 +60,8 @@ public class ExtractAssets {
         } catch (Exception e2) {
             Log.d(TAG, "chmod: FileUtils not worked: " + e2.toString());
             return -1;
-        }
+        }*/
+        return 0;
     }
 
     public static void extractAsset(Context context, String asset, Boolean force) {
@@ -58,6 +76,7 @@ public class ExtractAssets {
         }
         if (force.booleanValue() || !asset_exists.booleanValue()) {
             try {
+                chmod(context.getFilesDir().getPath() + "/" + asset, 400);
                 InputStream is = am.open(asset);
                 FileOutputStream os = new FileOutputStream(context.getFilesDir().getPath() + "/tmp");
                 byte[] buffer = new byte[8192];
@@ -77,7 +96,7 @@ public class ExtractAssets {
                 tmp.renameTo(new File(context.getFilesDir().getPath() + "/" + asset));
                 chmod(context.getFilesDir().getPath() + "/" + asset, 511);
             } catch (Exception e) {
-
+                Log.e(TAG, "extractAsset: ", e);
             }
         }
     }
@@ -88,8 +107,8 @@ public class ExtractAssets {
      */
     public static void extractAssets(Context context) {
         ApplicationInfo appinf = context.getApplicationInfo();
-        chmod(appinf.dataDir, 511);
-        chmod(context.getFilesDir().getPath(), 511);
+        // chmod(appinf.dataDir, 511); // 会破坏原有权限
+        // chmod(context.getFilesDir().getPath(), 511);
         extractVPK(context);
         extractLibs(context); // 解压动态库
         extractAsset(context, "DroidSansFallback.ttf", false);
@@ -128,7 +147,7 @@ public class ExtractAssets {
             byte[] buffer = new byte[1024];
             int bytesRead;
             while ((bytesRead = mInputStream.read(buffer)) > 0) {
-                mFileOutputStream.write(buffer, 0, bytesRead);
+//                mFileOutputStream.write(buffer, 0, bytesRead);
             }
 
             // 关闭流
@@ -147,10 +166,10 @@ public class ExtractAssets {
 //        targetFile.setReadable(true);
 //        targetFile.setWritable(true);
 //        targetFile.setExecutable(true);
-        if (targetFile.exists()) {
+        /*if (targetFile.exists()) {
             boolean isOk = targetFile.delete();
             Log.d(TAG, "remove old lib: " + isOk);
-        }
+        }*/
         copyAssetsFile(context, asset, targetPath);
         targetFile.setReadable(true);
         targetFile.setWritable(false);
@@ -170,8 +189,9 @@ public class ExtractAssets {
 //        String versionName = ModLocalDataSource.INSTANCE.getCurrentCSVersion();
         String versionName = mPref.getString("current_cs_version", CSVersionInfoEnum.Companion.getDefaultName());
 
+        String vpkName = mPref.getString("current_vpk", "extras_dir.vpk");
         // 选择 pak版本 解压
-        extractAsset(context, CSVersionInfoEnum.Companion.getVpkNameByName(versionName), true);
+        extractAsset(context, vpkName, true);
 //        extractAsset(context, VPK_NAME, force); // 原版解压
         SharedPreferences.Editor editor = mPref.edit();
         editor.putInt("pakversion", PAK_VERSION);
@@ -180,9 +200,11 @@ public class ExtractAssets {
 
     public static void extractLibs(Context context) {
 //        String versionName = ModLocalDataSource.INSTANCE.getCurrentCSVersion();
-        String versionName = context.getSharedPreferences("mod", Context.MODE_MULTI_PROCESS).getString("current_cs_version", CSVersionInfoEnum.Companion.getDefaultName());
+        SharedPreferences pref = context.getSharedPreferences("mod", Context.MODE_MULTI_PROCESS);
+        String versionName = pref.getString("current_cs_version", CSVersionInfoEnum.Companion.getDefaultName());
 //        String libRelativePath = CSVersionInfoEnum.Companion.getLibPathByName(versionName);
-        String libRelativePath = CSVersionInfoEnum.Companion.getCurrentLibPath();
+//         String libRelativePath = CSVersionInfoEnum.Companion.getCurrentLibPath();
+        String libRelativePath = pref.getString("current_lib_path", CSVersionInfoEnum.Companion.getCurrentLibPath());
         Log.d(TAG, "extractLibs: " + versionName + "  " + libRelativePath);
         String targetPath = context.getFilesDir() + libRelativePath;
         File targetFile = new File(targetPath);
@@ -193,7 +215,7 @@ public class ExtractAssets {
             String[] fileNames = context.getAssets().list(libRelativePath);
             Log.d(TAG, "extractLibs: " + Arrays.toString(fileNames));
             for (String fileName: fileNames) {
-                extractExecAsset(context, libRelativePath + "/" + fileName, context.getFilesDir().getPath());
+                // extractExecAsset(context, libRelativePath + "/" + fileName, context.getFilesDir().getPath());
             }
         } catch (IOException e) {
             Log.d(TAG, "extractLibs: " + e);

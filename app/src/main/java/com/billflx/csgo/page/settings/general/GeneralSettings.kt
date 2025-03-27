@@ -18,10 +18,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.akira.tyranoemu.ui.prefs.PrefsScreen
 import com.akira.tyranoemu.ui.prefs.prefs.SwitchPref
+import com.akira.tyranoemu.ui.prefs.prefs.TextPref
 import com.akira.tyranoemu.ui.prefs.prefs.TextPrefDialogConfirm
 import com.billflx.csgo.data.AppLocalDataSource
 import com.gtastart.common.util.MToast
+import com.gtastart.common.util.extend.shareFile
 import com.heyanle.okkv2.core.OkkvDefaultProvider
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,6 +65,21 @@ fun GeneralSettings() {
                                         showDialog.value = true
                                     }
                                 )
+                            }
+                        )
+                    }
+                    prefsItem {
+                        TextPref(
+                            title = "分享软件日志",
+                            onClick = {
+                                val file = File(context.getExternalFilesDir(null)!!.parentFile, "/libs/RnMOSLog.txt")
+                                file.shareFile(context)
+                            },
+                            trailingContent = {
+                                /*Text(
+                                    text = color.second,
+                                    color = color.first
+                                )*/
                             }
                         )
                     }
