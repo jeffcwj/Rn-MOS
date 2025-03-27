@@ -29,6 +29,8 @@
 # 不做预校验，preverify是proguard的四个步骤之一，Android不需要preverify，去掉这一步能够加快混淆速度。
 -dontpreverify
 -verbose
+# 输出 mapping文件
+-printmapping mapping.txt
 
 -dontwarn com.billflx.csgo.bean.**
 -keep class com.billflx.csgo.bean.** { *; }
@@ -195,6 +197,10 @@
 -keepclassmembers,allowobfuscation class * {
     *** lambda$(...);
 }
+
+# bugly
+-dontwarn com.tencent.bugly.**
+-keep public class com.tencent.bugly.**{*;}
 
 # ----------- 测试用 ------------
 

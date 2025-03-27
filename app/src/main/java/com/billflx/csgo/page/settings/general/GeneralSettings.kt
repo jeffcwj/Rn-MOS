@@ -1,5 +1,6 @@
 package com.billflx.csgo.page.settings.general
 
+import android.provider.Settings
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,6 +22,8 @@ import com.akira.tyranoemu.ui.prefs.prefs.SwitchPref
 import com.akira.tyranoemu.ui.prefs.prefs.TextPref
 import com.akira.tyranoemu.ui.prefs.prefs.TextPrefDialogConfirm
 import com.billflx.csgo.data.AppLocalDataSource
+import com.gtastart.common.util.MHelpers
+import com.gtastart.common.util.MOSDialog
 import com.gtastart.common.util.MToast
 import com.gtastart.common.util.extend.shareFile
 import com.heyanle.okkv2.core.OkkvDefaultProvider
@@ -69,11 +72,25 @@ fun GeneralSettings() {
                         )
                     }
                     prefsItem {
+
+                        // val androidId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
                         TextPref(
                             title = "分享软件日志",
                             onClick = {
-                                val file = File(context.getExternalFilesDir(null)!!.parentFile, "/libs/RnMOSLog.txt")
-                                file.shareFile(context)
+                                MOSDialog.show(
+                                    context,
+                                    title = "分享",
+                                    message = "用户标识: ${AppLocalDataSource.getUUID()}" +
+                                            "\n安卓版本: ${MHelpers.getAndroidVersion()}(${MHelpers.getAndroidSdk()})" +
+                                            "\n手机型号: ${MHelpers.getDeviceModel()}" +
+                                            "\n\n你可以截图此窗口发送给开发者，用于辅助分析问题。但请不要随意向他人或群聊发送日志，避免造成隐私泄露",
+                                    positiveButtonText = "分享",
+                                    onPositiveButtonClick = { _,_ ->
+                                        val file = File(context.getExternalFilesDir(null)!!.parentFile, "/libs/RnMOSLog.txt")
+                                        file.shareFile(context)
+                                    }
+                                )
+
                             },
                             trailingContent = {
                                 /*Text(

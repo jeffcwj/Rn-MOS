@@ -113,6 +113,7 @@
             android:name="me.nillerusr.UpdateService"
             android:stopWithTask="false" />
         <service android:name="com.gtastart.common.util.MDownloadService" />
+        <service android:name="com.gtastart.common.util.MSingleDownloadService" />
         <service android:name="com.gtastart.common.util.M7ZipService" />
 
         <provider

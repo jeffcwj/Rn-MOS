@@ -49,6 +49,8 @@ class GameVersionRemoteMediator(
             MediatorResult.Error(e)
         } catch (e: HttpException) {
             MediatorResult.Error(e)
+        } catch (e: Throwable) { // 保底，总感觉这可能会导致闪退
+            MediatorResult.Error(e)
         }
     }
 

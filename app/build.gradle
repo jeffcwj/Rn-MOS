@@ -27,7 +27,7 @@ android {
         //noinspection ExpiredTargetSdkVersion
         targetSdk 24
         versionCode 1
-        versionName "r10.0 beta4"
+        versionName "r10.0 beta4.1"
 
         ndkVersion  "25.2.9519653"
         ndk {

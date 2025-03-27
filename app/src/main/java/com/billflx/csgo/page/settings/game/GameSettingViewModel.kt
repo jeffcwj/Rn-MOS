@@ -42,6 +42,8 @@ import com.gtastart.common.util.MSingleDownloadService
 import com.gtastart.common.util.MToast
 import com.gtastart.common.util.ZipUtils
 import com.gtastart.common.util.extend.calculateMd5
+import com.liulishuo.okdownload.DownloadContext
+import com.liulishuo.okdownload.DownloadContextListener
 import com.liulishuo.okdownload.DownloadTask
 import com.liulishuo.okdownload.core.cause.EndCause
 import com.liulishuo.okdownload.core.cause.ResumeFailedCause
@@ -77,6 +79,9 @@ class GameSettingViewModel @Inject constructor(
     val unZipProgress = mutableIntStateOf(0)
     val showDownloadButton = mutableStateOf(true)
 
+    val finishCount = mutableStateOf(0)
+    val totalCount = mutableStateOf(0)
+
     val isFilesMd5Passed = mutableStateOf(0) // 0 校验中 1 通过 -1 异常
 
     @OptIn(ExperimentalPagingApi::class)
@@ -98,7 +103,7 @@ class GameSettingViewModel @Inject constructor(
         .cachedIn(viewModelScope)
 
     init {
-        getLocalVersionList()
+         getLocalVersionList() // 设置默认显示的版本
     }
 
     fun refreshVersionList() {
@@ -106,7 +111,7 @@ class GameSettingViewModel @Inject constructor(
         pagingSource.invalidate()
     }
 
-    suspend private fun saveSettings() {
+    private suspend fun saveSettings() {
         _currentVersion.value?.let {
             repository.saveData(it)
         }
@@ -183,9 +188,8 @@ class GameSettingViewModel @Inject constructor(
                 LaunchedEffect(Unit) {
                     viewModelScope.launch(Dispatchers.IO) {
                         CSMOSUtils.scanSourceData(gamePath) {
-                            list.add(it)
                             launch(Dispatchers.Main) {
-                                delay(200)
+                                list.add(it)
                                 if (list.isNotEmpty()) {
                                     state.scrollToItem(list.size - 1)
                                 }
@@ -284,16 +288,76 @@ class GameSettingViewModel @Inject constructor(
 
     val downloadConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            val myService = (service as MSingleDownloadService.LocalBinder).getService()
+            Log.d(TAG, "onServiceConnected: 下载服务绑定成功")
+            val binder = (service as MSingleDownloadService.LocalBinder)
+            val myService = binder.getService()
+            binder.setQueueListener(object : DownloadContextListener {
+                override fun taskEnd(
+                    context: DownloadContext,
+                    task: DownloadTask,
+                    cause: EndCause,
+                    realCause: java.lang.Exception?,
+                    remainCount: Int
+                ) {
+
+                }
+
+                override fun queueEnd(context: DownloadContext) {
+                    app.MToast("正在解压")
+                    extractLibs()
+                }
+            })
+            myService.startQueueDownload(listener = object : MDownload.MDownloadListener {
+                override fun onStart(task: DownloadTask) {
+                    downloadIsFinish.value = false
+                    downloadGetError.value = false
+                }
+
+                override fun onConnected(
+                    task: DownloadTask,
+                    blockCount: Int,
+                    currentOffset: Long,
+                    totalLength: Long
+                ) {
+
+                }
+
+                override fun onProgress(
+                    task: DownloadTask,
+                    currentOffset: Long,
+                    totalLength: Long
+                ) {
+                    val progress = MDownload.toProgress(currentOffset, totalLength)
+                    Log.d(TAG, "onProgress: ${progress}")
+                    downloadProgress.intValue = progress
+                }
+
+                override fun onStop(task: DownloadTask, cause: EndCause, realCause: Exception?) {
+                    if (cause == EndCause.COMPLETED) {
+                        downloadIsFinish.value = true
+                        downloadGetError.value = false
+                    } else {
+                        downloadIsFinish.value = false
+                        downloadGetError.value = true
+                        showDownloadButton()
+                        app.MToast("下载失败")
+                    }
+                }
+
+                override fun onRetry(task: DownloadTask, cause: ResumeFailedCause) {
+
+                }
+
+            })
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
-
+            Log.d(TAG, "onServiceDisconnected: 下载服务断开")
         }
     }
     fun downloadLibs(context: Context) {
         _currentVersion.value?.let { version ->
-            if (version.libPackUrl == null) {
+            if (version.libPackUrl == null || version.vpkUrl == null) {
                 showDownloadButton()
                 app.MToast("链接获取失败")
                 return
@@ -305,21 +369,36 @@ class GameSettingViewModel @Inject constructor(
             if (mDownload != null) {
                 mDownload?.stop()
             }
-            mDownload = MDownload(
+            /*mDownload = MDownload(
                 url = version.libPackUrl,
                 parentPath = parentPath,
                 fileName = fileName,
                 connectionCount = 3
-            )
-            /*MSingleDownloadService.startDownloadService(
+            )*/
+            // 添加两个任务
+            Log.d(TAG, "downloadLibs: 添加两个任务")
+            MSingleDownloadService.startDownloadService(
                 context = context,
                 url = version.libPackUrl,
                 parentPath = parentPath,
                 fileName = fileName,
                 connection = downloadConnection
-            )*/
-            mDownload?.setListener(downloadListener())
-            mDownload?.start()
+            )
+            MSingleDownloadService.startDownloadService(
+                context = context,
+                url = version.vpkUrl,
+                parentPath = app.filesDir.path,
+                fileName = version.vpkName,
+                connection = downloadConnection
+            )
+            Log.d(TAG, "downloadLibs: 开始下载")
+            // 开启下载
+            MSingleDownloadService.bindDownloadService(
+                context = context,
+                connection = downloadConnection
+            )
+            /*mDownload?.setListener(downloadListener())
+            mDownload?.start()*/
         } ?: also {
             app.MToast("下载前请选择一个游戏版本")
         }

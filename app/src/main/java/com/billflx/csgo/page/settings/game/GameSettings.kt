@@ -308,29 +308,10 @@ fun GameSettings(
                             )
                         }
                         prefsItem {
-                            val isVerify = 1
-                            val errorColor = MaterialTheme.colorScheme.error
-                            val passColor = MaterialTheme.colorScheme.primary
-                            val color = if (isVerify == 0)
-                                Color.Unspecified to "校验中"
-                            else if (isVerify == 1) {
-                                passColor to "通过"
-                            } else if (isVerify == -1) {
-                                errorColor to "失败，若遇到问题请删除重下"
-                            } else {
-                                Color.Unspecified to "无法加载联网数据"
-                            }
-
                             TextPref(
                                 title = "检测游戏资源特征",
                                 onClick = {
                                     viewModel.checkSourceDataDialog(context)
-                                },
-                                trailingContent = {
-                                    /*Text(
-                                        text = color.second,
-                                        color = color.first
-                                    )*/
                                 }
                             )
                         }
