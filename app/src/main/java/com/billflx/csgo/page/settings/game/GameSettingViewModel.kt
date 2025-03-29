@@ -50,7 +50,6 @@ import com.liulishuo.okdownload.core.cause.ResumeFailedCause
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
@@ -461,8 +460,8 @@ class GameSettingViewModel @Inject constructor(
         }
     }
 
-    private fun unZipListener(): ZipUtils.Companion.ProgressListener {
-        return object : ZipUtils.Companion.ProgressListener {
+    private fun unZipListener(): ZipUtils.ProgressListener {
+        return object : ZipUtils.ProgressListener {
             override fun onProgressUpdate(percent: Int) {
                 Log.d(TAG, "onProgressUpdate: $percent")
                 unZipProgress.value = percent

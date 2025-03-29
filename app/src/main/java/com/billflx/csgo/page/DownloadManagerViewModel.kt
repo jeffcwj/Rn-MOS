@@ -1,14 +1,12 @@
 package com.billflx.csgo.page
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.database.sqlite.SQLiteConstraintException
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -27,8 +25,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -41,22 +37,19 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.billflx.csgo.bean.DataType
-import com.billflx.csgo.bean.DownloadStatus
 import com.billflx.csgo.bean.DownloadExtraInfoBean
+import com.billflx.csgo.bean.DownloadStatus
 import com.billflx.csgo.bean.MDownloadItemBean
 import com.billflx.csgo.bean.MDownloadStatusBean
 import com.billflx.csgo.constant.Constants
@@ -64,7 +57,6 @@ import com.billflx.csgo.data.ModLocalDataSource
 import com.billflx.csgo.data.db.CSVersionInfo
 import com.billflx.csgo.data.db.DownloadInfo
 import com.billflx.csgo.data.db.DownloadInfoDao
-import com.billflx.csgo.nav.LocalSettingViewModel
 import com.billflx.csgo.page.settings.game.GameSettingViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.gtastart.common.theme.GtaStartTheme
@@ -78,7 +70,6 @@ import com.gtastart.common.util.ZipUtils
 import com.gtastart.common.util.compose.widget.CircleProgressPlaceHolder
 import com.gtastart.common.util.compose.widget.MButton
 import com.gtastart.common.util.extend.getNextFolderSuffix
-import com.gtastart.common.util.isBlank
 import com.liulishuo.okdownload.DownloadTask
 import com.liulishuo.okdownload.core.cause.EndCause
 import com.liulishuo.okdownload.core.cause.ResumeFailedCause
@@ -86,7 +77,6 @@ import com.valvesoftware.source.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import me.nillerusr.DirchActivity
 import me.nillerusr.LauncherActivity
 import java.io.File
@@ -147,7 +137,7 @@ class DownloadManagerViewModel @Inject constructor(
     private val unZipConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
             (binder as M7ZipService.LocalBinder).let {
-                it.setListener(object : ZipUtils.Companion.NameProgressListener {
+                it.setListener(object : ZipUtils.NameProgressListener {
                     override fun onStart() {
                         viewModelScope.launch {
                             clearUnZipStatus()
@@ -583,7 +573,7 @@ class DownloadManagerViewModel @Inject constructor(
                     ZipUtils.unZip(
                         pathFrom = filePath.orEmpty(),
                         pathTo = pathTo,
-                        object : ZipUtils.Companion.ProgressListener {
+                        object : ZipUtils.ProgressListener {
                             override fun onProgressUpdate(percent: Int) {
 //                                Log.d(TAG, "onProgressUpdate: $percent")
                                 isShowCloseButton.value = false
