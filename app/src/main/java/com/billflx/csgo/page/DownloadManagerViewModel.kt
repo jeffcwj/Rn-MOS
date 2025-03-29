@@ -108,8 +108,8 @@ class DownloadManagerViewModel @Inject constructor(
     var isBound: Boolean = false
     var downloadService: MDownloadService? = null
 
-    var downloadList = mutableStateListOf<MDownloadItemBean>()
-    var downloadedList = mutableStateListOf<MDownloadItemBean>()
+    val downloadList = mutableStateListOf<MDownloadItemBean>()
+    val downloadedList = mutableStateListOf<MDownloadItemBean>()
 
 
     // 服务链接
@@ -394,6 +394,7 @@ class DownloadManagerViewModel @Inject constructor(
     }
 
     suspend fun loadDownloadingListDB() {
+        downloadList.clear()
         val downloadingInfos: List<DownloadInfo> = downloadInfoDao.getDownloadingInfos()
         // 先列出来，等会处理当前列表已经在下载(已经有下载实例)的item
         downloadingInfos.forEach { item ->
@@ -552,48 +553,28 @@ class DownloadManagerViewModel @Inject constructor(
         fileName?.let {
             if (fileName.endsWith(".7z")) {
                 Log.d(TAG, "dealWithFileOperation: 文件格式.7z")
-//                val pathTo = ModLocalDataSource.getGamePath()
                 val pathTo = gamePath
-                MDialog.show(
-                    cancelable = true,
-                    context = context,
-                    title = context.getString(R.string.unzip_method),
-                    positiveButtonText = "快速(新)",
-                    onPositiveButtonClick = { _,_ ->
-                        val dialog = unZipDialog(context, item, isShowCloseButton) // 解压弹窗
-                        viewModelScope.launch(Dispatchers.IO) {
-                            launch(Dispatchers.Main) {
-                                clearUnZipStatus()
-                            }
-                            if (file!!.length() > 1024L * 1024L * 1024L) { // 大于1G提示大文件
-                                item.downloadStatusData?.downloadProgressStr?.value = context.getString(R.string.tip_unziping_big_file)
-                            } else {
-                                item.downloadStatusData?.downloadProgressStr?.value = context.getString(R.string.tip_unzipping)
-                            }
-                            item.downloadStatusData?.downloadStatus?.value = DownloadStatus.Downloading
-                            /*val result = ZipUtils.nativeUnZip(
-                                pathFrom = filePath.orEmpty(),
-                                pathTo = pathTo,
-                            )*/
+                val dialog = unZipDialog(context, item, isShowCloseButton) // 解压弹窗
+                viewModelScope.launch(Dispatchers.IO) {
+                    launch(Dispatchers.Main) {
+                        clearUnZipStatus()
+                    }
+                    if (file!!.length() > 1024L * 1024L * 1024L) { // 大于1G提示大文件
+                        item.downloadStatusData?.downloadProgressStr?.value = context.getString(R.string.tip_unziping_big_file)
+                    } else {
+                        item.downloadStatusData?.downloadProgressStr?.value = context.getString(R.string.tip_unzipping)
+                    }
+                    item.downloadStatusData?.downloadStatus?.value = DownloadStatus.Downloading
 
-                            currentUnZipProgress = item.downloadStatusData?.downloadProgressStr
-                            currentUnZipStatus = item.downloadStatusData?.downloadStatus
-                            M7ZipService.startExtractService(
-                                context,
-                                from = filePath.orEmpty(),
-                                to = pathTo,
-                                unZipConnection
-                            )
-                            /*if (result != 0) {
-                                item.downloadStatusData?.downloadProgressStr?.value = context.getString(R.string.error_happened)
-                                item.downloadStatusData?.downloadStatus?.value = DownloadStatus.Finished
-                            } else {
-                                item.downloadStatusData?.downloadProgressStr?.value = context.getString(R.string.finish_installing)
-                                item.downloadStatusData?.downloadStatus?.value = DownloadStatus.Finished
-                            }*/
-                        }
-                    },
-                )
+                    currentUnZipProgress = item.downloadStatusData?.downloadProgressStr
+                    currentUnZipStatus = item.downloadStatusData?.downloadStatus
+                    M7ZipService.startExtractService(
+                        context,
+                        from = filePath.orEmpty(),
+                        to = pathTo,
+                        unZipConnection
+                    )
+                }
             } else if (fileName.endsWith(".zip")) {
                 Log.d(TAG, "dealWithFileOperation: 文件格式.zip")
                 unZipDialog(context, item, isShowCloseButton) // 解压弹窗

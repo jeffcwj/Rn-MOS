@@ -4,6 +4,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -30,12 +31,17 @@ fun MainScreen(
         experimental = AppLocalDataSource.isExperimental() // 是否启用实验性页面 （也就是资源页）
     ).find { it.route == currentDestination?.route } ?: MainPageDestination.AHome
 
+    LaunchedEffect(Unit) {
+        navController.navigateSingleTopTo(
+            AppLocalDataSource.getLastLaunchPage()
+        )
+    }
     NavigationSuiteScaffold(
         containerColor = Color.Transparent,
         navigationSuiteItems = {
             MainPageDestination.list(
                 experimental = AppLocalDataSource.isExperimental()
-            ).forEach {
+            ).forEachIndexed { index, it ->
                 item(
                     selected = it == currentScreen,
                     icon = {
@@ -46,6 +52,7 @@ fun MainScreen(
                     },
                     onClick = {
                         navController.navigateSingleTopTo(it.route)
+                        AppLocalDataSource.setLastLaunchPage(it.route)
                         /*if (it.route == MainPageDestination.AServer.route) {
                             navController.navigateWithoutSaveTo(it.route)
                         } else {

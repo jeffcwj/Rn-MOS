@@ -48,6 +48,7 @@ class CSApplication : GtaStartApplication() {
         strategy.setDeviceID(AppLocalDataSource.getUUID())
         strategy.setDeviceModel(MHelpers.getDeviceModel())
         CrashReport.setIsDevelopmentDevice(context, BuildConfig.DEBUG)
+        CrashReport.setUserId(AppLocalDataSource.getUUID()) // 暂时是用随机ID
         CrashReport.initCrashReport(applicationContext, "c6203bec1d", false, strategy)
 
         /*Coroutines.main {

@@ -113,7 +113,7 @@ fun GameSettings(
     LaunchedEffect(versionList.itemSnapshotList) {
         Log.d("", "GameSettings: versionList")
     }
-    val rootNav = LocalRootNav.current
+
 
     Scaffold (
         topBar = {
@@ -122,10 +122,13 @@ fun GameSettings(
                     Text("游戏设置")
                 },
                 actions = {
-                    IconButton(onClick = {
-                        rootNav.navigateSingleTopTo(RootDesc.DownloadManager.route)
-                    }) {
-                        Icon(Icons.Default.FileDownload, contentDescription = stringResource(R.string.download_manager))
+                    if (!focusGameResPathItem) {
+                        val rootNav = LocalRootNav.current
+                        IconButton(onClick = {
+                            rootNav.navigateSingleTopTo(RootDesc.DownloadManager.route)
+                        }) {
+                            Icon(Icons.Default.FileDownload, contentDescription = stringResource(R.string.download_manager))
+                        }
                     }
                 }
             )
@@ -170,39 +173,41 @@ fun GameSettings(
                 NoScrollPrefsScreen (dataStore = OkkvDefaultProvider.def()) {
 
                     prefsGroup(title = "数据包设置") {
-                        prefsItem {
-                            val downloadManagerVM = LocalDownloadManagerVM.current
-                            val rootNav = LocalRootNav.current
-                            ListDialogHtmlTextPref(
-                                title = "下载游戏数据包",
-                                list = currentVersion?.dataLink?: emptyList(),
-                                itemText = { it.title },
-                                itemLeadingIcon = {
-                                    Icon(imageVector = Icons.Default.Download, contentDescription = null)
-                                },
-                                itemTrailingContent = { item, showDialog ->
-                                    Button(
-                                        contentPadding = PaddingValues(horizontal = GtaStartTheme.spacing.normal),
-                                        onClick = {
-                                            val url = item.url
-                                            val title = item.title
-                                            val type = item.type
-                                            val parentPath = LauncherActivity.getDefaultDir() + Constants.DOWNLOAD_PATH
-                                            scope.launch {
-                                                showDialog.value = false
-                                                val addDownload = downloadManagerVM.addDownload( // 添加下载任务
-                                                    url = url,
-                                                    parentPath = parentPath,
-                                                    dataType = type ?: DataType.GameDataPackage
-                                                )
-                                                rootNav.navigateSingleTopTo(RootDesc.DownloadManager.route)
+                        if (!focusGameResPathItem) {
+                            prefsItem {
+                                val downloadManagerVM = LocalDownloadManagerVM.current
+                                val rootNav = LocalRootNav.current
+                                ListDialogHtmlTextPref(
+                                    title = "下载游戏数据包",
+                                    list = currentVersion?.dataLink?: emptyList(),
+                                    itemText = { it.title },
+                                    itemLeadingIcon = {
+                                        Icon(imageVector = Icons.Default.Download, contentDescription = null)
+                                    },
+                                    itemTrailingContent = { item, showDialog ->
+                                        Button(
+                                            contentPadding = PaddingValues(horizontal = GtaStartTheme.spacing.normal),
+                                            onClick = {
+                                                val url = item.url
+                                                val title = item.title
+                                                val type = item.type
+                                                val parentPath = LauncherActivity.getDefaultDir() + Constants.DOWNLOAD_PATH
+                                                scope.launch {
+                                                    showDialog.value = false
+                                                    val addDownload = downloadManagerVM.addDownload( // 添加下载任务
+                                                        url = url,
+                                                        parentPath = parentPath,
+                                                        dataType = type ?: DataType.GameDataPackage
+                                                    )
+                                                    rootNav.navigateSingleTopTo(RootDesc.DownloadManager.route)
+                                                }
                                             }
+                                        ) {
+                                            Text("下载")
                                         }
-                                    ) {
-                                        Text("下载")
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
                     }
 

@@ -57,6 +57,7 @@ import com.billflx.csgo.bean.CSVersionInfoEnum;
 import com.billflx.csgo.page.settings.game.GameSettingActivity;
 import com.gtastart.common.util.MToast;
 import com.pika.sillyboy.util.LoadLibUtils;
+import com.tencent.bugly.crashreport.BuglyLog;
 import com.valvesoftware.ValveActivity2;
 import com.valvesoftware.source.R;
 
@@ -359,10 +360,13 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
             }
             if (mBrokenLibraries) {
                 mSingleton = this;
+                BuglyLog.e(TAG, errorMsgBrokenLib);
                 AlertDialog.Builder dlgAlert = new AlertDialog.Builder(this);
-                dlgAlert.setMessage("An error occurred while trying to start the application. Please try again and/or reinstall." + System.getProperty("line.separator") + System.getProperty("line.separator") + "Error: " + errorMsgBrokenLib);
-                dlgAlert.setTitle("SDL Error");
-                dlgAlert.setPositiveButton("Exit", new DialogInterface.OnClickListener() { // from class: org.libsdl.app.SDLActivity.1
+                /*dlgAlert.setMessage("An error occurred while trying to start the application. Please try again and/or reinstall." + System.getProperty("line.separator") + System.getProperty("line.separator") + "Error: " + errorMsgBrokenLib);
+                dlgAlert.setTitle("SDL Error");*/
+                dlgAlert.setMessage("启动游戏时遇到错误，你可以尝试\n\n1. 重新启动游戏\n2. 前往游戏版本管理，删除并重新安装此版本\n3. 实在不行，直接把启动器卸载后重新安装\n\n" + "错误详情: " + errorMsgBrokenLib);
+                dlgAlert.setTitle("SDL 错误");
+                dlgAlert.setPositiveButton("退出", new DialogInterface.OnClickListener() { // from class: org.libsdl.app.SDLActivity.1
                     @Override // android.content.DialogInterface.OnClickListener
                     public void onClick(DialogInterface dialog, int id) {
                         SDLActivity.mSingleton.finish();

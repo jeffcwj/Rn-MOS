@@ -12,8 +12,8 @@
     <string name="srceng_launcher_error_missing_obb_b">路径上的文件</string>
     <string name="srceng_launcher_error_test_write">测试写入失败，所有文件将存储在</string>
     <string name="srceng_launcher_error_no_permission">没有权限，游戏就无法运行</string>
-    <string name="srceng_launcher_error_find_gameinfo">请选择你下载的游戏数据路径\n\n若没有下载，可在主页下载，下载完成后选择合适的路径解压。\n\n请牢记解压时候的路径，并在此页面选择相同路径</string>
-    <string name="srceng_launcher_error_find_platform">在你设置的游戏数据路径下，找不到 platform 文件夹!</string>
+    <string name="srceng_launcher_error_find_gameinfo">未检测到游戏数据，你可以这样做：\n\n1. 若没有下载安装游戏数据包，可在启动器的游戏设置板块下载，下载完成后在下载管理选择合适的路径解压安装。\n2. 如果你之前下载过游戏数据，请在游戏设置板块，设置游戏资源路径为你的游戏数据路径\n3. 如果你在安装过程中修改了路径，请牢记当时设置的路径，并在游戏资源路径中设置</string>
+    <string name="srceng_launcher_error_find_platform">在你设置的游戏数据路径下，找不到 platform 文件夹! 请重新下载安装游戏数据包</string>
     <string name="srceng_launcher_set">设置</string>
     <string name="srceng_launcher_command_args">命令行参数</string>
     <string name="srceng_launcher_env">环境变量</string>

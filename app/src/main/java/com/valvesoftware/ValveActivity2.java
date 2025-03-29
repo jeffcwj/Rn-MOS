@@ -74,7 +74,7 @@ public class ValveActivity2 {
         if (gamedir == null || gamedir.isEmpty()) {
             gamedir = "hl2";
         }
-        if (isModGameinfoExists(gamepath + "/" + gamedir)) {
+        if (isModGameinfoExists(new File(gamepath, gamedir).getPath())) {
             return findGameinfo(gamepath);
         }
         return 0;

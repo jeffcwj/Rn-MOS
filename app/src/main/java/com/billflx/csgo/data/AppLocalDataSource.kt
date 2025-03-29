@@ -7,6 +7,7 @@ import android.content.SharedPreferences
 import com.billflx.csgo.bean.CSVersionInfoEnum
 import com.billflx.csgo.data.db.CSVersionInfo
 import com.billflx.csgo.data.repo.CSVersionInfoRepository
+import com.billflx.csgo.nav.MainPageDestination
 import com.gtastart.common.util.MHelpers
 import me.nillerusr.LauncherActivity
 import java.util.UUID
@@ -61,6 +62,10 @@ object AppLocalDataSource {
     fun getLibParentPath() = sp.getValue("libParentPath", context.filesDir.path)
     fun setLibParentPath(value: String) {
         sp.setValue("libParentPath", value)
+    }
+    fun getLastLaunchPage() = sp.getValue("lastLaunchPage", MainPageDestination.AHome.route)
+    fun setLastLaunchPage(value: String) {
+        sp.setValue("lastLaunchPage", value)
     }
 
     fun getUUID(): String {

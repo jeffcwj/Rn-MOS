@@ -1,5 +1,6 @@
 package com.billflx.csgo.page
 
+import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -19,8 +20,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -33,14 +32,11 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropUp
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -93,7 +89,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.billflx.csgo.bean.AutoExecCmdBean
-import com.billflx.csgo.bean.CSVersionInfoEnum
 import com.billflx.csgo.bean.SampQueryInfoBean
 import com.billflx.csgo.data.ModLocalDataSource
 import com.billflx.csgo.nav.LocalMainPageNav
@@ -109,7 +104,9 @@ import com.gtastart.common.util.compose.matchContentHeight
 import com.gtastart.common.util.compose.navigateSingleTopTo
 import com.gtastart.common.util.compose.widget.MCustomAlertDialog
 import com.gtastart.common.util.isBlank
+import com.valvesoftware.ValveActivity2
 import com.valvesoftware.source.R
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.libsdl.app.SDLActivity
 
@@ -181,34 +178,80 @@ fun ServerPage(
                 ),
             ) {
                 Row(
-                    modifier = Modifier.wrapContentSize().height(IntrinsicSize.Min),
+                    modifier = Modifier
+                        .wrapContentSize()
+                        .height(IntrinsicSize.Min),
                 ) {
                     Column(
                         verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.small),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable {
-                            scope.launch {
-                                if (!viewModel.isCurrentVersionExist()) {
-                                    MOSDialog.show(
-                                        context,
-                                        title = "提示",
-                                        message = "请先前往游戏版本管理页面，下载版本基础数据和游戏数据",
-                                        positiveButtonText = "确定",
-                                        onPositiveButtonClick = {d,_ ->
+                        modifier = Modifier
+                            .clickable {
+                                scope.launch {
+                                    val intent = Intent().apply {
+                                        putExtra(
+                                            "gamedir",
+                                            ModLocalDataSource.getCsType().lowercase()
+                                        )
+                                    }
+                                    val result = ValveActivity2.preInit(context, intent)
+                                    if (!viewModel.isCurrentVersionExist()) {
+                                        // 选择版本
+                                        selectVersionDialog(context, viewModel, scope) {
                                             mainPageNav.navigateSingleTopTo(MainPageDestination.AGameSetting.route)
-                                            d.dismiss()
                                         }
-                                    )
-                                    return@launch
-                                } else {
-                                    viewModel.applySettingsToModSpNew() // 从数据库应用设置
-                                    CSMOSUtils.removeAutoConnectInfo() // 在设置应用之后执行文件操作
-                                    CSMOSUtils.addCustomMainServers() // 添加主服
-                                    val intent = Intent(context, SDLActivity::class.java)
-                                    launcher.launch(intent) // 启动游戏
+                                        /*MOSDialog.show(
+                                            context,
+                                            title = "提示",
+                                            message = "请先前往游戏版本管理页面，下载版本基础数据和游戏数据",
+                                            positiveButtonText = "确定",
+                                            onPositiveButtonClick = { d, _ ->
+                                                mainPageNav.navigateSingleTopTo(MainPageDestination.AGameSetting.route)
+                                                d.dismiss()
+                                            }
+                                        )*/
+                                        return@launch
+                                    } else if (result != 1) {
+                                        if (result == 0) {
+                                            // 没找到数据包
+                                            MOSDialog.show(
+                                                context,
+                                                cancelable = false,
+                                                title = "提示",
+                                                message = "未检测到数据包，你可以：\n1. 前往游戏设置板块，点击「下载游戏数据包」选项进行下载\n2. 如果你已下载了数据包，请到下载管理解压安装\n3.如果本地存在数据包，请到游戏设置板块，并点击「游戏资源路径」进行选择",
+                                                positiveButtonText = "前往设置",
+                                                onPositiveButtonClick = { d,_ ->
+                                                    mainPageNav.navigateSingleTopTo(MainPageDestination.AGameSetting.route)
+                                                    d.dismiss()
+                                                }
+                                            )
+                                        } else {
+                                            // 没找到platform
+                                            MOSDialog.show(
+                                                context,
+                                                cancelable = false,
+                                                title = "提示",
+                                                message = "检测到数据包存在问题，未找到platform文件夹。请前往游戏设置板块，重新下载数据包",
+                                                positiveButtonText = "前往设置",
+                                                onPositiveButtonClick = { d,_ ->
+                                                    mainPageNav.navigateSingleTopTo(MainPageDestination.AGameSetting.route)
+                                                    d.dismiss()
+                                                }
+                                            )
+                                        }
+                                    } else {
+                                        viewModel.applySettingsToModSpNew() // 从数据库应用设置
+                                        CSMOSUtils.removeAutoConnectInfo() // 在设置应用之后执行文件操作
+                                        CSMOSUtils.addCustomMainServers() // 添加主服
+                                        val intent = Intent(context, SDLActivity::class.java)
+                                        launcher.launch(intent) // 启动游戏
+                                    }
                                 }
                             }
-                        }.padding(vertical = GtaStartTheme.spacing.medium, horizontal = GtaStartTheme.spacing.large)
+                            .padding(
+                                vertical = GtaStartTheme.spacing.medium,
+                                horizontal = GtaStartTheme.spacing.large
+                            )
                     ) {
 
                         Text(
@@ -234,53 +277,17 @@ fun ServerPage(
                     }
                     Box (
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxHeight().clickable {
-                        scope.launch {
-                            viewModel.getExistVersion()
-                            MOSDialog.show(
-                                context,
-                                title = "选择版本",
-                                customView = { dialog ->
-                                    LazyColumn {
-                                        items(viewModel.versionList) {
-                                            Column(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .clickable {
-                                                        scope.launch {
-                                                            ModLocalDataSource.setCurrentCSVersion(it.versionName.orEmpty()) // 先设置版本
-                                                            viewModel.applySettingsToModSpNew()
-                                                            currentVersion = viewModel.getVersionForShow(it.versionName.orEmpty())
-                                                            dialog.dismiss()
-                                                        }
-                                                    }
-                                                    .padding(GtaStartTheme.spacing.medium)
-                                            ) {
-                                                Text(
-                                                    text = it.versionNameForShow
-                                                        ?: it.versionName.orEmpty()
-                                                )
-                                            }
-                                        }
-                                        item {
-                                            if (viewModel.versionList.isEmpty()) {
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                ) {
-                                                    Text("空空如也，请前往设置页面下载~")
-                                                    /*TextButton(
-                                                        onClick = {
-
-                                                        }
-                                                    ) { Text("前往设置") }*/
-                                                }
-                                            }
-                                        }
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .clickable {
+                                scope.launch {
+                                    viewModel.getExistVersion()
+                                    selectVersionDialog(context, viewModel, scope) {
+                                        mainPageNav.navigateSingleTopTo(MainPageDestination.AGameSetting.route)
                                     }
                                 }
-                            )
-                        }
-                    }.padding(horizontal = GtaStartTheme.spacing.small)) {
+                            }
+                            .padding(horizontal = GtaStartTheme.spacing.small)) {
                         Icon(
                             imageVector = Icons.Default.ArrowDropUp,
                             contentDescription = null,
@@ -295,6 +302,62 @@ fun ServerPage(
             modifier = modifier.padding(innerPadding)
         )
     }
+}
+
+private fun selectVersionDialog(
+    context: Context,
+    viewModel: ServerViewModel,
+    scope: CoroutineScope,
+    onGotoGameSettingClick: () -> Unit
+) {
+    var currentVersion by viewModel.currentVersion
+    MOSDialog.show(
+        context,
+        title = "选择版本",
+        customView = { dialog ->
+            LazyColumn {
+                items(viewModel.versionList) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                scope.launch {
+                                    ModLocalDataSource.setCurrentCSVersion(
+                                        it.versionName.orEmpty()
+                                    ) // 先设置版本
+                                    viewModel.applySettingsToModSpNew()
+                                    currentVersion =
+                                        viewModel.getVersionForShow(
+                                            it.versionName.orEmpty()
+                                        )
+                                    dialog.dismiss()
+                                }
+                            }
+                            .padding(GtaStartTheme.spacing.medium)
+                    ) {
+                        Text(
+                            text = it.versionNameForShow
+                                ?: it.versionName.orEmpty()
+                        )
+                    }
+                }
+                item {
+                    if (viewModel.versionList.isEmpty()) {
+                        Column (
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Text("空空如也，请前往设置页面下载~")
+                            TextButton(
+                                onClick = {
+                                    onGotoGameSettingClick.invoke()
+                                }
+                            ) { Text("前往下载") }
+                        }
+                    }
+                }
+            }
+        }
+    )
 }
 
 @Composable
@@ -469,7 +532,9 @@ private fun DynamicHighlightedTextField(
             onValueChange = { newValue ->
                 textState.value = newValue
             },
-            modifier = modifier.verticalScroll(scrollState).focusable(),
+            modifier = modifier
+                .verticalScroll(scrollState)
+                .focusable(),
             cursorBrush = SolidColor(TextFieldDefaults.colors().cursorColor), // 光标颜色
             textStyle = LocalTextStyle.current.copy(fontSize = 16.sp, color = Color.Transparent),
             decorationBox = { innerTextField ->
@@ -656,7 +721,8 @@ private fun ServerList(
                                                     }
                                                     ModLocalDataSource.setCurrentCSVersion(it.versionName.orEmpty())
                                                     viewModel.applySettingsToModSpNew()
-                                                    currentVersion = viewModel.getVersionForShow(it.versionName.orEmpty())
+                                                    currentVersion =
+                                                        viewModel.getVersionForShow(it.versionName.orEmpty())
 
                                                     CSMOSUtils.saveNickName(viewModel.nickName.value)
                                                     CSMOSUtils.saveAutoConnectInfo(currentServerIP.value)
