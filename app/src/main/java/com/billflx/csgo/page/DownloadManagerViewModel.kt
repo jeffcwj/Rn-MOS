@@ -125,6 +125,8 @@ class DownloadManagerViewModel @Inject constructor(
     private var currentUnzippedCount by mutableIntStateOf(0)
     private var currentTotalZipCount by mutableIntStateOf(0)
     private val isShowCloseButton = mutableStateOf(false)
+    private val currentGamePath: MutableState<String?> = mutableStateOf(null)
+
 
     fun clearUnZipStatus() {
         //currentTotalZipCount = 0
@@ -175,6 +177,7 @@ class DownloadManagerViewModel @Inject constructor(
                             currentUnZipStatus?.value = DownloadStatus.Finished
                             app.MToast("解压完成")
                             isShowCloseButton.value = true
+
                         }
                     }
                 })
@@ -540,6 +543,7 @@ class DownloadManagerViewModel @Inject constructor(
         val fileName = item?.mDownload?.getDownloadTask()?.file?.name
         val filePath = item?.mDownload?.getDownloadTask()?.file?.absolutePath
         val file = item?.mDownload?.getDownloadTask()?.file
+        currentGamePath.value = gamePath
         fileName?.let {
             if (fileName.endsWith(".7z")) {
                 Log.d(TAG, "dealWithFileOperation: 文件格式.7z")

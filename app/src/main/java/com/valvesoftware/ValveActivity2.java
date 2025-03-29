@@ -80,6 +80,17 @@ public class ValveActivity2 {
         return 0;
     }
 
+    public static int preInit(String gamepath, String gamedir) {
+        Log.d("", "preInit: " + gamepath + " " + gamedir);
+        if (gamedir == null || gamedir.isEmpty()) {
+            gamedir = "hl2";
+        }
+        if (isModGameinfoExists(new File(gamepath, gamedir).getPath())) {
+            return findGameinfo(gamepath);
+        }
+        return 0;
+    }
+
     public static void initNatives(Context context, Intent intent) {
         mPref = context.getSharedPreferences("mod", Context.MODE_MULTI_PROCESS);
         ApplicationInfo appinf = context.getApplicationInfo();

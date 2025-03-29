@@ -20,11 +20,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.akira.tyranoemu.ui.prefs.LocalPrefsDataStore
 import com.akira.tyranoemu.ui.prefs.PrefsListItem
 import com.akira.tyranoemu.ui.prefs.ifNotNullThen
 import com.gtastart.common.R
+import com.gtastart.common.theme.GtaStartTheme
+import com.gtastart.common.util.compose.widget.HtmlTextView
 import com.heyanle.okkv2.core.getValue
 import com.heyanle.okkv2.core.okkv
 
@@ -56,6 +60,7 @@ fun FolderChooserPref(
     onValueSaved: ((String) -> Unit) = {},
     onValueChange: ((String) -> Unit) = {},
     dialogBackgroundColor: Color = MaterialTheme.colorScheme.background,
+    onImportClick: () -> Unit = {},
     textColor: Color = MaterialTheme.colorScheme.onBackground,
     enabled: Boolean = true,
     valueAsSummary: Boolean = true,
@@ -90,33 +95,43 @@ fun FolderChooserPref(
                 { Text(text = dialogTitle) }
             } else null,
             text = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.small)
                 ) {
-                    OutlinedTextField(
-                        value = textVal,
-                        label = { Text(label) },
-                        modifier = Modifier.weight(1f),
-                        singleLine = singleLine,
-                        onValueChange = {
-                            //  textVal = it
-                            onValueChange(it)
-                        }
-                    )
-                    Button(
-                        onClick = {
-                            onSelectButtonClick()
-                            realStore = textVal
-                        },
-                        contentPadding = PaddingValues(0.dp)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Text(
-                            text = stringResource(com.valvesoftware.source.R.string.select)
+                        OutlinedTextField(
+                            value = textVal,
+                            label = { Text(label) },
+                            modifier = Modifier.weight(1f),
+                            singleLine = singleLine,
+                            onValueChange = {
+                                //  textVal = it
+                                onValueChange(it)
+                            }
                         )
+                        Button(
+                            onClick = {
+                                onSelectButtonClick()
+                                realStore = textVal
+                            },
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Text(
+                                text = stringResource(com.valvesoftware.source.R.string.select)
+                            )
+                        }
                     }
+                    Text(
+                        text = "从其它版本继承",//"使用其它版本的游戏资源",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = TextStyle(textDecoration = TextDecoration.Underline),
+                        modifier = Modifier.clickable {
+                        onImportClick.invoke()
+                    })
                 }
-
             },
             confirmButton = {
                 TextButton(onClick = {

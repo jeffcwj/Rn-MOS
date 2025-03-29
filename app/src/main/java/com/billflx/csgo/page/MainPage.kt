@@ -51,6 +51,7 @@ import com.billflx.csgo.constant.Constants
 import com.billflx.csgo.data.AppLocalDataSource
 import com.billflx.csgo.nav.LocalDownloadManagerVM
 import com.billflx.csgo.nav.LocalRootNav
+import com.billflx.csgo.nav.LocalServerViewModel
 import com.billflx.csgo.nav.LocalSettingViewModel
 import com.billflx.csgo.nav.RootDesc
 import com.gtastart.common.theme.GtaStartTheme
@@ -127,6 +128,9 @@ private fun HasUpdateCard(
     val link = Constants.appUpdateInfo.value?.app?.link
     val version = Constants.appUpdateInfo.value?.app?.version
     Log.d("", "HasUpdateCard: 有更新吗")
+    val serverViewModel = LocalServerViewModel.current
+
+
     if (Constants.appUpdateInfo.value?.app?.hasUpdate?.value == true) {
         Log.d("", "HasUpdateCard: 有的")
 

@@ -90,6 +90,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.billflx.csgo.bean.AutoExecCmdBean
 import com.billflx.csgo.bean.SampQueryInfoBean
+import com.billflx.csgo.constant.Constants
 import com.billflx.csgo.data.ModLocalDataSource
 import com.billflx.csgo.nav.LocalMainPageNav
 import com.billflx.csgo.nav.LocalServerViewModel
@@ -188,13 +189,19 @@ fun ServerPage(
                         modifier = Modifier
                             .clickable {
                                 scope.launch {
-                                    val intent = Intent().apply {
-                                        putExtra(
-                                            "gamedir",
-                                            ModLocalDataSource.getCsType().lowercase()
-                                        )
+                                    val version = viewModel.getExistVersion().firstOrNull { it.versionName == ModLocalDataSource.getCurrentCSVersion() }
+                                    val argvMap = CSMOSUtils.stringToArgsMap(version?.argv.orEmpty())
+                                    var csType = ""
+                                    val gameArg = argvMap.get("-game")
+                                    if (argvMap.isNotEmpty() && gameArg != null) {
+                                        csType = gameArg
+                                    } else {
+                                        csType = ModLocalDataSource.getCsType().lowercase()
                                     }
-                                    val result = ValveActivity2.preInit(context, intent)
+                                    val result = ValveActivity2.preInit(
+                                        version?.gamePath.orEmpty(),
+                                        csType,
+                                    )
                                     if (!viewModel.isCurrentVersionExist()) {
                                         // 选择版本
                                         selectVersionDialog(context, viewModel, scope) {
@@ -633,6 +640,9 @@ private fun ServerList(
     LaunchedEffect(Unit) {
         viewModel.refreshServerList() // 每次重组都刷新列表
     }
+    LaunchedEffect(Constants.appUpdateInfo.value) {
+        viewModel.refreshServerList()
+    }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     val lifecycle = lifecycleOwner.lifecycle
@@ -660,6 +670,7 @@ private fun ServerList(
     val currentServerIP = rememberSaveable { mutableStateOf("") }
     val context = LocalContext.current
     val settingVM = LocalSettingViewModel.current
+    val mainPageNav = LocalMainPageNav.current
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -719,15 +730,58 @@ private fun ServerList(
                                                         context.MToast(context.getString(R.string.nickname_cannot_empty))
                                                         return@launch
                                                     }
-                                                    ModLocalDataSource.setCurrentCSVersion(it.versionName.orEmpty())
-                                                    viewModel.applySettingsToModSpNew()
-                                                    currentVersion =
-                                                        viewModel.getVersionForShow(it.versionName.orEmpty())
+                                                    val version = viewModel.getExistVersion().firstOrNull { it.versionName == ModLocalDataSource.getCurrentCSVersion() }
+                                                    val argvMap = CSMOSUtils.stringToArgsMap(version?.argv.orEmpty())
+                                                    var csType = ""
+                                                    val gameArg = argvMap.get("-game")
+                                                    if (argvMap.isNotEmpty() && gameArg != null) {
+                                                        csType = gameArg
+                                                    } else {
+                                                        csType = ModLocalDataSource.getCsType().lowercase()
+                                                    }
+                                                    val result = ValveActivity2.preInit(
+                                                        version?.gamePath.orEmpty(),
+                                                        csType,
+                                                    )
+                                                    if (result != 1) {
+                                                        if (result == 0) {
+                                                            // 没找到数据包
+                                                            MOSDialog.show(
+                                                                context,
+                                                                cancelable = false,
+                                                                title = "提示",
+                                                                message = "未检测到数据包，你可以：\n1. 前往游戏设置板块，点击「下载游戏数据包」选项进行下载\n2. 如果你已下载了数据包，请到下载管理解压安装\n3.如果本地存在数据包，请到游戏设置板块，并点击「游戏资源路径」进行选择",
+                                                                positiveButtonText = "前往设置",
+                                                                onPositiveButtonClick = { d,_ ->
+                                                                    mainPageNav.navigateSingleTopTo(MainPageDestination.AGameSetting.route)
+                                                                    d.dismiss()
+                                                                }
+                                                            )
+                                                        } else {
+                                                            // 没找到platform
+                                                            MOSDialog.show(
+                                                                context,
+                                                                cancelable = false,
+                                                                title = "提示",
+                                                                message = "检测到数据包存在问题，未找到platform文件夹。请前往游戏设置板块，重新下载数据包",
+                                                                positiveButtonText = "前往设置",
+                                                                onPositiveButtonClick = { d,_ ->
+                                                                    mainPageNav.navigateSingleTopTo(MainPageDestination.AGameSetting.route)
+                                                                    d.dismiss()
+                                                                }
+                                                            )
+                                                        }
+                                                    } else {
+                                                        ModLocalDataSource.setCurrentCSVersion(it.versionName.orEmpty())
+                                                        viewModel.applySettingsToModSpNew()
+                                                        currentVersion =
+                                                            viewModel.getVersionForShow(it.versionName.orEmpty())
 
-                                                    CSMOSUtils.saveNickName(viewModel.nickName.value)
-                                                    CSMOSUtils.saveAutoConnectInfo(currentServerIP.value)
-                                                    CSMOSUtils.addCustomMainServers()
-                                                    launcher.launch(intent) // 回调要刷新列表数据
+                                                        CSMOSUtils.saveNickName(viewModel.nickName.value)
+                                                        CSMOSUtils.saveAutoConnectInfo(currentServerIP.value)
+                                                        CSMOSUtils.addCustomMainServers()
+                                                        launcher.launch(intent) // 回调要刷新列表数据
+                                                    }
                                                     openDialog.value = false
                                                     dialog.dismiss()
                                                 }

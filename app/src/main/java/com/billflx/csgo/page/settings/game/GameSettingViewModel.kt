@@ -156,9 +156,13 @@ class GameSettingViewModel @Inject constructor(
     fun changeVersion(versionName: String) {
         viewModelScope.launch {
             val item = repository.getByVersionName(versionName)
-            _currentVersion.value = item
-            isVersionExist()
-            showDownloadButton()
+            item?.let {
+                _currentVersion.value = it
+                isVersionExist()
+                showDownloadButton()
+            } ?: also {
+                app.MToast("数据保存失败")
+            }
         }
     }
 

@@ -13,6 +13,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -57,6 +59,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.akira.tyranoemu.ui.prefs.NoScrollPrefsScreen
 import com.akira.tyranoemu.ui.prefs.PrefsScreen
@@ -72,10 +75,13 @@ import com.billflx.csgo.data.db.CSVersionInfo
 import com.billflx.csgo.nav.LocalDownloadManagerVM
 import com.billflx.csgo.nav.LocalGameSettingViewModel
 import com.billflx.csgo.nav.LocalRootNav
+import com.billflx.csgo.nav.LocalServerViewModel
 import com.billflx.csgo.nav.RootDesc
+import com.billflx.csgo.page.ServerViewModel
 import com.gtastart.common.theme.GtaStartTheme
 import com.gtastart.common.util.CSMOSUtils
 import com.gtastart.common.util.MOSDialog
+import com.gtastart.common.util.MToast
 import com.gtastart.common.util.compose.navigateSingleTopTo
 import com.gtastart.common.util.compose.widget.RotatingEdgeGlowBox
 import com.gtastart.common.util.prefs.EditTextArgvPref
@@ -239,6 +245,36 @@ fun GameSettings(
                                 onSelectButtonClick = {
                                     val intent = Intent(context, DirchActivity::class.java)
                                     launcher.launch(intent)
+                                },
+                                onImportClick = {
+
+                                    MOSDialog.show(
+                                        context,
+                                        title = "选择要使用的版本",
+                                        customView = { dialog ->
+                                            val vm = hiltViewModel<ServerViewModel>(
+                                            viewModelStoreOwner = LocalViewModelStoreOwner.current!!
+                                        )
+                                            Column {
+                                                vm.versionList.forEach {
+                                                    Column(
+                                                        modifier = Modifier.fillMaxWidth().clickable {
+                                                            viewModel.changeSettings(
+                                                                CSVersionInfo(gamePath = it.gamePath)
+                                                            )
+                                                            context.MToast("应用完成")
+                                                            dialog.dismiss()
+                                                        }.padding(horizontal = 16.dp, vertical = 8.dp)
+                                                    ) {
+                                                        Text(text = it.versionNameForShow
+                                                            ?:it.versionName.orEmpty())
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        positiveButtonText = "取消",
+                                        onPositiveButtonClick = {d,_ -> d.dismiss()}
+                                    )
                                 },
                                 trailingContent = {
                                     Column(

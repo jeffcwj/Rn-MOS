@@ -207,14 +207,18 @@ class ServerViewModel @Inject constructor(
 
     suspend fun applySettingsToModSpNew() {
         val versionName = ModLocalDataSource.getCurrentCSVersion()
-        val info = versionRepository.getByVersionName(versionName)
-        Log.d(TAG, "applySettingsToModSpNew: $info")
-        ModLocalDataSource.setCurrentVpk(info.vpkName.orEmpty())
-        ModLocalDataSource.setArgv(info.argv.orEmpty())
-        ModLocalDataSource.setEnv(info.env.orEmpty())
-        ModLocalDataSource.setGamePath(info.gamePath.orEmpty())
-        ModLocalDataSource.setCurrentLibPath(info.libPath.orEmpty())
-        ModLocalDataSource.setCsType(info.csType.orEmpty())
+        val infos = versionRepository.getByVersionName(versionName)
+        Log.d(TAG, "applySettingsToModSpNew: $infos")
+        infos?.let { info ->
+            ModLocalDataSource.setCurrentVpk(info.vpkName.orEmpty())
+            ModLocalDataSource.setArgv(info.argv.orEmpty())
+            ModLocalDataSource.setEnv(info.env.orEmpty())
+            ModLocalDataSource.setGamePath(info.gamePath.orEmpty())
+            ModLocalDataSource.setCurrentLibPath(info.libPath.orEmpty())
+            ModLocalDataSource.setCsType(info.csType.orEmpty())
+        } ?: {
+            app.MToast("数据保存失败")
+        }
     }
 
     suspend fun isCurrentVersionExist(): Boolean {

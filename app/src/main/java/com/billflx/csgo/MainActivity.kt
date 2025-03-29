@@ -32,6 +32,9 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.gtastart.common.theme.GtaStartTheme
 import com.gtastart.common.util.MHelpers
 import com.gtastart.common.util.MToast
+import com.gtastart.common.util.extend.createNoMedias
+import com.gtastart.common.util.extend.deleteNoMedias
+import com.gtastart.common.util.extend.refreshMediaScanner
 import com.gtastart.data.constant.CsConstants
 import com.gtastart.ui.forum.auth.activity.WPLoginActivity
 import com.valvesoftware.source.R
@@ -40,6 +43,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.nillerusr.LauncherActivity
+import java.io.File
 import javax.inject.Inject
 
 val LocalMainViewModel = staticCompositionLocalOf<MainViewModel> {
@@ -128,7 +132,6 @@ class MainActivity : LauncherActivity() {
 
             }
         }
-
 
         // 添加启动加载界面
         val launch_app_screen = LayoutInflater.from(this).inflate(R.layout.launch_app_screen, null) as RelativeLayout

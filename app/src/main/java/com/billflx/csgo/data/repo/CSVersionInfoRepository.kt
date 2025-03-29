@@ -192,13 +192,13 @@ class CSVersionInfoRepository @Inject constructor(
         return emptyList()
     }
 
-    suspend fun getByVersionName(versionName: String): CSVersionInfo {
+    suspend fun getByVersionName(versionName: String): CSVersionInfo? {
         runCatching {
             return csVersionInfoDao.getVersionInfo(versionName = versionName)
         }.onFailure {
             it.printStackTrace()
         }
-        return CSVersionInfo()
+        return null
     }
 
 }
