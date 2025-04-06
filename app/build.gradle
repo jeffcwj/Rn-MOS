@@ -12,22 +12,13 @@ android {
     namespace 'com.valvesoftware.source'
     compileSdk 35
 
-    signingConfigs {
-        release {
-            storeFile file('../csmos.jks')
-            storePassword 'csmos'
-            keyPassword 'csmos'
-            keyAlias 'key0'
-        }
-    }
-
     defaultConfig {
         applicationId "rn.csgo.game" // 包名
         minSdk 21
         //noinspection ExpiredTargetSdkVersion
         targetSdk 24
         versionCode 1
-        versionName "r11.1"
+        versionName "r11.4"
 
         ndkVersion  "25.2.9519653"
         ndk {
@@ -70,6 +61,16 @@ android {
             }
     }
 
+
+    signingConfigs {
+        debug {
+            storeFile file(project.findProperty("signing.RnCS.file") ?: "")
+            storePassword project.findProperty("signing.RnCS.password") ?: ""
+            keyAlias project.findProperty("signing.RnCS.keyAlias") ?: ""
+            keyPassword project.findProperty("signing.RnCS.password") ?: ""
+        }
+    }
+
     buildTypes {
         release {
 //            shrinkResources true
@@ -80,23 +81,24 @@ android {
                     arguments "-DCMAKE_CXX_FLAGS=-fvisibility=hidden -fvisibility-inlines-hidden"
                 }
             }
-            signingConfig signingConfigs.debug
+            //signingConfig signingConfigs.debug
             debuggable false
-//            signingConfig signingConfigs.release
+            signingConfig signingConfigs.debug
         }
         debug {
             minifyEnabled false
 //            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            //signingConfig signingConfigs.debug
             signingConfig signingConfigs.debug
             debuggable true
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
 
     lint {

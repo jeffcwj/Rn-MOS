@@ -336,7 +336,7 @@ fun GameSettings(
                                 viewModel.verifyAllFile()
                             }
                             TextPref(
-                                title = "校验完整性",
+                                title = "校验版本完整性",
                                 onClick = {
                                     viewModel.verifyAllFile()
                                 },

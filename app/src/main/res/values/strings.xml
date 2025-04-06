@@ -7,6 +7,7 @@
     <string name="srceng_launcher_launch">Launch</string>
     <string name="srceng_launcher_set">SET</string>
     <string name="srceng_launcher_ok">OK</string>
+    <string name="srceng_launcher_exit">exit</string>
     <string name="srceng_launcher_error">Error</string>
     <string name="srceng_launcher_error_missing_obb_a">There are no</string>
     <string name="srceng_launcher_error_missing_obb_b">files on the path </string>

@@ -1,8 +1,10 @@
 package me.nillerusr;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -74,9 +76,33 @@ public class LauncherActivity extends AppCompatActivity {
     @Override // android.app.Activity
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_PERMISSIONS && grantResults[0] == -1) {
-            Toast.makeText(this, R.string.srceng_launcher_error_no_permission, Toast.LENGTH_LONG).show();
-            finish();
+        if (requestCode == REQUEST_PERMISSIONS) {
+            if (grantResults.length > 0) {
+                if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
+                    new AlertDialog.Builder(this)
+                            .setTitle(R.string.srceng_launcher_error)
+                            .setMessage(R.string.srceng_launcher_error_no_permission)
+                            .setPositiveButton(R.string.srceng_launcher_exit, (dialog, which) -> {
+                                finish();
+                            })
+                            .setCancelable(false)
+                            .create()
+                            .show();
+                    Toast.makeText(this, R.string.srceng_launcher_error_no_permission, Toast.LENGTH_LONG).show();
+                }
+            } else {
+                // 处理权限请求结果未返回的情况
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.srceng_launcher_error)
+                        .setMessage(R.string.srceng_launcher_error_no_permission)
+                        .setPositiveButton(R.string.srceng_launcher_exit, (dialog, which) -> {
+                            finish();
+                        })
+                        .setCancelable(false)
+                        .create()
+                        .show();
+                Toast.makeText(this, R.string.srceng_launcher_error_no_permission, Toast.LENGTH_LONG).show();
+            }
         }
     }
 

@@ -68,15 +68,23 @@ object AppLocalDataSource {
         sp.setValue("lastLaunchPage", value)
     }
 
-    fun getUUID(): String {
-        var id = sp.getString("uuid", null)
+    fun getUUID(sp: SharedPreferences? = null): String {
+        var spp: SharedPreferences? = sp
+        if (sp == null) {
+            spp = this.sp
+        }
+        var id = spp?.getString("uuid", null)
         if (id == null) {
             id = MHelpers.generateShortId()
             setUUID(id)
         }
         return id
     }
-    fun setUUID(value: String) {
-        sp.setValue("uuid", value)
+    fun setUUID(value: String, sp: SharedPreferences? = null) {
+        var spp: SharedPreferences? = sp
+        if (sp == null) {
+            spp = this.sp
+        }
+        spp?.setValue("uuid", value)
     }
 }

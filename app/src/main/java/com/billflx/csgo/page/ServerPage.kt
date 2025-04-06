@@ -317,54 +317,57 @@ private fun selectVersionDialog(
     scope: CoroutineScope,
     onGotoGameSettingClick: () -> Unit
 ) {
-    var currentVersion by viewModel.currentVersion
-    MOSDialog.show(
-        context,
-        title = "选择版本",
-        customView = { dialog ->
-            LazyColumn {
-                items(viewModel.versionList) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                scope.launch {
-                                    ModLocalDataSource.setCurrentCSVersion(
-                                        it.versionName.orEmpty()
-                                    ) // 先设置版本
-                                    viewModel.applySettingsToModSpNew()
-                                    currentVersion =
-                                        viewModel.getVersionForShow(
+    scope.launch {
+        viewModel.getExistVersion()
+        var currentVersion by viewModel.currentVersion
+        MOSDialog.show(
+            context,
+            title = "选择版本",
+            customView = { dialog ->
+                LazyColumn {
+                    items(viewModel.versionList) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    scope.launch {
+                                        ModLocalDataSource.setCurrentCSVersion(
                                             it.versionName.orEmpty()
-                                        )
-                                    dialog.dismiss()
+                                        ) // 先设置版本
+                                        viewModel.applySettingsToModSpNew()
+                                        currentVersion =
+                                            viewModel.getVersionForShow(
+                                                it.versionName.orEmpty()
+                                            )
+                                        dialog.dismiss()
+                                    }
                                 }
-                            }
-                            .padding(GtaStartTheme.spacing.medium)
-                    ) {
-                        Text(
-                            text = it.versionNameForShow
-                                ?: it.versionName.orEmpty()
-                        )
-                    }
-                }
-                item {
-                    if (viewModel.versionList.isEmpty()) {
-                        Column (
-                            horizontalAlignment = Alignment.CenterHorizontally,
+                                .padding(GtaStartTheme.spacing.medium)
                         ) {
-                            Text("空空如也，请前往设置页面下载~")
-                            TextButton(
-                                onClick = {
-                                    onGotoGameSettingClick.invoke()
-                                }
-                            ) { Text("前往下载") }
+                            Text(
+                                text = it.versionNameForShow
+                                    ?: it.versionName.orEmpty()
+                            )
+                        }
+                    }
+                    item {
+                        if (viewModel.versionList.isEmpty()) {
+                            Column (
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            ) {
+                                Text("空空如也，请前往设置页面下载~")
+                                TextButton(
+                                    onClick = {
+                                        onGotoGameSettingClick.invoke()
+                                    }
+                                ) { Text("前往下载") }
+                            }
                         }
                     }
                 }
             }
-        }
-    )
+        )
+    }
 }
 
 @Composable
@@ -637,8 +640,11 @@ private fun ServerList(
     modifier: Modifier = Modifier,
     viewModel: ServerViewModel = LocalServerViewModel.current
 ) {
+    val context = LocalContext.current
     LaunchedEffect(Unit) {
-        viewModel.refreshServerList() // 每次重组都刷新列表
+        if (Constants.appUpdateInfo.value != null) {
+            viewModel.refreshServerList() // 每次重组都刷新列表
+        }
     }
     LaunchedEffect(Constants.appUpdateInfo.value) {
         viewModel.refreshServerList()
@@ -650,8 +656,7 @@ private fun ServerList(
     DisposableEffect(lifecycle) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                // 每次回到此界面都都刷新 会慢半拍
-//                viewModel.refreshServerList()
+
             }
         }
         lifecycle.addObserver(observer)
@@ -668,7 +673,6 @@ private fun ServerList(
 
     val serverDetailStr = remember { mutableStateOf(AnnotatedString("")) }
     val currentServerIP = rememberSaveable { mutableStateOf("") }
-    val context = LocalContext.current
     val settingVM = LocalSettingViewModel.current
     val mainPageNav = LocalMainPageNav.current
 
@@ -719,6 +723,9 @@ private fun ServerList(
                         context,
                         title = "选择版本",
                         customView = { dialog ->
+                            LaunchedEffect(Unit) {
+                                viewModel.getExistVersion()
+                            }
                             LazyColumn {
                                 items(viewModel.versionList.filter { it.csType == serverCsType }) {
                                     Column(
@@ -730,6 +737,14 @@ private fun ServerList(
                                                         context.MToast(context.getString(R.string.nickname_cannot_empty))
                                                         return@launch
                                                     }
+                                                    ModLocalDataSource.setCurrentCSVersion(
+                                                        it.versionName.orEmpty()
+                                                    ) // 先设置版本
+                                                    viewModel.applySettingsToModSpNew()
+                                                    currentVersion =
+                                                        viewModel.getVersionForShow(
+                                                            it.versionName.orEmpty()
+                                                        )
                                                     val version = viewModel.getExistVersion().firstOrNull { it.versionName == ModLocalDataSource.getCurrentCSVersion() }
                                                     val argvMap = CSMOSUtils.stringToArgsMap(version?.argv.orEmpty())
                                                     var csType = ""

@@ -54,11 +54,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.billflx.csgo.bean.CSVersionInfoEnum;
+import com.billflx.csgo.data.AppLocalDataSource;
 import com.billflx.csgo.page.settings.game.GameSettingActivity;
+import com.gtastart.common.util.MHelpers;
 import com.gtastart.common.util.MToast;
 import com.pika.sillyboy.util.LoadLibUtils;
 import com.tencent.bugly.crashreport.BuglyLog;
+import com.tencent.bugly.crashreport.CrashReport;
 import com.valvesoftware.ValveActivity2;
+import com.valvesoftware.source.BuildConfig;
 import com.valvesoftware.source.R;
 
 import java.util.ArrayList;
@@ -454,6 +458,15 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
         Log.v(TAG, "Model: " + Build.MODEL);
         Log.v(TAG, "onCreate()");
         super.onCreate(savedInstanceState);
+
+        // 初始化 bugly
+        SharedPreferences sp = getSharedPreferences("app", Context.MODE_MULTI_PROCESS);
+        CrashReport.UserStrategy strategy = new CrashReport.UserStrategy(this.getApplicationContext());
+        strategy.setDeviceID(AppLocalDataSource.INSTANCE.getUUID(sp));
+        strategy.setDeviceModel(MHelpers.Companion.getDeviceModel());
+        CrashReport.setIsDevelopmentDevice(this.getApplicationContext(), BuildConfig.DEBUG);
+        CrashReport.setUserId(AppLocalDataSource.INSTANCE.getUUID(sp)); // 暂时是用随机ID
+        CrashReport.initCrashReport(this.getApplicationContext(), "c6203bec1d", false, strategy);
 
         try {
             initRnCS(); // 初始化RnCS

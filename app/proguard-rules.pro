@@ -202,6 +202,21 @@
 -dontwarn com.tencent.bugly.**
 -keep public class com.tencent.bugly.**{*;}
 
+# mt 7z 解压
+-keep class net.sf.sevenzipjbinding.** { *; }
+-keep interface net.sf.sevenzipjbinding.** { *; }
+
+# 保留所有 Native 方法
+-keepclasseswithmembers class * {
+    native <methods>;
+}
+
+# 保留所有使用反射的类
+-keepattributes InnerClasses,EnclosingMethod
+-keepclassmembers class * {
+    @java.lang.reflect.Method *;
+}
+
 # ----------- 测试用 ------------
 
 ## Hilt 保留规则
