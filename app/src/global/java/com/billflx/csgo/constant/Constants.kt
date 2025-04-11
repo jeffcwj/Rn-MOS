@@ -3,12 +3,13 @@ package com.billflx.csgo.constant
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import com.billflx.csgo.bean.AppUpdateBean
+import com.valvesoftware.source.BuildConfig
 
 class Constants {
 
     companion object {
         var appUpdateInfo: MutableState<AppUpdateBean?> = mutableStateOf(null)
-        val appVersion = "r6.2"
+        val appVersion = BuildConfig.VERSION_NAME
 
         const val SOURCE_HOST = "135.125.188.162"
         const val SOURCE_PORT = 27010
