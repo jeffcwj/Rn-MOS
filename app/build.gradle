@@ -18,7 +18,6 @@ android {
         //noinspection ExpiredTargetSdkVersion
         targetSdk 24
         versionCode 1
-        versionName "r11.4"
 
         ndkVersion  "25.2.9519653"
         ndk {
@@ -30,24 +29,26 @@ android {
         multiDexEnabled true
 //        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        /*flavorDimensions "csmos_version"
+        flavorDimensions "region"
         productFlavors {
-            create('v6-5')  {
-                dimension "csmos_version"
+            create('global') {
+                dimension "region"
+                versionName "v9.0"
+                applicationIdSuffix ".lite"
             }
-            create('v7-5') {
-                dimension "csmos_version"
+            create('china')  {
+                dimension "region"
+                versionName "r11.4"
             }
-            create('cm') {
-                dimension "csmos_version"
-            }
-        }*/
+        }
     }
 
-    externalNativeBuild {
-        cmake {
-            path file("src/main/cpp/CMakeLists.txt")
-            version "3.22.1"
+    if (project.findProperty('RnCS.buildVariant') == 'china') {
+        externalNativeBuild {
+            cmake {
+                path file("src/china/cpp/CMakeLists.txt")
+                version "3.22.1"
+            }
         }
     }
 
@@ -121,16 +122,21 @@ kapt {
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
 
-    implementation project(':common') // 公共依赖库
-    implementation project(':GtaStart') // GtaStart 论坛
-    implementation project(':dyso') // 动态库加载
-
+    if (project.findProperty('RnCS.buildVariant') == 'china') {
+        implementation project(':common') // 公共依赖库
+        implementation project(':GtaStart') // GtaStart 论坛
+        implementation project(':dyso') // 动态库加载
+    } else {
+        globalImplementation 'androidx.appcompat:appcompat:1.7.0'
+        globalImplementation 'androidx.activity:activity:1.10.1'
+        globalImplementation 'androidx.core:core-ktx:1.15.0'
+        globalImplementation 'com.google.android.material:material:1.12.0'
+        globalImplementation 'com.google.code.gson:gson:2.10.1'
+        globalImplementation 'com.google.android.flexbox:flexbox:3.0.0'
+    }
 
     // Hilt 依赖注入
     implementation 'com.google.dagger:hilt-android:2.55'
-    implementation 'androidx.appcompat:appcompat:1.7.0'
-    implementation 'com.google.android.material:material:1.12.0'
-    implementation 'androidx.activity:activity:1.10.1'
     kapt 'com.google.dagger:hilt-compiler:2.55'
 
     // room

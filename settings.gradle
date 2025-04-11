@@ -20,16 +20,23 @@ dependencyResolutionManagement {
         maven { url 'https://repo1.maven.org/maven2/' }
         maven { url 'https://maven.aliyun.com/repository/google' }
         maven { url 'https://maven.aliyun.com/repository/jcenter' }
+        maven { url 'https://maven.google.com' }
     }
 }
 
 rootProject.name = "RnCS"
 include ':app'
-include ':common'
-project(':common').projectDir = new File(settingsDir, "../Rn_Common/common")
-include ':GtaStart'
+
+def buildVariant = settings.ext.find("RnCS.buildVariant") ?: 'global'
+
+if (buildVariant == 'china') {
+    include ':common'
+    project(':common').projectDir = new File(settingsDir, "../Rn_Common/common")
+    include ':GtaStart'
 //project(':GtaStart').projectDir = new File(settingsDir, "../Rn_SAMP_Tool/GtaStart")
-project(':GtaStart').projectDir = new File(settingsDir, "../GtaStart_app")
-include ':dyso'
-project(':dyso').projectDir = new File(settingsDir, "../Dyso_G/dyso")
+    project(':GtaStart').projectDir = new File(settingsDir, "../GtaStart_app")
+    include ':dyso'
+    project(':dyso').projectDir = new File(settingsDir, "../Dyso_G/dyso")
+}
+
 
