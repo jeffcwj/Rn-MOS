@@ -10,3 +10,6 @@
 local.properties
 /stuff
 .kotlin
+app/global/release
+release
+mapping.txt

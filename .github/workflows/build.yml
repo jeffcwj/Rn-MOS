@@ -1,0 +1,62 @@
+name: Build RnCS
+
+on:
+  push:
+  workflow_dispatch: # manual run btn
+    inputs:
+        target:
+          description: 'Select Build Target'
+          required: true
+          default: 'all'
+          type: choice
+          options:
+            - all
+            - android-apk
+  schedule:
+    - cron: '0 0 */7 * *' # run every 7 days
+
+jobs:
+  build-android-apk:
+    if: ${{ github.event.inputs.target == 'android-apk' || github.event_name == 'schedule' || github.event_name == 'push' || github.event.inputs.target == 'all' }}
+    name: Build Android apk
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout RnCS source
+        uses: actions/checkout@v4
+        with:
+          repository: jeffcwj/RnCS
+          fetch-depth: 1
+          path: RnCS
+
+      - name: Setup signing configs
+        run: |
+          echo "signing.RnCS.file=csmos.jks" >> RnCS/gradle.properties
+          echo "signing.RnCS.keyAlias=${{ secrets.SIGNING_KEY_ALIAS }}" >> RnCS/gradle.properties
+          echo "signing.RnCS.password=${{ secrets.SIGNING_KEYSTORE_PASSWORD }}" >> RnCS/gradle.properties
+          echo "signing.RnCS.keyPassword=${{ secrets.SIGNING_KEYSTORE_PASSWORD }}" >> RnCS/gradle.properties
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x RnCS/gradlew
+
+      - name: Build globalRelease APK
+        working-directory: RnCS
+        run: ./gradlew assembleGlobalRelease
+
+      - name: Find APK file
+        run: |
+          APK_PATH=$(find RnCS/app/build/outputs/apk/ -name "*.apk" -print -quit)
+          echo "APK_PATH=$APK_PATH" >> $GITHUB_ENV
+
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: ${{ env.APK_PATH }}
