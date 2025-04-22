@@ -3,6 +3,7 @@
 /local.properties
 /.idea
 .idea/
+.kotlin/
 .DS_Store
 /build
 /captures
@@ -10,7 +11,6 @@
 .cxx
 local.properties
 /stuff
-.kotlin
 app/global/release
 release
 mapping.txt
