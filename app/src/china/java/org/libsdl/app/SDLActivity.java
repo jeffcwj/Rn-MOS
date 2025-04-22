@@ -193,6 +193,8 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
     public static native void onNativeSurfaceCreated();
 
     public static native void onNativeSurfaceDestroyed();
+    public static native int nativeMain(String[] args);
+
 
     public static native void onNativeTouch(int i, int i2, int i3, float f, float f2, float f3);
 
@@ -281,6 +283,7 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
         try {
             System.loadLibrary("RnCS"); // 最后加载，不然动态库打开失败
             initRnCS(); // 马上初始化RnCS
+            // nativeMain("-insecure -maxplayers 10 -game csmos -console -port 27015 -language English +map de_dust2_FPS_Final".split(" "));
         } catch (Throwable e) {
             Log.e(TAG, "RnCS init failed: " + e);
         }

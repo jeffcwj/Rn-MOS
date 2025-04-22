@@ -7,6 +7,7 @@
 #include <vector>
 #include <mutex>
 #include <future>
+#include <dlfcn.h>
 #include <android/log.h>
 #include <spdlog/spdlog.h>
 #include <unordered_map>

@@ -13,6 +13,91 @@ SymUtils* g_libLauncher = new SymUtils();
 void installHooks();
 void installPatches();
 
+typedef int (*LauncherMain_t)( int argc, char **argv );
+
+int launch_main_android(int argc, char* argv[])
+{
+   /* void *SDL2Handle = dlopen("/data/data/rn.csgo.game/files/libs/CSMOS_v80/libSDL2.so", RTLD_NOW);
+    if (!SDL2Handle) {
+        LOGE("Failed to load SDL2: %s", dlerror());
+        return -1;
+    }
+    void *steam_apiHandle = dlopen("/data/data/rn.csgo.game/files/libs/CSMOS_v80/libsteam_api.so", RTLD_NOW);
+    if (!steam_apiHandle) {
+        LOGE("Failed to load steam_api: %s", dlerror());
+        return -1;
+    }
+    void *tier0Handle = dlopen("/data/data/rn.csgo.game/files/libs/CSMOS_v80/libtier0.so", RTLD_NOW);
+    if (!tier0Handle) {
+        LOGE("Failed to load tier0: %s", dlerror());
+        return -1;
+    }
+    void *vstdlibHandle = dlopen("/data/data/rn.csgo.game/files/libs/CSMOS_v80/libvstdlib.so", RTLD_NOW);
+    if (!vstdlibHandle) {
+        LOGE("Failed to load vstdlib: %s", dlerror());
+        return -1;
+    }
+    void *toglHandle = dlopen("/data/data/rn.csgo.game/files/libs/CSMOS_v80/libtogl.so", RTLD_NOW);
+    if (!toglHandle) {
+        LOGE("Failed to load togl: %s", dlerror());
+        return -1;
+    }
+
+    void *filesystem_stdioHandle = dlopen("/data/data/rn.csgo.game/files/libs/CSMOS_v80/libfilesystem_stdio.so", RTLD_NOW);
+    if (!filesystem_stdioHandle) {
+        LOGE("Failed to load filesystem_stdio: %s", dlerror());
+        return -1;
+    }*/
+
+    const char *lib_path = "/data/data/rn.csgo.game/files/libs/CSMOS_v80/liblauncher.so";
+
+    void *handle = dlopen(lib_path, RTLD_NOW);
+    if (!handle) {
+        LOGE("Failed to load launcher: %s", dlerror());
+        return -1;
+    }
+
+    LauncherMain_t mainFunc = (LauncherMain_t)dlsym(handle, "LauncherMain");
+    if (!mainFunc) {
+        LOGE("Failed to find LauncherMain: %s", dlerror());
+        dlclose(handle);
+        return -2;
+    }
+
+    // 可选调试日志
+    LOGI("Calling LauncherMain...");
+    int result = mainFunc(argc, argv);
+    // dlclose(handle);
+    return result;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+//Java_com_billflx_csgo_MainActivity_00024Companion_nativeMain(JNIEnv *env, jobject thiz, jobjectArray jargs)
+ Java_org_libsdl_app_SDLActivity_nativeMain(JNIEnv *env, jclass thiz, jobjectArray jargs)
+{
+    int argc = env->GetArrayLength(jargs);
+    char* argv[argc + 1];
+
+    for (int i = 0; i < argc; i++) {
+        jstring str = (jstring)env->GetObjectArrayElement(jargs, i);
+        const char* utf = env->GetStringUTFChars(str, 0);
+        argv[i] = strdup(utf);
+        env->ReleaseStringUTFChars(str, utf);
+    }
+    argv[argc] = NULL;
+
+    LOGD("测试试试水");
+    int result = launch_main_android(argc, argv);
+
+    for (int i = 0; i < argc; i++) {
+        free(argv[i]);
+    }
+
+    return result;
+}
+
+
 jint JNI_OnLoad(JavaVM* vm, [[maybe_unused]] void* reserved)
 {
 	JNIEnv* env;
@@ -55,7 +140,11 @@ jint JNI_OnLoad(JavaVM* vm, [[maybe_unused]] void* reserved)
         libEnginePath = "/data/data/rn.csgo.game/files/libs/CSMOS_v78/libengine.so";
         libGameUIPath = "/data/data/rn.csgo.game/files/libs/CSMOS_v78/libGameUI.so";
         libServerBrowserPath = "/data/data/rn.csgo.game/files/libs/CSMOS_v78/libServerBrowser.so";
-    } // TODO: not done
+    } else if (g_java->getFlavor() == CSVersion::CSMOSV80) {
+        libEnginePath = "/data/data/rn.csgo.game/files/libs/CSMOS_v80/libengine.so";
+        libGameUIPath = "/data/data/rn.csgo.game/files/libs/CSMOS_v80/libGameUI.so";
+        libServerBrowserPath = "/data/data/rn.csgo.game/files/libs/CSMOS_v80/libServerBrowser.so";
+    }
 
     spdlog::info("CSMOS version: {}", g_java->getFlavor());
 

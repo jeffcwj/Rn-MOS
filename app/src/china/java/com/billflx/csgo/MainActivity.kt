@@ -2,9 +2,6 @@ package com.billflx.csgo
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.AlertDialog
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,12 +10,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.RelativeLayout
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.material3.LocalAbsoluteTonalElevation
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -32,29 +24,36 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.gtastart.common.theme.GtaStartTheme
 import com.gtastart.common.util.MHelpers
 import com.gtastart.common.util.MToast
-import com.gtastart.common.util.extend.createNoMedias
-import com.gtastart.common.util.extend.deleteNoMedias
-import com.gtastart.common.util.extend.refreshMediaScanner
 import com.gtastart.data.constant.CsConstants
-import com.gtastart.ui.forum.auth.activity.WPLoginActivity
+import com.valvesoftware.ValveActivity2
 import com.valvesoftware.source.R
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.nillerusr.LauncherActivity
-import java.io.File
-import javax.inject.Inject
 
 val LocalMainViewModel = staticCompositionLocalOf<MainViewModel> {
     error("LocalMainViewModel Not Provide")
 }
+
 
 @AndroidEntryPoint
 class MainActivity : LauncherActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
+
+        init {
+            /* try {
+                 System.loadLibrary("RnCS")
+                 // initRnCS()
+                 nativeMain("-insecure -maxplayers 10 -game csmos -console -port 27015 -language English +map de_dust2_FPS_Final".split(" ").toTypedArray())
+             } catch (e: Throwable) {
+                 Log.e(TAG, "RnCS server init failed: $e")
+             }*/
+        }
+        // external fun nativeMain(args: Array<String>): Int
 
         /**
          * 检测更新

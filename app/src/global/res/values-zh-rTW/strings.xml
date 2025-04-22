@@ -28,6 +28,7 @@
     <string name="srceng_game_portal">傳送門</string>
 
     <string name="srceng_dir_choice_btn">設定當前目錄為遊戲資源路徑</string>
+    <string name="load_failed">加载失败</string>
     <string name="setting">设置</string>
     <string name="select">选择</string>
     <string name="create_folder">创建文件夹</string>
@@ -99,5 +100,15 @@
     <string name="view_common_cmds">查看常用指令</string>
     <string name="common_cmds">常用指令</string>
     <string name="download_full_version_rncs">下载Rn:CS完整版</string>
+    <string name="refreshing">正在刷新...</string>
+    <string name="rncs_qq_group">Rn:CS官方群</string>
+    <string name="cnsr_qq_group">CNSR™起源引擎主群</string>
+    <string name="rightnow_source_launcher">Rn·起源启动器</string>
+    <string name="loading___">加载中...</string>
+    <string name="refresh">刷新</string>
+    <string name="resource">资源</string>
+    <string name="server">服务器</string>
+    <string name="home">主页</string>
+    <string name="retry">重试</string>
 
 </resources>

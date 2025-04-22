@@ -197,12 +197,12 @@
 										android:layout_width="wrap_content"
 										android:layout_height="wrap_content"
 										android:id="@+id/btn_join_rncs_qq"
-										android:text="Rn:CS官方群"/>
+										android:text="@string/rncs_qq_group"/>
 									<Button
 										android:layout_width="wrap_content"
 										android:layout_height="wrap_content"
 										android:id="@+id/btn_join_cnsr_qq"
-										android:text="CSNR™起源引擎主群"/>
+										android:text="@string/cnsr_qq_group"/>
 
 								</com.google.android.flexbox.FlexboxLayout>
 
