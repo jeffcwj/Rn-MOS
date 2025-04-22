@@ -2,7 +2,7 @@
 <resources>
     <string name="srceng_app_name">Rn:CS Lite</string>
     <string name="srceng_game_name">CS:MOS</string>
-    <string name="srceng_launcher_default_argv">-console -game csmos</string>
+    <string name="srceng_launcher_default_argv">-console -autoscaleui -game csmos</string>
 
     <string name="srceng_launcher_about">About</string>
     <string name="srceng_launcher_about_text">\nThanks to nillerusr and jusic for port\nvalve for source engine\nhttps://github.com/nillerusr/srceng-android\nhttps://github.com/nillerusr/source-engine\n\nNot for commercial use!\nContact Us: unknownandlost11@gmail.com\n\nDonate: https://new.donatepay.ru/@nillerusr\nBTC(Bitcoin): bc1qnjq92jj9uqjtafcx2zvnwd48q89hgtd6w8a6na\nXMR(Monero): 48iXvX61MU24m5VGc77rXQYKmoww3dZh6hn7mEwDaLVTfGhyBKq2teoPpeBq6xvqj4itsGh6EzNTzBty6ZDDevApCFNpsJg</string> <!--- Not available -->
