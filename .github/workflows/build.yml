@@ -19,7 +19,7 @@ jobs:
   build-android-apk:
     if: ${{ github.event.inputs.target == 'android-apk' || github.event_name == 'schedule' || github.event_name == 'push' || github.event.inputs.target == 'all' }}
     name: Build Android apk
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout RnCS source
