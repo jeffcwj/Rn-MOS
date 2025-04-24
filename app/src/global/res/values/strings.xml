@@ -124,6 +124,7 @@
     <string name="refreshing">Refreshing...</string>
     <string name="rncs_qq_group">Rn:CS QQ Group</string>
     <string name="cnsr_qq_group">CNSR™ QQ Group</string>
+    <string name="ping_ms">%d ms</string>
 
 
 </resources>

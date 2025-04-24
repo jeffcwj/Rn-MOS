@@ -116,5 +116,14 @@ class CSMOSUtils {
         fun importMapMod(zipPath: String) {
 
         }
+
+        fun addCustomMainServers() {
+            val servers = Constants.appUpdateInfo.value?.link?.serverRootLink
+            if (servers?.size != 0)
+                removeCustomAutoExecCmd("addmaster ") // 移除老的
+            servers?.forEach {
+                val list = addCustomAutoExecCmd("addmaster \"$it\"") // 添加新的
+            }
+        }
     }
 }

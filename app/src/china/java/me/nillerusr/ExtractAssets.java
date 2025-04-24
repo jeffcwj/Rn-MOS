@@ -147,7 +147,7 @@ public class ExtractAssets {
             byte[] buffer = new byte[1024];
             int bytesRead;
             while ((bytesRead = mInputStream.read(buffer)) > 0) {
-//                mFileOutputStream.write(buffer, 0, bytesRead);
+                mFileOutputStream.write(buffer, 0, bytesRead);
             }
 
             // 关闭流
@@ -163,9 +163,10 @@ public class ExtractAssets {
 
     public static void extractExecAsset(Context context, String asset, String targetPath) {
         File targetFile = new File(targetPath, asset);
-//        targetFile.setReadable(true);
-//        targetFile.setWritable(true);
-//        targetFile.setExecutable(true);
+        targetFile.setReadable(true);
+        targetFile.setWritable(true);
+        targetFile.setExecutable(true);
+        // 在线下载的不移除
         /*if (targetFile.exists()) {
             boolean isOk = targetFile.delete();
             Log.d(TAG, "remove old lib: " + isOk);
@@ -190,6 +191,7 @@ public class ExtractAssets {
         String versionName = mPref.getString("current_cs_version", CSVersionInfoEnum.Companion.getDefaultName());
 
         String vpkName = mPref.getString("current_vpk", "extras_dir.vpk");
+        Log.d(TAG, "extractVPK: versionName: " + versionName + ", vpkName: " + vpkName);
         // 选择 pak版本 解压
         extractAsset(context, vpkName, true);
 //        extractAsset(context, VPK_NAME, force); // 原版解压
@@ -215,7 +217,7 @@ public class ExtractAssets {
             String[] fileNames = context.getAssets().list(libRelativePath);
             Log.d(TAG, "extractLibs: " + Arrays.toString(fileNames));
             for (String fileName: fileNames) {
-                // extractExecAsset(context, libRelativePath + "/" + fileName, context.getFilesDir().getPath());
+                extractExecAsset(context, libRelativePath + "/" + fileName, context.getFilesDir().getPath());
             }
         } catch (IOException e) {
             Log.d(TAG, "extractLibs: " + e);

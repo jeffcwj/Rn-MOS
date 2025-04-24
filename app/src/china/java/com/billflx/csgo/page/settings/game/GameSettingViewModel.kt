@@ -81,7 +81,7 @@ class GameSettingViewModel @Inject constructor(
     val finishCount = mutableStateOf(0)
     val totalCount = mutableStateOf(0)
 
-    val isFilesMd5Passed = mutableStateOf(0) // 0 校验中 1 通过 -1 异常
+    val isFilesMd5Passed = mutableStateOf(0) // 0 校验中 1 通过 -1 异常 2 无需检测
 
     @OptIn(ExperimentalPagingApi::class)
     val pager: Pager<Int, CSVersionInfo> = Pager(
@@ -215,6 +215,10 @@ class GameSettingViewModel @Inject constructor(
         verifyJob = viewModelScope.launch(Dispatchers.IO) {
             isFilesMd5Passed.value = 0
             _currentVersion.value?.let b@ { version ->
+                if (CSMOSUtils.isAssetExist(app, version.libPath.orEmpty())) {
+                    isFilesMd5Passed.value = 2 // 检测为内置动态库版本，直接判断存在
+                    return@launch
+                }
                 val parent = File(AppLocalDataSource.getLibParentPath(), version.libPath.orEmpty())
                 val vpkFile = File(AppLocalDataSource.getLibParentPath(), version.vpkName.orEmpty())
 
@@ -249,6 +253,11 @@ class GameSettingViewModel @Inject constructor(
 
     fun isVersionExist(): Boolean {
         _currentVersion.value?.let { version ->
+            Log.d(TAG, "isVersionExist: ${version.libPath}")
+            if (CSMOSUtils.isAssetExist(app, version.libPath.orEmpty())) {
+                isInstalled.value = true
+                return@let true // 检测为内置动态库版本，直接判断存在
+            }
             val parentPath = app.filesDir.path + version.libPath
             version.fileList?.forEach {
                 val path = parentPath + File.separator + it.fileName

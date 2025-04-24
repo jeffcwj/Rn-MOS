@@ -344,7 +344,7 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
 
     public void init() {
         String filename;
-        ExtractAssets.extractAssets(this); // TODO 在这解压试一下
+        ExtractAssets.extractAssets(this); // 修改为在这里解压
         if (!mIsInitCalled) {
             mIsInitCalled = true;
             try {

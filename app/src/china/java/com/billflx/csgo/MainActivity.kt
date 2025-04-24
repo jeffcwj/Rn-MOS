@@ -142,14 +142,14 @@ class MainActivity : LauncherActivity() {
         launch_screen_refresh = launch_app_screen.findViewById<Button>(R.id.launch_screen_refresh)
         launch_screen_refresh?.setOnClickListener {
             MToast("正在刷新...")
-            lifecycleScope.launch {
+            lifecycleScope.launch(Dispatchers.IO) {
                 checkUpdate(mainViewModel, this@MainActivity)
             }
             launch_screen_refresh?.setVisibility(View.GONE)
         }
 
         // 检测更新
-        lifecycleScope.launch {
+        lifecycleScope.launch(Dispatchers.IO) {
             checkUpdate(mainViewModel, this@MainActivity)
         }
 

@@ -1,10 +1,12 @@
 package com.billflx.csgo
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.Button
 import android.widget.RelativeLayout
 import androidx.compose.runtime.mutableStateOf
@@ -12,6 +14,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.lifecycle.lifecycleScope
 import com.billflx.csgo.bean.AppUpdateBean
 import com.billflx.csgo.constant.Constants
+import com.billflx.csgo.page.server.ServerActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.gson.Gson
 import com.gtastart.common.util.CommonUtils
@@ -24,7 +27,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.nillerusr.LauncherActivity
 
-
 @AndroidEntryPoint
 class MainActivity : LauncherActivity() {
 
@@ -36,6 +38,9 @@ class MainActivity : LauncherActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 设置窗口不自动弹出输入法
+        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
 
         // 添加启动加载界面
         val launch_app_screen = LayoutInflater.from(this).inflate(R.layout.launch_app_screen, null) as RelativeLayout
@@ -62,6 +67,12 @@ class MainActivity : LauncherActivity() {
         btnDownloadRnCSFull.setOnClickListener {
             MHelpers.openBrowser(this, Constants.DownloadFullVerRnCSLink)
         }
+
+        val btnServerList = findViewById<Button>(R.id.button_server_list)
+        btnServerList.setOnClickListener {
+            startActivity(Intent(this, ServerActivity::class.java))
+        }
+
         val btn_join_github = findViewById<Button>(R.id.btn_join_github)
         btn_join_github.setOnClickListener {
             MHelpers.openBrowser(this, "https://github.com/jeffcwj/RnCS")
@@ -132,12 +143,9 @@ class MainActivity : LauncherActivity() {
             Log.d(TAG, "checkUpdate: 检测更新失败 $e")
             launch_screen_refresh?.visibility = View.VISIBLE
         }
-
     }
-
 
     override fun onPause() {
         super.onPause()
     }
-
 }

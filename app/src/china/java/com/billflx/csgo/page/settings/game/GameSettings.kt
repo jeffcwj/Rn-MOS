@@ -329,6 +329,8 @@ fun GameSettings(
                                 passColor to "通过"
                             } else if (isVerify == -1) {
                                 errorColor to "失败，若遇到问题请删除重下"
+                            } else if (isVerify == 2) {
+                                Color.Unspecified to "内置版本无需检测"
                             } else {
                                 Color.Unspecified to "无法加载联网数据"
                             }
@@ -336,7 +338,7 @@ fun GameSettings(
                                 viewModel.verifyAllFile()
                             }
                             TextPref(
-                                title = "校验版本完整性",
+                                title = "校验核心库完整性",
                                 onClick = {
                                     viewModel.verifyAllFile()
                                 },

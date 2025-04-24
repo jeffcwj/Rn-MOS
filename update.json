@@ -1,9 +1,9 @@
 {
   "app":{
-    "version":"r6.2",
+    "version":"v9.0",
     "versionCode":"1",
     "updateMsg":"there's new version!",
-    "allowVersions":"r6.2",
+    "allowVersions":"v9.0",
     "notice":"RnCS更新请加群\n————请加入Rn:MOS通知群756647416获取更新\n\nRn所有服务器已经关闭友伤与麦克风，请文明游戏\n反馈进入官方群:756647416\n满十竞技服密码加群获取\n\n软件完全免费，若上当受骗，概不负责",
     "popOutNotice":"自助开服功能正在维护中\n\n如果遇到无法进入游戏主菜单，卡在CSMOS或者CM图标启动界面，不显示菜单UI按钮和设置选项等，请重新解压数据包，解压过程中不要离开软件，避免解压不完全。或者使用MT管理器手动解压（下载的数据包处于/storage/emulated/0/Download/CSMOSDownload/目录下），下个版本将着力优化和修复解压问题，替换为MT管理器同款7z解压库",
     "noticeVersion":7,

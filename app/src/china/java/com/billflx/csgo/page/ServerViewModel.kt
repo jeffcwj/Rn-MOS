@@ -18,6 +18,7 @@ import com.billflx.csgo.data.repo.AppRepository
 import com.billflx.csgo.data.repo.CSVersionInfoRepository
 import com.billflx.csgo.page.MainViewModel.Companion
 import com.billflx.csgo.page.settings.game.GameSettingViewModel
+import com.gtastart.common.util.CSMOSUtils
 import com.gtastart.common.util.Coroutines
 import com.gtastart.common.util.CsMosQuery
 import com.gtastart.common.util.CsPayload
@@ -230,10 +231,17 @@ class ServerViewModel @Inject constructor(
         return getLocalVersion().firstOrNull { it.versionName == versionName }?.versionNameForShow?:versionName
     }
 
+    /**
+     * 版本是否存在
+     * 2025/04/22 更新：检测内置版本
+     */
     suspend fun isVersionExist(versionName: String): Boolean {
         val infos = getLocalVersion().firstOrNull { it.versionName == versionName }
         if (infos != null) {
             val version = infos
+            if (CSMOSUtils.isAssetExist(app, version.libPath.orEmpty())) {
+                return true // 检测为内置动态库版本，直接判断存在
+            }
             val parentPath = app.filesDir.path + version.libPath
             version.fileList?.forEach {
                 val path = parentPath + File.separator + it.fileName

@@ -165,6 +165,17 @@
 							android:layout_marginBottom="5dp"
 							android:textColor="#FFFFFF"/>
 
+						<Button
+							android:id="@+id/button_server_list"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:text="@string/server_list"
+							android:layout_marginLeft="3dp"
+							android:layout_marginRight="3dp"
+							android:layout_marginTop="5dp"
+							android:layout_marginBottom="5dp"
+							android:textColor="#FFFFFF"/>
+
 						<com.google.android.material.card.MaterialCardView
 							android:layout_width="match_parent"
 							android:layout_marginLeft="3dp"

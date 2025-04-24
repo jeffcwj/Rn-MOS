@@ -60,6 +60,16 @@ android {
                 outputFileName = "RnCS_${variant.versionName.replace(" ", "_")}.apk"
 //                outputFileName = "RnMOS_${flavorName.replace("-", ".")}_${variant.versionName}.apk"
             }
+
+            if (project.findProperty('RnCS.includeAssets') != 'true' || project.findProperty('RnCS.buildVariant') != 'china') {
+                def outputDir = variant.mergeAssetsProvider.get().outputDir
+                variant.mergeAssetsProvider.configure {
+                    doLast {
+                        println("[gradle] assets输出目录: " + outputDir)
+                        delete(fileTree(dir: outputDir, includes: ['libs/**', '*.vpk']))
+                    }
+                }
+            }
     }
 
 
@@ -133,6 +143,7 @@ dependencies {
         globalImplementation 'com.google.android.material:material:1.12.0'
         globalImplementation 'com.google.code.gson:gson:2.10.1'
         globalImplementation 'com.google.android.flexbox:flexbox:3.0.0'
+        globalImplementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     }
 
     // Hilt 依赖注入

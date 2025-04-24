@@ -90,6 +90,10 @@
         <meta-data
             android:name="android.allow_multiple_resumed_activities"
             android:value="true" />
+
+        <activity
+            android:name="com.billflx.csgo.page.server.ServerActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

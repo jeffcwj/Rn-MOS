@@ -110,7 +110,7 @@ public class ValveActivity2 {
         if (gamelibdir != null && !gamelibdir.isEmpty()) {
             setenv("APP_MOD_LIB", gamelibdir, 1);
         }
-//        ExtractAssets.extractAssets(context); // TODO 解压资源 我换个地方解压
+//        ExtractAssets.extractAssets(context); // 解压资源 已经移动至SDLActivity的init方法
 //        String vpks = context.getFilesDir().getPath() + "/" + ExtractAssets.VPK_NAME; // old
 //        String versionName = ModLocalDataSource.INSTANCE.getCurrentCSVersion(); // 获取当前CS版本
         String versionName = mPref.getString("current_cs_version", CSVersionInfoEnum.Companion.getDefaultName());

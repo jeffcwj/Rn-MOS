@@ -14,3 +14,5 @@ local.properties
 app/global/release
 release
 mapping.txt
+app/src/main/assets/libs/
+app/src/main/assets/*.vpk

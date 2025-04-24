@@ -1,5 +1,6 @@
 package com.gtastart.common.util
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -261,6 +262,12 @@ class CSMOSUtils {
                 onDataUpdate(formatOutput("检测完毕，特征检测不通过（暂时仅支持CSMOS和ClientMod特征检测，检测结果仅供参考，具体请运行游戏查看情况）", false))
             }
         }
+
+        fun isAssetExist(context: Context, folderPath: String) =
+            AssetsUtils.Companion.listFileNames(
+                context = context,
+                folderPath = folderPath.removePrefix("/")
+            ).isNotEmpty()
 
         /**
          * @return -1 数据不存在 0 数据正常 2 数据缺失
