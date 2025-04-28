@@ -223,6 +223,8 @@ class GameSettingViewModel @Inject constructor(
                 val vpkFile = File(AppLocalDataSource.getLibParentPath(), version.vpkName.orEmpty())
 
                 version.vpkMd5?.let {
+                    Log.d(TAG, "verifyVpkMd5: ${vpkFile.path}, isExist: ${vpkFile.exists()} md5_expected: ${it}")
+
                         if (!vpkFile.exists() ||
                             !verifyFileMd5(vpkFile, it)) {
                             isFilesMd5Passed.value = -1
@@ -236,6 +238,7 @@ class GameSettingViewModel @Inject constructor(
                 version.fileList?.let a@ {
                     it.forEach {
                         val soFile = File(parent, it.fileName.orEmpty())
+                        Log.d(TAG, "verifySoFile: ${soFile.path}, md5_expected: ${it.md5.orEmpty()}")
                         if (soFile.name.endsWith(".so") && (!soFile.exists() || !verifyFileMd5(soFile, it.md5.orEmpty()))) {
                             isFilesMd5Passed.value = -1
                             return@b

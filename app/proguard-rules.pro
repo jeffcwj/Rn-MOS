@@ -46,6 +46,10 @@
 -keep class com.gtastart.** { *; }
 -keep interface com.gtastart.** { *; }
 
+-dontwarn wp.zibll.**
+-keep class wp.zibll.** { *; }
+-keep interface wp.zibll.** { *; }
+
 # 保留 TimeUtils 类
 -keep class com.gtastart.util.TimeUtils { *; }
 

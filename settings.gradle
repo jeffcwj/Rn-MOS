@@ -37,7 +37,7 @@ if (buildVariant == 'china') {
     include ':dyso'
     project(':dyso').projectDir = new File(settingsDir, "../Dyso_G/dyso")
     include ':ZibllApi'
-    project(':ZibllApi').projectDir = new File(settingsDir, "../../../Jvav/Apis/ZibllApi")
+    project(':ZibllApi').projectDir = new File(settingsDir, "../../../Jvav/ZibllApi/ZibllApi")
 }
 
 

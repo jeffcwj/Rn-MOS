@@ -40,8 +40,8 @@ class CSApplication : GtaStartApplication() {
 
         initOkkv()
 
-        ModLocalDataSource.init(context)
-        AppLocalDataSource.init(context)
+        ModLocalDataSource.init(context!!)
+        AppLocalDataSource.init(context!!)
 
         // 初始化 Bugly
         val strategy = UserStrategy(applicationContext)
