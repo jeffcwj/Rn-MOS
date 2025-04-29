@@ -193,41 +193,52 @@ public class CsMosQuery {
             buff.position(posTmp);
             String serverName = getStringFromBuffer(buff);
             infos.setServerName(serverName);
-            Log.d(TAG, "serverName: " +serverName);
+            // Log.d(TAG, "serverName: " +serverName);
 
             /**
              * 服务器地图 cnsr_cache_v1
              */
             String serverMap = getStringFromBuffer(buff);
             infos.setServerMap(serverMap);
-            Log.d(TAG, "serverMap: " + serverMap);
+            // Log.d(TAG, "serverMap: " + serverMap);
 
             /**
              * 文件夹名称 csmos
              */
             String s1 = getStringFromBuffer(buff);
-            Log.d(TAG, "getInfos: " + s1);
+            // Log.d(TAG, "getInfos: " + s1);
 
             /**
              * 完整游戏名 Counter-Strike: Source Offensive
              */
             String gameName = getStringFromBuffer(buff);
-            Log.d(TAG, "gameName: " + gameName);
+            // Log.d(TAG, "gameName: " + gameName);
 
             /**
              * 人数
              */
             int players = buff.get() & 0xFF;
             int maxPlayers = buff.get() & 0xFF;
-            Log.d(TAG, "players: " + players + " / " + maxPlayers);
+            // Log.d(TAG, "players: " + players + " / " + maxPlayers);
             infos.setPlayers(players);
             infos.setMaxPlayers(maxPlayers);
             infos.setPlayerCountInfo(players + " / " + maxPlayers);
 
+            int unk = buff.get() & 0xFF;
+            int hasPassword = buff.get() & 0xFF;
+            infos.setHasPassword(hasPassword == 1);
 
             buff.position(0);
-            String data = Charset.forName(charset).decode(buff).toString();
-            Log.d(TAG, "getInfos: " + data);
+            int length = buff.remaining(); // 获取可读数据长度
+            StringBuilder hexOutput = new StringBuilder();
+
+            for (int i = 0; i < length; i++) {
+                byte b = buff.get();
+                hexOutput.append(String.format("%02X ", b)); // 格式化为两位16进制并加空格
+            }
+
+//            String data = Charset.forName(charset).decode(buff).toString();
+            // Log.d(TAG, "getInfos: " + hexOutput);
 
             return infos;
         }catch (Exception e){

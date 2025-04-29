@@ -259,7 +259,7 @@ class CSMOSUtils {
             } else if (cmResult) {
                 onDataUpdate(formatOutput("检测完毕，ClientMod特征通过", true))
             } else {
-                onDataUpdate(formatOutput("检测完毕，特征检测不通过（暂时仅支持CSMOS和ClientMod特征检测，检测结果仅供参考，具体请运行游戏查看情况）", false))
+                onDataUpdate(formatOutput("检测完毕，特征检测不通过（暂时仅支持CSMOS v7以上和ClientMod v1.3.1的特征检测，检测结果仅供参考，具体请运行游戏查看情况）", false))
             }
         }
 

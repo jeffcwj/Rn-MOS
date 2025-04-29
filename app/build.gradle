@@ -38,7 +38,7 @@ android {
             }
             create('china')  {
                 dimension "region"
-                versionName "r11.4"
+                versionName "r11.5"
             }
         }
     }

@@ -1,10 +1,16 @@
-package com.billflx.csgo.page
+package com.billflx.csgo.page.server
 
 import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,7 +19,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,6 +32,9 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,6 +43,8 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -42,9 +55,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -96,14 +109,17 @@ import com.billflx.csgo.nav.LocalMainPageNav
 import com.billflx.csgo.nav.LocalServerViewModel
 import com.billflx.csgo.nav.LocalSettingViewModel
 import com.billflx.csgo.nav.MainPageDestination
+import com.billflx.csgo.page.SettingViewModel
 import com.gtastart.common.theme.GtaStartTheme
 import com.gtastart.common.util.CSMOSUtils
 import com.gtastart.common.util.CsPayload
 import com.gtastart.common.util.MOSDialog
 import com.gtastart.common.util.MToast
+import com.gtastart.common.util.compose.isCompatHorizontal
 import com.gtastart.common.util.compose.matchContentHeight
 import com.gtastart.common.util.compose.navigateSingleTopTo
 import com.gtastart.common.util.compose.widget.MCustomAlertDialog
+import com.gtastart.common.util.compose.widget.ViewLikeIndicator
 import com.gtastart.common.util.isBlank
 import com.valvesoftware.ValveActivity2
 import com.valvesoftware.source.R
@@ -119,56 +135,28 @@ fun ServerPage(
 ) {
     val context = LocalContext.current
     val mainPageNav = LocalMainPageNav.current
+
+    var showDialog = rememberSaveable { mutableStateOf(false) }
+    when {
+        showDialog.value -> {
+            EditAutoExecDialog( // 编辑自定义参数弹窗
+                showDialog = showDialog
+            )
+        }
+    }
+
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(stringResource(R.string.server_list), modifier = modifier.padding(start = GtaStartTheme.spacing.small))
-                },
-                navigationIcon = {
-                    Image(
-                        painter = painterResource(R.drawable.rn_logo),
-                        contentDescription = null,
-                        modifier = modifier
-                            .padding(start = GtaStartTheme.spacing.normal)
-                            .size(36.dp)
-                            .clip(CircleShape),
-                    )
-                },
-                actions = {
-                    val density = LocalDensity.current
-                    var showDialog = rememberSaveable { mutableStateOf(false) }
-                    when {
-                        showDialog.value -> {
-                            EditAutoExecDialog( // 编辑自定义参数弹窗
-                                showDialog = showDialog
-                            )
-                        }
-                    }
-                    /// 设置自定义启动命令
-                    Text(stringResource(R.string.custom_autoexec_cmd),
-                        style = MaterialTheme.typography.bodyMedium)
-                    IconButton(
-                        onClick = {
-                            showDialog.value = true
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = null
-                        )
-                    }
-                }
-            )
+            TopBar(showDialog = showDialog)
         },
-        floatingActionButton = {
+        floatingActionButton = { // FAB
             val scope = rememberCoroutineScope()
             val launcher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.StartActivityForResult()
             ) { result ->
                 // 游戏结束以后刷新列表数据
                 Log.d("", "ServerPage: 游戏结束")
-                viewModel.refreshServerList()
+                // viewModel.refreshServerList()
             }
             val fabContainerColor = FloatingActionButtonDefaults.containerColor
             ElevatedCard(
@@ -182,15 +170,16 @@ fun ServerPage(
                     modifier = Modifier
                         .wrapContentSize()
                         .height(IntrinsicSize.Min),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.small),
-                        horizontalAlignment = Alignment.CenterHorizontally,
+                    Row(
                         modifier = Modifier
                             .clickable {
                                 scope.launch {
-                                    val version = viewModel.getExistVersion().firstOrNull { it.versionName == ModLocalDataSource.getCurrentCSVersion() }
-                                    val argvMap = CSMOSUtils.stringToArgsMap(version?.argv.orEmpty())
+                                    val version = viewModel.getExistVersion()
+                                        .firstOrNull { it.versionName == ModLocalDataSource.getCurrentCSVersion() }
+                                    val argvMap =
+                                        CSMOSUtils.stringToArgsMap(version?.argv.orEmpty())
                                     var csType = ""
                                     val gameArg = argvMap.get("-game")
                                     if (argvMap.isNotEmpty() && gameArg != null) {
@@ -208,15 +197,15 @@ fun ServerPage(
                                             mainPageNav.navigateSingleTopTo(MainPageDestination.AGameSetting.route)
                                         }
                                         /*MOSDialog.show(
-                                            context,
-                                            title = "提示",
-                                            message = "请先前往游戏版本管理页面，下载版本基础数据和游戏数据",
-                                            positiveButtonText = "确定",
-                                            onPositiveButtonClick = { d, _ ->
-                                                mainPageNav.navigateSingleTopTo(MainPageDestination.AGameSetting.route)
-                                                d.dismiss()
-                                            }
-                                        )*/
+                                        context,
+                                        title = "提示",
+                                        message = "请先前往游戏版本管理页面，下载版本基础数据和游戏数据",
+                                        positiveButtonText = "确定",
+                                        onPositiveButtonClick = { d, _ ->
+                                            mainPageNav.navigateSingleTopTo(MainPageDestination.AGameSetting.route)
+                                            d.dismiss()
+                                        }
+                                    )*/
                                         return@launch
                                     } else if (result != 1) {
                                         if (result == 0) {
@@ -227,8 +216,10 @@ fun ServerPage(
                                                 title = "提示",
                                                 message = "未检测到数据包，你可以：\n1. 前往游戏设置板块，点击「下载游戏数据包」选项进行下载\n2. 如果你已下载了数据包，请到下载管理解压安装\n3.如果本地存在数据包，请到游戏设置板块，并点击「游戏资源路径」进行选择",
                                                 positiveButtonText = "前往设置",
-                                                onPositiveButtonClick = { d,_ ->
-                                                    mainPageNav.navigateSingleTopTo(MainPageDestination.AGameSetting.route)
+                                                onPositiveButtonClick = { d, _ ->
+                                                    mainPageNav.navigateSingleTopTo(
+                                                        MainPageDestination.AGameSetting.route
+                                                    )
                                                     d.dismiss()
                                                 }
                                             )
@@ -240,8 +231,10 @@ fun ServerPage(
                                                 title = "提示",
                                                 message = "检测到数据包存在问题，未找到platform文件夹。请前往游戏设置板块，重新下载数据包",
                                                 positiveButtonText = "前往设置",
-                                                onPositiveButtonClick = { d,_ ->
-                                                    mainPageNav.navigateSingleTopTo(MainPageDestination.AGameSetting.route)
+                                                onPositiveButtonClick = { d, _ ->
+                                                    mainPageNav.navigateSingleTopTo(
+                                                        MainPageDestination.AGameSetting.route
+                                                    )
                                                     d.dismiss()
                                                 }
                                             )
@@ -256,20 +249,42 @@ fun ServerPage(
                                 }
                             }
                             .padding(
-                                vertical = GtaStartTheme.spacing.medium,
-                                horizontal = GtaStartTheme.spacing.large
-                            )
+                                end = if (isCompatHorizontal()) 0.dp else GtaStartTheme.spacing.large,
+                                start = GtaStartTheme.spacing.large,
+                                top = GtaStartTheme.spacing.medium,
+                                bottom = GtaStartTheme.spacing.medium
+                            ),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.small),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier
+                        ) {
+                            Text(
+                                text = stringResource(R.string.launch_game_to_main_interface),
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                            Text(
+                                text = viewModel.currentVersion.value,
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
 
-                        Text(
-                            text = stringResource(R.string.launch_game_to_main_interface),
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                        Text(
-                            text = viewModel.currentVersion.value,
-                            style = MaterialTheme.typography.labelSmall
-                        )
+                        if (isCompatHorizontal()) {
+                            IconButton(
+                                onClick = {
+                                    showDialog.value = true // 打开编辑autoexec.cfg弹窗
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Settings,
+                                    contentDescription = null
+                                )
+                            }
+                        }
                     }
+
                     VerticalDivider()
                     var currentVersion by viewModel.currentVersion
                     LaunchedEffect(Unit) {
@@ -304,9 +319,11 @@ fun ServerPage(
                 }
             }
         }
-    ) { innerPadding ->
+    ) { innerPadding -> // 包含状态栏高度？
         ServerContent(
-            modifier = modifier.padding(innerPadding)
+            modifier = modifier.padding(innerPadding),
+            showDialog = showDialog,
+            innerPadding = PaddingValues(0.dp)
         )
     }
 }
@@ -371,283 +388,121 @@ private fun selectVersionDialog(
 }
 
 @Composable
-private fun EditAutoExecDialog(
-    modifier: Modifier = Modifier,
-    showDialog: MutableState<Boolean>
-) {
-    val context = LocalContext.current
-    val showToturial = rememberSaveable { mutableStateOf(false) }
-    val showCmds = rememberSaveable { mutableStateOf(false) }
-    // 存储用户输入内容
-    val textState = remember { mutableStateOf(TextFieldValue("")) }
-    val settingVM = LocalSettingViewModel.current
-    val viewModel = hiltViewModel<ServerViewModel>()
-    val scope = rememberCoroutineScope()
-
-    LaunchedEffect(Unit) {
-        // val currentCSVersion = ModLocalDataSource.getCurrentCSVersion()
-        // settingVM.applySettingsToModSP(currentCSVersion, true) // 临时切换路径
-        textState.value = TextFieldValue(CSMOSUtils.removeAutoConnectInfo())
-    }
-
-    MCustomAlertDialog( // 设置启动命令弹窗
-        title = stringResource(R.string.launch_cmd),
-        content = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal)
-            ) {
-                DynamicHighlightedTextField(textState = textState)
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal)
-                ) {
-                    Text(buildAnnotatedString {
-                        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-                            append(stringResource(R.string.show_toturial))
-                        }
-                    }, modifier = modifier.clickable {
-                        showToturial.value = !showToturial.value
-                    })
-                    Text(buildAnnotatedString {
-                        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-                            append(stringResource(R.string.view_common_cmds))
-                        }
-                    }, modifier = modifier.clickable {
-                        showCmds.value = !showCmds.value
-                    })
-                }
-
-                when { // 教程区域
-                    showToturial.value -> {
-                        Text(stringResource(R.string.tip_one_line_one_cmd))
-                        Box( // 演示边框
-                            modifier = modifier
-                                .border(
-                                    width = 1.dp,
-                                    color = colorResource(R.color.md_theme_primary),
-                                    shape = MaterialTheme.shapes.small
-                                )
-                                .padding(GtaStartTheme.spacing.normal)
-                        ) {
-                            Text( // 演示文本
-                                style = MaterialTheme.typography.bodySmall,
-                                text = "sv_pure -1\npassword 123456"
-                            )
-                        }
-                    }
-                }
-
-                when { // 查看常用命令弹窗
-                    showCmds.value -> {
-                        val viewModel = LocalServerViewModel.current
-                        LaunchedEffect(Unit) {
-                            viewModel.getAutoExecCmds()
-                        }
-                        MCustomAlertDialog(
-                            title = stringResource(R.string.common_cmds),
-                            content = {
-                                if (viewModel.isAutoExecCmdLoading.value) {
-                                    CircularProgressIndicator()
-                                }
-                                LazyColumn(
-                                    modifier = modifier
-                                ) {
-                                    items(viewModel.autoExecCmdList) { item ->
-                                        ExecCmdsItem(
-                                            item = item,
-                                            textState = textState,
-                                            showCmds = showCmds
-                                        )
-                                    }
-                                }
-                            },
-                            onDismissRequest = {
-                                showCmds.value = false
-                            }
-                        )
-                    }
-                }
-            }
-        },
-        positiveButtonText = stringResource(R.string.save),
-        onPositiveButtonClick = {
-            scope.launch {
-                // 保存
-                // val currentCSVersion = ModLocalDataSource.getCurrentCSVersion()
-                viewModel.applySettingsToModSpNew()
-                CSMOSUtils.writeAutoExecText(textState.value.text)
-                MToast.show(context, context.getString(R.string.save_finished))
-                showDialog.value = false
-            }
-        },
-        onDismissRequest = {
-            showDialog.value = false
-        }
-    )
-}
-
-@Composable
-private fun ExecCmdsItem(
-    modifier: Modifier = Modifier,
-    item: AutoExecCmdBean,
-    textState: MutableState<TextFieldValue>,
-    showCmds: MutableState<Boolean>
-) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.small),
-        modifier = modifier
-            .fillMaxSize()
-            .clip(RoundedCornerShape(GtaStartTheme.spacing.normal))
-            .clickable {
-                textState.value =
-                    TextFieldValue("${textState.value.text.trimStart()}${if (!textState.value.text.isBlank()) "\n" else ""}${item.cmd}")
-                showCmds.value = false
-            }
-            .padding(GtaStartTheme.spacing.normal)
-
-    ) {
-        Text(
-            text = item.cmd?:"",
-            style = MaterialTheme.typography.titleSmall.copy(color = MaterialTheme.colorScheme.primary)
-        )
-        Text(
-            text = item.usage?:"",
-            style = MaterialTheme.typography.bodySmall
-        )
-    }
-}
-
-@Composable
-private fun DynamicHighlightedTextField(
-    modifier: Modifier = Modifier,
-    textState: MutableState<TextFieldValue>
-) {
-    // 样式：key 普通样式，value 高亮样式
-    val keyStyle = SpanStyle(color = colorResource(R.color.md_theme_tertiary), fontSize = 16.sp) // MaterialTheme.colorScheme.onPrimary 为啥走的是LightTheme
-    val valueStyle = SpanStyle(color = colorResource(R.color.md_theme_primary), fontSize = 16.sp)
-    val scrollState = rememberScrollState()
-
-//    TextField()
-    Box( // 弄个假的文本外边框
-        modifier = modifier
-            .border(
-                width = 1.dp,
-                color = colorResource(R.color.md_theme_primary),
-                shape = MaterialTheme.shapes.small // 圆角形状
-            )
-            .padding(GtaStartTheme.spacing.medium) // 内边距与边框之间的间距
-
-    ) {
-        BasicTextField(
-            value = textState.value,
-            onValueChange = { newValue ->
-                textState.value = newValue
-            },
-            modifier = modifier
-                .verticalScroll(scrollState)
-                .focusable(),
-            cursorBrush = SolidColor(TextFieldDefaults.colors().cursorColor), // 光标颜色
-            textStyle = LocalTextStyle.current.copy(fontSize = 16.sp, color = Color.Transparent),
-            decorationBox = { innerTextField ->
-                // 创建高亮文本
-                val annotatedText = buildAnnotatedString {
-                    val lines = textState.value.text.split("\n") // 按行分割
-                    lines.forEachIndexed { index, line ->
-                        val parts = line.split(" ", limit = 2) // 按第一个空格分割成 key 和 value
-                        val key = parts.getOrNull(0) ?: ""
-                        val value = parts.getOrNull(1) ?: ""
-
-                        // 为 key 部分添加样式
-                        append(AnnotatedString(key, keyStyle))
-
-                        // 为 value 部分添加样式
-                        if (value.isNotEmpty()) {
-                            append(" ")
-                            append(AnnotatedString(value, valueStyle))
-                        }
-
-                        // 添加换行符（除最后一行）
-                        if (index != lines.size - 1) {
-                            append("\n")
-                        }
-                    }
-                }
-
-                // 显示带样式的内容
-                BasicText(
-                    text = annotatedText,
-                    modifier = Modifier.fillMaxWidth(),
-                    style = LocalTextStyle.current.copy(fontSize = 16.sp),
-                )
-
-                // 渲染原始文本编辑框（透明）以保持可编辑性
-                innerTextField()
-            }
-        )
-    }
-}
-
-@Composable
 private fun ServerContent(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showDialog: MutableState<Boolean>,
+    innerPadding: PaddingValues
 ) {
+    val pagerState = rememberPagerState(
+        pageCount = { CsPayload.entries.size }
+    )
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(GtaStartTheme.spacing.normal)
+            //.padding(GtaStartTheme.spacing.normal)
     ) {
-        ServerTabs()
-        ServerList()
+        ServerTabs(
+            pagerState = pagerState
+        )
+        ServerList(
+            modifier = Modifier.fillMaxSize(), // 不继承InnerPadding0
+            showDialog = showDialog,
+            innerPadding = innerPadding,
+            pagerState = pagerState
+        )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ServerTabs(
     modifier: Modifier = Modifier,
     viewModel: ServerViewModel = LocalServerViewModel.current,
-    settingViewModel: SettingViewModel = LocalSettingViewModel.current
+    settingViewModel: SettingViewModel = LocalSettingViewModel.current,
+    pagerState: PagerState
 ) {
-    var index by rememberSaveable { mutableIntStateOf(0) }
-    TabRow(
+    val index = pagerState.currentPage
+    val scope = rememberCoroutineScope()
+    PrimaryTabRow (
         selectedTabIndex = index,
+        indicator = {
+            ViewLikeIndicator(index)
+        },
         tabs = {
-            Tab(
-                text = { Text("CS:MOS") },
-                selected = index == 0,
-                onClick = {
-                    index = 0
-                    viewModel.serverPayload.value = CsPayload.CSMOS.payload
-                    viewModel.serverCsType.value = "CSMOS"
-                    viewModel.refreshServerList()
-                }
-            )
-            Tab(
-                text = { Text("ClientMod") },
-                selected = index == 1,
-                onClick = {
-                    index = 1
-                    viewModel.serverPayload.value = CsPayload.CM.payload
-                    viewModel.serverCsType.value = "CM"
-                    viewModel.refreshServerList()
-                }
-            )
+            CsPayload.entries.forEachIndexed { i, csPayload ->
+                Tab(
+                    text = { Text(csPayload.title) },
+                    selected = index == i,
+                    onClick = {
+                        scope.launch {
+                            pagerState.scrollToPage(i)
+                        }
+                    }
+                )
+            }
         }
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+private fun TopBar(
+    modifier: Modifier = Modifier,
+    showDialog: MutableState<Boolean>
+) {
+    if (!isCompatHorizontal()) {
+        TopAppBar(
+            title = {
+                Text(stringResource(R.string.server_list), modifier = modifier.padding(start = GtaStartTheme.spacing.small))
+            },
+            navigationIcon = {
+                Image(
+                    painter = painterResource(R.drawable.rn_logo),
+                    contentDescription = null,
+                    modifier = modifier
+                        .padding(start = GtaStartTheme.spacing.normal)
+                        .size(36.dp)
+                        .clip(CircleShape),
+                )
+            },
+            actions = {
+                val density = LocalDensity.current
+
+                /// 设置自定义启动命令
+                Text(stringResource(R.string.custom_autoexec_cmd),
+                    style = MaterialTheme.typography.bodyMedium)
+                IconButton(
+                    onClick = {
+                        showDialog.value = true
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = null
+                    )
+                }
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@Composable
 private fun ServerList(
     modifier: Modifier = Modifier,
+    showDialog: MutableState<Boolean>,
+    innerPadding: PaddingValues,
+    pagerState: PagerState,
     viewModel: ServerViewModel = LocalServerViewModel.current
 ) {
     val context = LocalContext.current
     LaunchedEffect(Unit) {
         if (Constants.appUpdateInfo.value != null) {
-            viewModel.refreshServerList() // 每次重组都刷新列表
+            viewModel.refreshServerList(pagerState.settledPage) // 每次重组都刷新列表
         }
     }
     LaunchedEffect(Constants.appUpdateInfo.value) {
-        viewModel.refreshServerList()
+        viewModel.refreshServerList(pagerState.settledPage)
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -680,7 +535,7 @@ private fun ServerList(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         // 游戏结束以后刷新列表数据
-        viewModel.refreshServerList()
+        viewModel.refreshServerList(pagerState.settledPage)
     }
 
     val focusRequester = remember { FocusRequester() }
@@ -695,7 +550,7 @@ private fun ServerList(
                 content = {
                     Column(
                         verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal),
-                        modifier = modifier
+                        modifier = Modifier
                     ) {
                         Text(serverDetailStr.value)
                         LaunchedEffect(Unit) {
@@ -711,7 +566,7 @@ private fun ServerList(
                             label = {
                                 Text(stringResource(R.string.please_input_nickname), maxLines = 1)
                             },
-                            modifier = modifier.focusable(),
+                            modifier = Modifier.focusable(),
                         )
                     }
 
@@ -745,14 +600,17 @@ private fun ServerList(
                                                         viewModel.getVersionForShow(
                                                             it.versionName.orEmpty()
                                                         )
-                                                    val version = viewModel.getExistVersion().firstOrNull { it.versionName == ModLocalDataSource.getCurrentCSVersion() }
-                                                    val argvMap = CSMOSUtils.stringToArgsMap(version?.argv.orEmpty())
+                                                    val version = viewModel.getExistVersion()
+                                                        .firstOrNull { it.versionName == ModLocalDataSource.getCurrentCSVersion() }
+                                                    val argvMap =
+                                                        CSMOSUtils.stringToArgsMap(version?.argv.orEmpty())
                                                     var csType = ""
                                                     val gameArg = argvMap.get("-game")
                                                     if (argvMap.isNotEmpty() && gameArg != null) {
                                                         csType = gameArg
                                                     } else {
-                                                        csType = ModLocalDataSource.getCsType().lowercase()
+                                                        csType = ModLocalDataSource.getCsType()
+                                                            .lowercase()
                                                     }
                                                     val result = ValveActivity2.preInit(
                                                         version?.gamePath.orEmpty(),
@@ -767,8 +625,10 @@ private fun ServerList(
                                                                 title = "提示",
                                                                 message = "未检测到数据包，你可以：\n1. 前往游戏设置板块，点击「下载游戏数据包」选项进行下载\n2. 如果你已下载了数据包，请到下载管理解压安装\n3.如果本地存在数据包，请到游戏设置板块，并点击「游戏资源路径」进行选择",
                                                                 positiveButtonText = "前往设置",
-                                                                onPositiveButtonClick = { d,_ ->
-                                                                    mainPageNav.navigateSingleTopTo(MainPageDestination.AGameSetting.route)
+                                                                onPositiveButtonClick = { d, _ ->
+                                                                    mainPageNav.navigateSingleTopTo(
+                                                                        MainPageDestination.AGameSetting.route
+                                                                    )
                                                                     d.dismiss()
                                                                 }
                                                             )
@@ -780,8 +640,10 @@ private fun ServerList(
                                                                 title = "提示",
                                                                 message = "检测到数据包存在问题，未找到platform文件夹。请前往游戏设置板块，重新下载数据包",
                                                                 positiveButtonText = "前往设置",
-                                                                onPositiveButtonClick = { d,_ ->
-                                                                    mainPageNav.navigateSingleTopTo(MainPageDestination.AGameSetting.route)
+                                                                onPositiveButtonClick = { d, _ ->
+                                                                    mainPageNav.navigateSingleTopTo(
+                                                                        MainPageDestination.AGameSetting.route
+                                                                    )
                                                                     d.dismiss()
                                                                 }
                                                             )
@@ -793,7 +655,9 @@ private fun ServerList(
                                                             viewModel.getVersionForShow(it.versionName.orEmpty())
 
                                                         CSMOSUtils.saveNickName(viewModel.nickName.value)
-                                                        CSMOSUtils.saveAutoConnectInfo(currentServerIP.value)
+                                                        CSMOSUtils.saveAutoConnectInfo(
+                                                            currentServerIP.value
+                                                        )
                                                         CSMOSUtils.addCustomMainServers()
                                                         launcher.launch(intent) // 回调要刷新列表数据
                                                     }
@@ -832,39 +696,51 @@ private fun ServerList(
         modifier = modifier.fillMaxSize(),
         isRefreshing = isRefreshing,
         onRefresh = {
-            viewModel.refreshServerList()
+            viewModel.refreshServerList(pagerState.settledPage)
         }
     ) {
-        LazyColumn(
-            modifier = modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal)
-        ) {
-            itemsIndexed(serverList) { index, item ->
-                ServerListItemCard(
-                    item = item,
-                    onClick = {
-                        currentServerIP.value = item.serverIP.orEmpty()
+        LaunchedEffect(pagerState.settledPage) {
+            viewModel.serverPayload.value = CsPayload.entries[pagerState.settledPage].payload
+            viewModel.refreshServerList(pagerState.settledPage)
+        }
 
-                        serverDetailStr.value = buildAnnotatedString {
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("${item.serverName}\n")
+        HorizontalPager(
+            state = pagerState
+        ) { page ->
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal),
+                contentPadding = PaddingValues(GtaStartTheme.spacing.normal),
+            ) {
+                itemsIndexed(serverList[page], key = null) { index, item ->
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = fadeIn() + scaleIn(),
+                        exit = fadeOut() + scaleOut()
+                    ) {
+                        ServerListItemCard(
+                            item = item,
+                            onClick = {
+                                currentServerIP.value = item.serverIP.orEmpty()
+                                serverDetailStr.value = buildAnnotatedString {
+                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                        append("${item.serverName}\n")
+                                    }
+                                    append("""
+                                        ${context.getString(R.string.map)}：${item.serverMap}
+                                        ${context.getString(R.string.player_count)}：${item.playerCountInfo}
+                                        ${context.getString(R.string.ping)}：${item.ping} ms
+                                        ${context.getString(R.string.password)}：${if (item.hasPassword) context.getString(R.string.yes) else context.getString(R.string.no)}
+                                    """.trimIndent())
+                                }
+                                openDialog.value = true
                             }
-                            append("""
-                            ${context.getString(R.string.map)}：${item.serverMap}
-                            ${context.getString(R.string.player_count)}：${item.playerCountInfo}
-                            ${context.getString(R.string.ping)}：${item.ping} ms
-                        """.trimIndent())
-                        }
-/*                        serverDetailStr.value = """
-                            ${context.getString(R.string.map)}：${item.serverMap}
-                            ${context.getString(R.string.player_count)}：${item.playerCountInfo}
-                            ${context.getString(R.string.ping)}：${item.ping} ms
-                        """.trimIndent()*/
-                        openDialog.value = true
+                        )
                     }
-                )
+                }
             }
         }
+
     }
 }
 
@@ -878,15 +754,23 @@ private fun ServerListItemCard(
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = modifier
                 .clickable { onClick.invoke() }
                 .fillMaxWidth()
                 .matchContentHeight()
-                .padding(GtaStartTheme.spacing.medium)
+                .padding(vertical = GtaStartTheme.spacing.medium)
+                .padding(start = GtaStartTheme.spacing.normal, end = GtaStartTheme.spacing.medium)
         ) {
+            Icon(
+                modifier = Modifier.padding(end = GtaStartTheme.spacing.normal).size(GtaStartTheme.spacing.medium),
+                imageVector = if (item.hasPassword) Icons.Default.Lock else Icons.Default.LockOpen,
+                contentDescription = null,
+                tint = if (item.hasPassword) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+            )
             Column(
                 verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.small),
-                modifier = modifier.weight(1f)
+                modifier = Modifier.weight(1f)
             ) {
                 Text(
                     text = item.serverName?: stringResource(R.string.get_failed),
@@ -902,7 +786,7 @@ private fun ServerListItemCard(
             Column(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.End,
-                modifier = modifier
+                modifier = Modifier
                     .padding(horizontal = GtaStartTheme.spacing.normal)
                     .fillMaxHeight()
             ) {

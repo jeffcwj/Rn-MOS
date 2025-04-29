@@ -1,30 +1,23 @@
-package com.billflx.csgo.page
+package com.billflx.csgo.page.server
 
 import android.app.Application
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.billflx.csgo.bean.AutoExecCmdBean
-import com.billflx.csgo.bean.CSVersionInfoEnum
 import com.billflx.csgo.bean.SampQueryInfoBean
 import com.billflx.csgo.constant.Constants
 import com.billflx.csgo.data.ModLocalDataSource
 import com.billflx.csgo.data.db.CSVersionInfo
 import com.billflx.csgo.data.repo.AppRepository
 import com.billflx.csgo.data.repo.CSVersionInfoRepository
-import com.billflx.csgo.page.MainViewModel.Companion
-import com.billflx.csgo.page.settings.game.GameSettingViewModel
 import com.gtastart.common.util.CSMOSUtils
-import com.gtastart.common.util.Coroutines
 import com.gtastart.common.util.CsMosQuery
 import com.gtastart.common.util.CsPayload
 import com.gtastart.common.util.MToast
 import com.gtastart.common.util.isBlank
-import com.gtastart.ui.ServerPanel.cs.bean.CsServerType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -45,7 +38,10 @@ class ServerViewModel @Inject constructor(
         private const val TAG = "ServerViewModel"
     }
 
-    var serverInfoList = mutableStateListOf<SampQueryInfoBean>()
+    var serverInfoList = listOf(
+        mutableStateListOf<SampQueryInfoBean>(),
+        mutableStateListOf()
+    )
     var isRefreshing = mutableStateOf(false)
     private var refreshJob: Job? = null
 
@@ -130,7 +126,7 @@ class ServerViewModel @Inject constructor(
         return SampQueryInfoBean()
     }
 
-    fun refreshServerList() {
+    fun refreshServerList(index: Int) {
         Log.d(TAG, "refreshServerList: 开始刷新")
         refreshJob?.let {
             if (it.isActive) {
@@ -142,23 +138,31 @@ class ServerViewModel @Inject constructor(
         }
         if (!isRefreshing.value) {
             isRefreshing.value = true
-            serverInfoList.clear() // 清除列表
+            // serverInfoList[index].clear() // 清除列表
             refreshJob = viewModelScope.launch(Dispatchers.IO) {
+                var isListClear = false
+                // listOf("cs.samp.fun:27010", "oreo922.cn:27010", "135.125.188.162:27010")
                 Constants.appUpdateInfo.value?.link?.serverRootLink?.let { rootLinks ->
                     if (rootLinks.isEmpty()) isRefreshing.value = false
                     rootLinks.forEach { rootLink ->
                         launch {
                             val ipList = getServerIPList(rootLink)
                             if (ipList.isEmpty()) isRefreshing.value = false
+                            withContext(Dispatchers.Main) {
+                                if (!isListClear) {
+                                    serverInfoList[index].clear() // 清除列表
+                                    isListClear = true
+                                }
+                            }
                             ipList.forEach { ip ->
                                 launch {
                                     val (host, port) = ip.split(":").let { it[0] to it[1].toInt() }
                                     val infos = getServerInfos(host, port)
                                     withContext(Dispatchers.Main) {
-                                        if (serverInfoList.none { it.serverIP == infos.serverIP } && // 避免重复添加
+                                        if (serverInfoList[index].none { it.serverIP == infos.serverIP } && // 避免重复添加
                                             !infos.serverName.isNullOrBlank()) { // 避免获取空包
-                                            serverInfoList.add(infos)
-                                            serverInfoList.sortByDescending { it.players } // 按照玩家数量降序排序
+                                            serverInfoList[index].add(infos)
+                                            serverInfoList[index].sortByDescending { it.players } // 按照玩家数量降序排序
                                         }
                                     }
                                 }

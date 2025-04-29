@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.RelativeLayout
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.CompositionLocalProvider
@@ -24,6 +25,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.gtastart.common.theme.GtaStartTheme
 import com.gtastart.common.util.MHelpers
 import com.gtastart.common.util.MToast
+import com.gtastart.common.util.compose.widget.StatusBarProtection
 import com.gtastart.data.constant.CsConstants
 import com.valvesoftware.ValveActivity2
 import com.valvesoftware.source.R
@@ -115,6 +117,7 @@ class MainActivity : LauncherActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        enableEdgeToEdge()
         setContentView(R.layout.layout_compose)
         val composeView = findViewById<ComposeView>(R.id.composeView)
         composeView.setContent {
@@ -128,7 +131,7 @@ class MainActivity : LauncherActivity() {
                         RootNav()
                     }
                 }
-
+                StatusBarProtection()
             }
         }
 

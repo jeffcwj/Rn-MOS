@@ -17,6 +17,7 @@ import androidx.navigation.compose.rememberNavController
 import com.billflx.csgo.data.AppLocalDataSource
 import com.billflx.csgo.nav.MainPageDestination
 import com.billflx.csgo.nav.MainPageNav
+import com.gtastart.common.util.compose.getLayoutType
 import com.gtastart.common.util.compose.navigateSingleTopTo
 
 @Composable
@@ -30,6 +31,7 @@ fun MainScreen(
     val currentScreen = MainPageDestination.list(
         experimental = AppLocalDataSource.isExperimental() // 是否启用实验性页面 （也就是资源页）
     ).find { it.route == currentDestination?.route } ?: MainPageDestination.AHome
+    val layoutType = getLayoutType()
 
     LaunchedEffect(Unit) {
         navController.navigateSingleTopTo(
@@ -37,6 +39,7 @@ fun MainScreen(
         )
     }
     NavigationSuiteScaffold(
+        layoutType = layoutType,
         containerColor = Color.Transparent,
         navigationSuiteItems = {
             MainPageDestination.list(

@@ -127,5 +127,8 @@
     <string name="game_version_manage">游戏版本管理</string>
     <string name="game">游戏</string>
     <string name="change">修改</string>
+    <string name="password">密码</string>
+    <string name="yes">是</string>
+    <string name="no">否</string>
 
 </resources>

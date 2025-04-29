@@ -1,0 +1,11 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <style name="Theme.CSMOS" parent="Theme.CSMOS.v28">
+
+    </style>
+
+    <style name="Theme.CSMOS.v28" parent="Theme.CSMOS.v23">
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+    </style>
+
+</resources>

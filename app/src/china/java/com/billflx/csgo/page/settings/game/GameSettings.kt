@@ -5,7 +5,6 @@ import android.content.Intent
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -17,7 +16,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,7 +30,6 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -41,11 +38,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,13 +51,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.akira.tyranoemu.ui.prefs.NoScrollPrefsScreen
-import com.akira.tyranoemu.ui.prefs.PrefsScreen
 import com.akira.tyranoemu.ui.prefs.prefs.EditTextProPref
 import com.akira.tyranoemu.ui.prefs.prefs.ListDialogHtmlTextPref
 import com.akira.tyranoemu.ui.prefs.prefs.ListDialogTextPref
@@ -75,15 +66,12 @@ import com.billflx.csgo.data.db.CSVersionInfo
 import com.billflx.csgo.nav.LocalDownloadManagerVM
 import com.billflx.csgo.nav.LocalGameSettingViewModel
 import com.billflx.csgo.nav.LocalRootNav
-import com.billflx.csgo.nav.LocalServerViewModel
 import com.billflx.csgo.nav.RootDesc
-import com.billflx.csgo.page.ServerViewModel
+import com.billflx.csgo.page.server.ServerViewModel
 import com.gtastart.common.theme.GtaStartTheme
-import com.gtastart.common.util.CSMOSUtils
 import com.gtastart.common.util.MOSDialog
 import com.gtastart.common.util.MToast
 import com.gtastart.common.util.compose.navigateSingleTopTo
-import com.gtastart.common.util.compose.widget.RotatingEdgeGlowBox
 import com.gtastart.common.util.prefs.EditTextArgvPref
 import com.gtastart.common.util.prefs.FolderChooserPref
 import com.heyanle.okkv2.core.OkkvDefaultProvider

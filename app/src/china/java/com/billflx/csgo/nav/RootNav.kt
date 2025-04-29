@@ -1,8 +1,6 @@
 package com.billflx.csgo.nav
 
-import android.provider.DocumentsContract.Root
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -19,12 +17,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.billflx.csgo.MainActivity
 import com.billflx.csgo.page.DownloadManagerScreen
 import com.billflx.csgo.page.DownloadManagerViewModel
 import com.billflx.csgo.page.InstallGuideScreen
 import com.billflx.csgo.page.MainScreen
-import com.billflx.csgo.page.ServerViewModel
+import com.billflx.csgo.page.server.ServerViewModel
 import com.billflx.csgo.page.SettingViewModel
 import com.billflx.csgo.page.settings.game.GameSettingViewModel
 import com.billflx.csgo.page.settings.game.GameSettings

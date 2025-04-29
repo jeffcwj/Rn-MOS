@@ -5,7 +5,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.PlayCircleOutline
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.outlined.Dns
@@ -18,17 +17,11 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import com.billflx.csgo.page.MainPage
-import com.billflx.csgo.page.ServerPage
-import com.billflx.csgo.page.ServerViewModel
-import com.billflx.csgo.page.SettingPage
-import com.billflx.csgo.page.SettingViewModel
+import com.billflx.csgo.page.server.ServerPage
 import com.billflx.csgo.page.settings.MainSettingsNav
 import com.billflx.csgo.page.settings.game.GameSettings
 import com.gtastart.common.util.compose.navigateSingleTopTo
