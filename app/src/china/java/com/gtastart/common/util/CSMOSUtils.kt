@@ -131,6 +131,14 @@ class CSMOSUtils {
             }
         }
 
+        /**
+         * 添加密码
+         */
+        fun addPassword(password: String) {
+            removeCustomAutoExecCmd("password ")
+            addCustomAutoExecCmd("password $password")
+        }
+
         fun addSvPure() {
             removeCustomAutoExecCmd("sv_pure")
             addCustomAutoExecCmd("sv_pure -1")

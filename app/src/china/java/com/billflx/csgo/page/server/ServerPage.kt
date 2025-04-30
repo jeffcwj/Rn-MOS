@@ -341,7 +341,9 @@ private fun selectVersionDialog(
             context,
             title = "选择版本",
             customView = { dialog ->
-                LazyColumn {
+                LazyColumn(
+                    Modifier.padding(top = GtaStartTheme.spacing.medium)
+                ) {
                     items(viewModel.versionList) {
                         Column(
                             modifier = Modifier
@@ -359,7 +361,7 @@ private fun selectVersionDialog(
                                         dialog.dismiss()
                                     }
                                 }
-                                .padding(GtaStartTheme.spacing.medium)
+                                .padding(vertical = GtaStartTheme.spacing.medium, horizontal = GtaStartTheme.spacing.large)
                         ) {
                             Text(
                                 text = it.versionNameForShow
@@ -370,6 +372,7 @@ private fun selectVersionDialog(
                     item {
                         if (viewModel.versionList.isEmpty()) {
                             Column (
+                                modifier = Modifier.padding(GtaStartTheme.spacing.medium),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
                                 Text("空空如也，请前往设置页面下载~")
@@ -525,26 +528,14 @@ private fun ServerList(
     var isRefreshing by viewModel.isRefreshing
 
     val openDialog = rememberSaveable { mutableStateOf(false) }
+    val openSelectVersionDialog = rememberSaveable { mutableStateOf(false) }
 
     val serverDetailStr = remember { mutableStateOf(AnnotatedString("")) }
     val currentServerIP = rememberSaveable { mutableStateOf("") }
-    val settingVM = LocalSettingViewModel.current
-    val mainPageNav = LocalMainPageNav.current
-
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        // 游戏结束以后刷新列表数据
-        viewModel.refreshServerList(pagerState.settledPage)
-    }
-
-    val focusRequester = remember { FocusRequester() }
+    val needPassword = rememberSaveable { mutableStateOf(false) }
 
     when {
         openDialog.value -> { // 服务器详情弹窗
-            var currentVersion by viewModel.currentVersion
-            var serverCsType by viewModel.serverCsType
-            val scope = rememberCoroutineScope()
             MCustomAlertDialog(
                 title = stringResource(R.string.detail),
                 content = {
@@ -556,7 +547,7 @@ private fun ServerList(
                         LaunchedEffect(Unit) {
                             viewModel.loadNickName() // 加载昵称
                         }
-                        TextField(
+                        TextField( // 昵称
                             singleLine = true,
                             maxLines = 1,
                             value = viewModel.nickName.value,
@@ -568,126 +559,41 @@ private fun ServerList(
                             },
                             modifier = Modifier.focusable(),
                         )
+                        if (needPassword.value) {
+                            TextField( // 密码
+                                singleLine = true,
+                                maxLines = 1,
+                                value = viewModel.password.value,
+                                onValueChange = {
+                                    viewModel.password.value = it
+                                },
+                                label = {
+                                    Text("密码", maxLines = 1)
+                                },
+                                modifier = Modifier.focusable(),
+                            )
+                        }
                     }
 
                 },
                 positiveButtonText = stringResource(R.string.start_game),
                 onPositiveButtonClick = {
-                    val intent = Intent(context, SDLActivity::class.java)
-                    MOSDialog.show(
-                        context,
-                        title = "选择版本",
-                        customView = { dialog ->
-                            LaunchedEffect(Unit) {
-                                viewModel.getExistVersion()
-                            }
-                            LazyColumn {
-                                items(viewModel.versionList.filter { it.csType == serverCsType }) {
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable {
-                                                scope.launch {
-                                                    if (!viewModel.saveNickName()) {
-                                                        context.MToast(context.getString(R.string.nickname_cannot_empty))
-                                                        return@launch
-                                                    }
-                                                    ModLocalDataSource.setCurrentCSVersion(
-                                                        it.versionName.orEmpty()
-                                                    ) // 先设置版本
-                                                    viewModel.applySettingsToModSpNew()
-                                                    currentVersion =
-                                                        viewModel.getVersionForShow(
-                                                            it.versionName.orEmpty()
-                                                        )
-                                                    val version = viewModel.getExistVersion()
-                                                        .firstOrNull { it.versionName == ModLocalDataSource.getCurrentCSVersion() }
-                                                    val argvMap =
-                                                        CSMOSUtils.stringToArgsMap(version?.argv.orEmpty())
-                                                    var csType = ""
-                                                    val gameArg = argvMap.get("-game")
-                                                    if (argvMap.isNotEmpty() && gameArg != null) {
-                                                        csType = gameArg
-                                                    } else {
-                                                        csType = ModLocalDataSource.getCsType()
-                                                            .lowercase()
-                                                    }
-                                                    val result = ValveActivity2.preInit(
-                                                        version?.gamePath.orEmpty(),
-                                                        csType,
-                                                    )
-                                                    if (result != 1) {
-                                                        if (result == 0) {
-                                                            // 没找到数据包
-                                                            MOSDialog.show(
-                                                                context,
-                                                                cancelable = false,
-                                                                title = "提示",
-                                                                message = "未检测到数据包，你可以：\n1. 前往游戏设置板块，点击「下载游戏数据包」选项进行下载\n2. 如果你已下载了数据包，请到下载管理解压安装\n3.如果本地存在数据包，请到游戏设置板块，并点击「游戏资源路径」进行选择",
-                                                                positiveButtonText = "前往设置",
-                                                                onPositiveButtonClick = { d, _ ->
-                                                                    mainPageNav.navigateSingleTopTo(
-                                                                        MainPageDestination.AGameSetting.route
-                                                                    )
-                                                                    d.dismiss()
-                                                                }
-                                                            )
-                                                        } else {
-                                                            // 没找到platform
-                                                            MOSDialog.show(
-                                                                context,
-                                                                cancelable = false,
-                                                                title = "提示",
-                                                                message = "检测到数据包存在问题，未找到platform文件夹。请前往游戏设置板块，重新下载数据包",
-                                                                positiveButtonText = "前往设置",
-                                                                onPositiveButtonClick = { d, _ ->
-                                                                    mainPageNav.navigateSingleTopTo(
-                                                                        MainPageDestination.AGameSetting.route
-                                                                    )
-                                                                    d.dismiss()
-                                                                }
-                                                            )
-                                                        }
-                                                    } else {
-                                                        ModLocalDataSource.setCurrentCSVersion(it.versionName.orEmpty())
-                                                        viewModel.applySettingsToModSpNew()
-                                                        currentVersion =
-                                                            viewModel.getVersionForShow(it.versionName.orEmpty())
-
-                                                        CSMOSUtils.saveNickName(viewModel.nickName.value)
-                                                        CSMOSUtils.saveAutoConnectInfo(
-                                                            currentServerIP.value
-                                                        )
-                                                        CSMOSUtils.addCustomMainServers()
-                                                        launcher.launch(intent) // 回调要刷新列表数据
-                                                    }
-                                                    openDialog.value = false
-                                                    dialog.dismiss()
-                                                }
-                                            }
-                                            .padding(GtaStartTheme.spacing.medium)
-                                    ) {
-                                        Text(
-                                            text = it.versionNameForShow
-                                                ?: it.versionName.orEmpty()
-                                        )
-                                    }
-                                }
-                                item {
-                                    if (viewModel.versionList.isEmpty()) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                        ) {
-                                            Text("未找到游戏版本，请前往游戏页下载")
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    )
-
+                    openDialog.value = false
+                    openSelectVersionDialog.value = true // 打开选择版本弹窗
                 },
-                onDismissRequest = {openDialog.value = false}
+                onDismissRequest = { openDialog.value = false }
+            )
+        }
+    }
+
+    when {
+        openSelectVersionDialog.value -> { // 选择版本弹窗
+            SelectVersionDialog(
+                viewModel = viewModel,
+                currentServerIP = currentServerIP,
+                pagerState = pagerState,
+                openDialog = openDialog,
+                openSelectVersionDialog = openSelectVersionDialog
             )
         }
     }
@@ -721,7 +627,9 @@ private fun ServerList(
                         ServerListItemCard(
                             item = item,
                             onClick = {
+
                                 currentServerIP.value = item.serverIP.orEmpty()
+                                needPassword.value = item.hasPassword
                                 serverDetailStr.value = buildAnnotatedString {
                                     withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                                         append("${item.serverName}\n")
@@ -733,7 +641,7 @@ private fun ServerList(
                                         ${context.getString(R.string.password)}：${if (item.hasPassword) context.getString(R.string.yes) else context.getString(R.string.no)}
                                     """.trimIndent())
                                 }
-                                openDialog.value = true
+                                openDialog.value = true // 打开服务器详情弹窗
                             }
                         )
                     }

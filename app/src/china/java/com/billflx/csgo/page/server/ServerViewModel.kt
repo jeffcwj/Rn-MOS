@@ -45,7 +45,8 @@ class ServerViewModel @Inject constructor(
     var isRefreshing = mutableStateOf(false)
     private var refreshJob: Job? = null
 
-    var nickName = mutableStateOf("RnMOS Player")
+    var nickName = mutableStateOf("RnCS Player")
+    var password = mutableStateOf("")
 
     var autoExecCmdList = mutableStateListOf<AutoExecCmdBean>()
     var isAutoExecCmdLoading = mutableStateOf(false)
