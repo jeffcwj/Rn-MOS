@@ -281,6 +281,11 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
         LoadLibUtils.fromAssets(this, libRelativePath + "/liblauncher.so", getFilesDir().getPath());
 
         try {
+            LoadLibUtils.fromAssets(this, libRelativePath + "/libfmod.so", getFilesDir().getPath());
+        } catch (Throwable e) {
+            Log.w(TAG, "FMod Library Load Failed: " + e);
+        }
+        try {
             System.loadLibrary("RnCS"); // 最后加载，不然动态库打开失败
             initRnCS(); // 马上初始化RnCS
             // nativeMain("-insecure -maxplayers 10 -game csmos -console -port 27015 -language English +map de_dust2_FPS_Final".split(" "));

@@ -52,7 +52,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.gtastart.common.util.MToast;
 import com.valvesoftware.ValveActivity2;
 import com.valvesoftware.source.R;
 import java.util.ArrayList;
@@ -255,6 +254,11 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
     public void loadLibraries() {
         for (String lib : getLibraries()) {
             SDL.loadLibrary(lib);
+        }
+        try {
+            System.loadLibrary("fmod");
+        } catch (Throwable e) {
+            Log.w(TAG, "FMod Library Load Failed: " + e);
         }
     }
 

@@ -342,7 +342,7 @@ private fun selectVersionDialog(
             title = "选择版本",
             customView = { dialog ->
                 LazyColumn(
-                    Modifier.padding(top = GtaStartTheme.spacing.medium)
+                    Modifier//.padding(top = GtaStartTheme.spacing.normal)
                 ) {
                     items(viewModel.versionList) {
                         Column(
@@ -372,15 +372,19 @@ private fun selectVersionDialog(
                     item {
                         if (viewModel.versionList.isEmpty()) {
                             Column (
-                                modifier = Modifier.padding(GtaStartTheme.spacing.medium),
-                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.padding(horizontal = GtaStartTheme.spacing.large, vertical = GtaStartTheme.spacing.medium),
                             ) {
                                 Text("空空如也，请前往设置页面下载~")
-                                TextButton(
-                                    onClick = {
-                                        onGotoGameSettingClick.invoke()
-                                    }
-                                ) { Text("前往下载") }
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.End
+                                ) {
+                                    TextButton(
+                                        onClick = {
+                                            onGotoGameSettingClick.invoke()
+                                        }
+                                    ) { Text("前往下载") }
+                                }
                             }
                         }
                     }
@@ -591,6 +595,7 @@ private fun ServerList(
             SelectVersionDialog(
                 viewModel = viewModel,
                 currentServerIP = currentServerIP,
+                hasPassword = needPassword,
                 pagerState = pagerState,
                 openDialog = openDialog,
                 openSelectVersionDialog = openSelectVersionDialog
@@ -627,11 +632,10 @@ private fun ServerList(
                         ServerListItemCard(
                             item = item,
                             onClick = {
-
                                 currentServerIP.value = item.serverIP.orEmpty()
                                 needPassword.value = item.hasPassword
                                 serverDetailStr.value = buildAnnotatedString {
-                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) { // Bold失效
                                         append("${item.serverName}\n")
                                     }
                                     append("""

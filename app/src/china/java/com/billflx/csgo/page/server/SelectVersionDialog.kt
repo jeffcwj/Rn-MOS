@@ -43,6 +43,7 @@ fun SelectVersionDialog(
     modifier: Modifier = Modifier,
     viewModel: ServerViewModel = LocalServerViewModel.current,
     currentServerIP: MutableState<String>,
+    hasPassword: MutableState<Boolean>,
     pagerState: PagerState,
     openDialog: MutableState<Boolean>,
     openSelectVersionDialog: MutableState<Boolean>
@@ -147,11 +148,12 @@ fun SelectVersionDialog(
                                             currentServerIP.value
                                         )
                                         val password = viewModel.password.value
-                                        if (password.isNotBlank()) {
-                                            Log.d("", "SelectVersionDialog: $password")
+                                        if (hasPassword.value) {
                                             CSMOSUtils.addPassword(
                                                 password = password
                                             )
+                                        } else {
+                                            // CSMOSUtils.removePassword() // 不移除也行
                                         }
                                         CSMOSUtils.addCustomMainServers()
                                         launcher.launch(intent) // 回调要刷新列表数据

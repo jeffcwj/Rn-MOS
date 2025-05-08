@@ -138,6 +138,12 @@ class CSMOSUtils {
             removeCustomAutoExecCmd("password ")
             addCustomAutoExecCmd("password $password")
         }
+        /**
+         * 移除密码
+         */
+        fun removePassword() {
+            removeCustomAutoExecCmd("password ")
+        }
 
         fun addSvPure() {
             removeCustomAutoExecCmd("sv_pure")

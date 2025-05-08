@@ -9,13 +9,10 @@ class Constants {
 
     companion object {
         var appUpdateInfo: MutableState<AppUpdateBean?> = mutableStateOf(null)
-        val appVersion = "r11.5"
+        const val appVersion = "r11.6"
 
         val customRoomVersion = 6
         val isAppUpdateInfoFailed = mutableStateOf(false)
-
-        const val SOURCE_HOST = "135.125.188.162"
-        const val SOURCE_PORT = 27010
 
         const val CONFIG_PATH = "/%s/cfg/config.cfg"
         const val AUTOEXEC_CONFIG_PATH = "/%s/cfg/autoexec.cfg"
