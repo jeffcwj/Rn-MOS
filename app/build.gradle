@@ -38,7 +38,7 @@ android {
             }
             create('china')  {
                 dimension "region"
-                versionName "r11.6"
+                versionName "r11.7"
             }
         }
     }
@@ -87,11 +87,11 @@ android {
 //            shrinkResources true
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            externalNativeBuild {
+            /*externalNativeBuild {
                 cmake {
                     arguments "-DCMAKE_CXX_FLAGS=-fvisibility=hidden -fvisibility-inlines-hidden"
                 }
-            }
+            }*/
             //signingConfig signingConfigs.debug
             debuggable false
             signingConfig signingConfigs.debug

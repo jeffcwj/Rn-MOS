@@ -1,5 +1,6 @@
 #include "main.h"
 #include "spdlog/sinks/android_sink.h"
+#include "BackTrace.h"
 
 
 JavaVM* g_java_vm = nullptr;
@@ -105,6 +106,17 @@ jint JNI_OnLoad(JavaVM* vm, [[maybe_unused]] void* reserved)
 		return JNI_ERR;
 	}
 
+    // signal handler
+    struct sigaction sig_action{};
+    sig_action.sa_sigaction = [](int signal, siginfo_t* info, void* ctx) {
+        dump_register(signal, info, ctx);
+        dump_stack(2);
+        exit(signal);
+    };
+    sigemptyset(&sig_action.sa_mask);
+    sig_action.sa_flags = SA_SIGINFO;
+    sigaction(SIGSEGV, &sig_action, nullptr);
+
     // init spdlog
     try {
         auto android_logger = spdlog::android_logger_mt("android", LOG_TAG);
@@ -144,20 +156,29 @@ jint JNI_OnLoad(JavaVM* vm, [[maybe_unused]] void* reserved)
         libEnginePath = "/data/data/rn.csgo.game/files/libs/CSMOS_v80/libengine.so";
         libGameUIPath = "/data/data/rn.csgo.game/files/libs/CSMOS_v80/libGameUI.so";
         libServerBrowserPath = "/data/data/rn.csgo.game/files/libs/CSMOS_v80/libServerBrowser.so";
+    } else if (g_java->getFlavor() == CSVersion::CSSOV1) {
+        libEnginePath = "/data/data/rn.csgo.game/files/libs/CSSOV1/libengine.so";
+        libGameUIPath = "";
+        libServerBrowserPath = "/data/data/rn.csgo.game/files/libs/CSSOV1/libServerBrowser.so";
     }
 
-    spdlog::info("CSMOS version: {}", g_java->getFlavor());
+    spdlog::info("CS version: {}", g_java->getFlavor());
 
     GHandle engineHandle = g_libEngine->Open(libEnginePath.c_str());
     if (!engineHandle) {
         spdlog::info("Cannot open libengine.so");
         return env->GetVersion();
     }
-    GHandle GameUIHandle = g_libGameUI->Open(libGameUIPath.c_str());
-    if (!GameUIHandle) {
-        spdlog::info("Cannot open libGameUI.so");
-        return env->GetVersion();
+    if (!libGameUIPath.empty()) {
+        GHandle GameUIHandle = g_libGameUI->Open(libGameUIPath.c_str());
+        if (!GameUIHandle) {
+            spdlog::info("Cannot open libGameUI.so");
+            return env->GetVersion();
+        }
+    } else {
+        spdlog::info("Skip libGameUI.so");
     }
+
     GHandle ServerBrowserHandle = g_libServerBrowser->Open(libServerBrowserPath.c_str());
     if (!ServerBrowserHandle) {
         spdlog::info("Cannot open libServerBrowser.so");

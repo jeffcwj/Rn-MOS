@@ -25,7 +25,7 @@ class CSMOSUtils {
             val stripped = str.trim().replace(Regex("\\s+"), " ")
             var keyTmp = ""
             stripped.split(" ").forEach { item ->
-                if (item.startsWith("-")) {
+                if (item.startsWith("-") || item.startsWith("+")) {
                     keyTmp = item
                     map[keyTmp] = ""
                 } else {

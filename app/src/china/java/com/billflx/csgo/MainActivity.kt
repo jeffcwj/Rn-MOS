@@ -74,7 +74,7 @@ class MainActivity : LauncherActivity() {
                             ) { dialog, which ->
                                 MHelpers.openBrowser(context, it.app.link) // 访问浏览器更新软件
                             }
-                            .setCancelable(true)
+                            .setCancelable(false)
                         val versions = it.app.allowVersions.split(",")
                         if (versions.contains(Constants.appVersion)) {
                             val launch_screen_rootLayout = context.findViewById<RelativeLayout>(R.id.launch_screen_rootLayout)
@@ -84,7 +84,7 @@ class MainActivity : LauncherActivity() {
                             builder.setNegativeButton(context.getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
                         } else {
                             Log.d(TAG, "checkUpdate: 版本过老")
-                            builder.setNegativeButton(context.getString(R.string.cancel)) {dialog,_ -> dialog.dismiss() }
+                            // builder.setNegativeButton(context.getString(R.string.cancel)) {dialog,_ -> dialog.dismiss() }
                         }
                         builder.show()
 //                        launch_screen_refresh?.visibility = View.VISIBLE
@@ -152,7 +152,7 @@ class MainActivity : LauncherActivity() {
         }
 
         // 检测更新
-        lifecycleScope.launch(Dispatchers.IO) {
+        lifecycleScope.launch(Dispatchers.Main) {
             checkUpdate(mainViewModel, this@MainActivity)
         }
 

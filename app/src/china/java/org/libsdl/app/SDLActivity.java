@@ -199,6 +199,13 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
     public static native void onNativeTouch(int i, int i2, int i3, float f, float f2, float f3);
 
     static {
+//        System.loadLibrary("RnCS");
+        /* 最终只有3步
+        1. 让你的so在游戏之前加载
+        2. 使用GlossHookInit(true)
+        3. 使用GlossHookConstructor去Hook构造函数
+        其实应该反过来
+        */
         mHasMultiWindow = Build.VERSION.SDK_INT >= 24;
         mBrokenLibraries = true;
     }
@@ -286,7 +293,8 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
             Log.w(TAG, "FMod Library Load Failed: " + e);
         }
         try {
-            System.loadLibrary("RnCS"); // 最后加载，不然动态库打开失败
+            System.loadLibrary("RnCS");
+
             initRnCS(); // 马上初始化RnCS
             // nativeMain("-insecure -maxplayers 10 -game csmos -console -port 27015 -language English +map de_dust2_FPS_Final".split(" "));
         } catch (Throwable e) {

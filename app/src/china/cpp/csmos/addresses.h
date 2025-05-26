@@ -21,6 +21,7 @@ public:
     static inline std::string CSMOSV77 = "CSMOSV77";
     static inline std::string CSMOSV78 = "CSMOSV78";
     static inline std::string CSMOSV80 = "CSMOSV80";
+    static inline std::string CSSOV1 = "CSSOV1";
 };
 
 class AddressManager {
@@ -68,16 +69,43 @@ public:
             // engine
             FUNC_GetSteamInfIDVersionInfo = 0x626C10;
             return true;
+        }  else if (flavor == CSVersion::CSMOSV80) {
+            // engine
+            FUNC_NET_Init = 0x5E4CE0; // string: Found -NoQueuedPacketThread
+            FUNC_CGameServer_Init = 0x53E758; // string: m_FullSendTables
+            FUNC_CSteam3Server_Activate = 0x5345F8; // string: -steamport
+            FUNC_CMaster_SendHeartbeat = 0x6526B4; // string: Master Join或unexpected master server info,然后在上下函数的伪代码里找带 < 15.0 的就是
+            FUNC_NET_StringToAdr = 0x5DE704; // string: localhost:
+            STR_listenserver = 0x3CE0E0; // string: connect localhost:%d listenserver
+
+            return true;
+        } else if (flavor == CSVersion::CSSOV1) {
+            // engine
+            FUNC_NET_Init = 0x5E3338;
+            FUNC_CGameServer_Init = 0x54353C;
+            FUNC_CSteam3Server_Activate = 0x5393CC;
+            FUNC_CMaster_SendHeartbeat = 0x64A940;
+            FUNC_NET_StringToAdr = 0x5DD974;
+            STR_listenserver = 0x3B555F;
+            return true;
         } else {
             return false;
         }
     }
+
+    static inline bool bDedicated = false; // 是否将客户端的listenserver改为服务端的server
+
 
     static inline uintptr_t VMT_Master = 0;
     static inline uintptr_t FUNC_NET_StringToAdr = 0;
     static inline uintptr_t FUNC_CMaster_AddServer = 0;
     static inline uintptr_t FUNC_CMaster_RequestInternetServerList = 0;
     static inline uintptr_t FUNC_GetSteamInfIDVersionInfo = 0;
+    static inline uintptr_t FUNC_NET_Init = 0;
+    static inline uintptr_t FUNC_CGameServer_Init = 0;
+    static inline uintptr_t FUNC_CSteam3Server_Activate = 0;
+    static inline uintptr_t FUNC_CMaster_SendHeartbeat = 0;
+    static inline uintptr_t STR_listenserver = 0;
 
     static inline uintptr_t FUNC_AddUrlButton = 0;
     static inline uintptr_t FUNC_CBasePanel = 0;

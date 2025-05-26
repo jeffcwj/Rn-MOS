@@ -133,4 +133,21 @@ public:
     char m_szServerName[MAX_SERVER_NAME];
 };
 
+
+typedef struct adrlist_s
+{
+    // Next master in chain
+    struct adrlist_s	*next;
+    // Challenge request sent to master
+    int			heartbeatwaiting;
+    // Challenge request send time
+    float				heartbeatwaitingtime;
+    // Last one is Main master
+    int					heartbeatchallenge;
+    // Time we sent last heartbeat
+    double				last_heartbeat;
+    // Master server address
+    netadr_t			adr;
+} adrlist_t;
+
 #endif //RNMOS_STRUCTS_H

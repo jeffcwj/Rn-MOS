@@ -40,6 +40,7 @@ class ServerViewModel @Inject constructor(
 
     var serverInfoList = listOf(
         mutableStateListOf<SampQueryInfoBean>(),
+        mutableStateListOf(),
         mutableStateListOf()
     )
     var isRefreshing = mutableStateOf(false)
@@ -52,7 +53,7 @@ class ServerViewModel @Inject constructor(
     var isAutoExecCmdLoading = mutableStateOf(false)
 
     var serverPayload = mutableStateOf(CsPayload.CSMOS.payload)
-    var serverCsType = mutableStateOf("CSMOS")
+    var serverCsType = mutableStateOf(CsPayload.CSMOS.csType)
 
     val versionList = mutableStateListOf<CSVersionInfo>()
     val currentVersion = mutableStateOf(

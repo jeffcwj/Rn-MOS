@@ -159,6 +159,26 @@ fun ServerPage(
                 // viewModel.refreshServerList()
             }
             val fabContainerColor = FloatingActionButtonDefaults.containerColor
+            var showNickNameDialog by rememberSaveable { mutableStateOf(false) }
+            when  {
+                showNickNameDialog -> {
+                    viewModel.loadNickName()
+                    InputNickNameDialog(
+                        text = viewModel.nickName,
+                        onStartGameClick = { // 启动游戏
+                            scope.launch {
+                                viewModel.applySettingsToModSpNew() // 从数据库应用设置
+                                CSMOSUtils.removeAutoConnectInfo() // 在设置应用之后执行文件操作
+                                CSMOSUtils.addCustomMainServers() // 添加主服
+                                val intent = Intent(context, SDLActivity::class.java)
+                                launcher.launch(intent) // 启动游戏
+                                showNickNameDialog = false
+                            }
+                        },
+                        onDismiss = { showNickNameDialog = false }
+                    )
+                }
+            }
             ElevatedCard(
                 modifier = Modifier,
                 colors = CardDefaults.elevatedCardColors().copy(
@@ -240,11 +260,7 @@ fun ServerPage(
                                             )
                                         }
                                     } else {
-                                        viewModel.applySettingsToModSpNew() // 从数据库应用设置
-                                        CSMOSUtils.removeAutoConnectInfo() // 在设置应用之后执行文件操作
-                                        CSMOSUtils.addCustomMainServers() // 添加主服
-                                        val intent = Intent(context, SDLActivity::class.java)
-                                        launcher.launch(intent) // 启动游戏
+                                        showNickNameDialog = true
                                     }
                                 }
                             }
@@ -610,9 +626,12 @@ private fun ServerList(
             viewModel.refreshServerList(pagerState.settledPage)
         }
     ) {
+        var serverCsType by viewModel.serverCsType
+
         LaunchedEffect(pagerState.settledPage) {
             viewModel.serverPayload.value = CsPayload.entries[pagerState.settledPage].payload
             viewModel.refreshServerList(pagerState.settledPage)
+            serverCsType = CsPayload.entries[pagerState.settledPage].csType
         }
 
         HorizontalPager(

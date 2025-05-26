@@ -9,7 +9,7 @@ class Constants {
 
     companion object {
         var appUpdateInfo: MutableState<AppUpdateBean?> = mutableStateOf(null)
-        const val appVersion = "r11.6"
+        const val appVersion = "r11.7"
 
         val customRoomVersion = 6
         val isAppUpdateInfoFailed = mutableStateOf(false)

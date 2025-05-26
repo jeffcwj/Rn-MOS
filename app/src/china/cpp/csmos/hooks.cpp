@@ -215,6 +215,41 @@ DECL_HOOK(int, shitass, void* a1, void* a2) {
     return shitass(a1, a2);
 }
 
+
+DECL_HOOK(void, Host_Init, bool bDedicated) {
+    LOGD("Host_Init, isDedicated:%d", bDedicated);
+
+    Host_Init(bDedicated);
+}
+DECL_HOOK(void, NET_Init, bool bDedicated) {
+    LOGD("NET_Init, isDedicated:%d", bDedicated);
+
+    NET_Init(true);
+}
+
+DECL_HOOK(void, CGameServer_Init, uintptr_t thiz, bool bDedicated) {
+    LOGD("CGameServer_Init, isDedicated:%d", bDedicated);
+
+    CGameServer_Init(thiz, true);
+}
+
+DECL_HOOK(void, CSteam3Server_Activate, uintptr_t thiz, void* a1) {
+    LOGD("CSteam3Server_Activate");
+
+    // CSteam3Server_Activate(thiz, a1);
+}
+DECL_HOOK(void, CMaster_SendHeartbeat, uintptr_t thiz, adrlist_t* p) {
+    LOGD("CMaster_SendHeartbeat");
+    /*netadr_t customAddr;
+    if (NET_StringToAdr("58.220.44.15:19948", &customAddr)) {
+        p->adr = customAddr;
+        LOGD("Replaced heartbeat address with custom public IP.");
+    } else {
+        LOGD("Failed to parse public IP address.");
+    }*/
+     CMaster_SendHeartbeat(thiz, p);
+}
+
 void installHooks() {
     spdlog::info("Installing global hooks...");
 
@@ -226,6 +261,18 @@ void installHooks() {
     if (Addr::FUNC_CMaster_RequestInternetServerList)
     HOOK_ENGINE_ADDR(Addr::FUNC_CMaster_RequestInternetServerList, CMaster_RequestInternetServerList); // 加载服务器列表
 
+    // dedicated hook
+    if (Addr::bDedicated) {
+        //    HOOK_ENGINE_ADDR(0x5BC904, Host_Init); // 引擎初始化
+        if (Addr::FUNC_NET_Init)
+            HOOK_ENGINE_ADDR(Addr::FUNC_NET_Init, NET_Init); // 网络初始化
+        if (Addr::FUNC_CGameServer_Init)
+            HOOK_ENGINE_ADDR(Addr::FUNC_CGameServer_Init, CGameServer_Init); // 游戏服务器初始化
+        if (Addr::FUNC_CSteam3Server_Activate)
+            HOOK_ENGINE_ADDR(Addr::FUNC_CSteam3Server_Activate, CSteam3Server_Activate); // Steam服务器初始化
+        if (Addr::FUNC_CMaster_SendHeartbeat)
+            HOOK_ENGINE_ADDR(Addr::FUNC_CMaster_SendHeartbeat, CMaster_SendHeartbeat); // 主服发心跳？
+    }
 
     HOOK_ENGINE_ADDR2(Addr::FUNC_GetSteamInfIDVersionInfo, GetSteamInfIDVersionInfo);
 //    HOOK_ENGINE_ADDR(0x825420, WriteString);
@@ -245,4 +292,5 @@ void installHooks() {
 
     if (Addr::FUNC_ServerResponded)
     HOOK_SERVERBROWSER_ADDR(Addr::FUNC_ServerResponded, ServerResponded); // 处理服务器返回信息
+
 }
