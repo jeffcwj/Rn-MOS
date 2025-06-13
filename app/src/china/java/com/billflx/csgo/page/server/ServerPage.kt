@@ -12,6 +12,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -83,6 +84,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
@@ -145,6 +147,7 @@ fun ServerPage(
         }
     }
 
+    var fabHeight = remember { mutableStateOf(0.dp) }
     Scaffold(
         topBar = {
             TopBar(showDialog = showDialog)
@@ -167,6 +170,8 @@ fun ServerPage(
                         text = viewModel.nickName,
                         onStartGameClick = { // 启动游戏
                             scope.launch {
+                                viewModel.saveNickName()
+                                CSMOSUtils.saveNickName(viewModel.nickName.value)
                                 viewModel.applySettingsToModSpNew() // 从数据库应用设置
                                 CSMOSUtils.removeAutoConnectInfo() // 在设置应用之后执行文件操作
                                 CSMOSUtils.addCustomMainServers() // 添加主服
@@ -179,8 +184,14 @@ fun ServerPage(
                     )
                 }
             }
+
+            val density = LocalDensity.current
             ElevatedCard(
-                modifier = Modifier,
+                modifier = Modifier.onSizeChanged {
+                    fabHeight.value = with(density) {
+                        it.height.toDp()
+                    }
+                },
                 colors = CardDefaults.elevatedCardColors().copy(
                     containerColor = fabContainerColor,
                     contentColor = contentColorFor(fabContainerColor)
@@ -339,7 +350,7 @@ fun ServerPage(
         ServerContent(
             modifier = modifier.padding(innerPadding),
             showDialog = showDialog,
-            innerPadding = PaddingValues(0.dp)
+            innerPadding = PaddingValues(bottom = fabHeight.value)
         )
     }
 }
@@ -640,7 +651,12 @@ private fun ServerList(
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(GtaStartTheme.spacing.normal),
-                contentPadding = PaddingValues(GtaStartTheme.spacing.normal),
+                contentPadding = PaddingValues(
+                    top = GtaStartTheme.spacing.normal,
+                    start = GtaStartTheme.spacing.normal,
+                    end = GtaStartTheme.spacing.normal,
+                    bottom = innerPadding.calculateBottomPadding() + 32.dp,
+                ),
             ) {
                 itemsIndexed(serverList[page], key = null) { index, item ->
                     AnimatedVisibility(
