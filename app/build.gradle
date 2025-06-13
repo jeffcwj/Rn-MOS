@@ -61,7 +61,7 @@ android {
 //                outputFileName = "RnMOS_${flavorName.replace("-", ".")}_${variant.versionName}.apk"
             }
 
-            if (project.findProperty('RnCS.includeAssets') != 'true' || project.findProperty('RnCS.buildVariant') != 'china') {
+            if (project.findProperty('RnCS.includeAssets') != 'true' && project.findProperty('RnCS.buildVariant') == 'china') {
                 def outputDir = variant.mergeAssetsProvider.get().outputDir
                 variant.mergeAssetsProvider.configure {
                     doLast {
